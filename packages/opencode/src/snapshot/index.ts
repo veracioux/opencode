@@ -54,7 +54,7 @@ export namespace Snapshot {
     log.info("restore", { commit: snapshot })
     const app = App.info()
     const git = gitdir(sessionID)
-    await $`git --git-dir=${git} checkout ${snapshot} --force`.quiet().cwd(app.path.root)
+    await $`git --git-dir=${git} reset --hard ${snapshot}`.quiet().cwd(app.path.root)
   }
 
   export async function diff(sessionID: string, commit: string) {
