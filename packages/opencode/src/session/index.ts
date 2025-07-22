@@ -1092,10 +1092,13 @@ export namespace Session {
   }
 
   export async function unrevert(input: { sessionID: string }) {
-    const session = await update(input.sessionID, (draft) => {
+    const session = await get(input.sessionID)
+    if (!session.revert) return session
+    if (session.revert.snapshot) await Snapshot.restore(input.sessionID, session.revert.snapshot)
+    const next = await update(input.sessionID, (draft) => {
       draft.revert = undefined
     })
-    return session
+    return next
   }
 
   export async function summarize(input: { sessionID: string; providerID: string; modelID: string }) {
