@@ -36,3 +36,6 @@ await createClient({
     },
   ],
 })
+
+await $`rm -rf dist`
+await $`bun tsc`

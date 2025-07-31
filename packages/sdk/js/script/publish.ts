@@ -9,13 +9,16 @@ const version = process.env["OPENCODE_VERSION"]
 if (!version) {
   throw new Error("OPENCODE_VERSION is required")
 }
-const dry = process.env["DRY"] === "true"
 
 await import("./generate")
-await $`rm -rf dist`
-await $`bun tsc`
 
-if (!dry) {
-  await $`bun pm version --allow-same-version --no-git-tag-version ${version}`
+const snapshot = process.env["OPENCODE_SNAPSHOT"] === "true"
+
+await $`bun pm version --allow-same-version --no-git-tag-version ${version}`
+if (snapshot) {
+  await $`bun publish --tag snapshot`
+  await $`git checkout package.json`
+}
+if (!snapshot) {
   await $`bun publish`
 }
