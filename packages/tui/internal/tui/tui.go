@@ -69,6 +69,7 @@ type Model struct {
 	commandProvider      completions.CompletionProvider
 	fileProvider         completions.CompletionProvider
 	symbolsProvider      completions.CompletionProvider
+	agentsProvider       completions.CompletionProvider
 	showCompletionDialog bool
 	leaderBinding        *key.Binding
 	toastManager         *toast.ToastManager
@@ -211,8 +212,8 @@ func (a Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.editor = updated.(chat.EditorComponent)
 			cmds = append(cmds, cmd)
 
-			// Set both file and symbols providers for @ completion
-			a.completions = dialog.NewCompletionDialogComponent("@", a.fileProvider, a.symbolsProvider)
+			// Set file, symbols, and agents providers for @ completion
+			a.completions = dialog.NewCompletionDialogComponent("@", a.agentsProvider, a.fileProvider, a.symbolsProvider)
 			updated, cmd = a.completions.Update(msg)
 			a.completions = updated.(dialog.CompletionDialog)
 			cmds = append(cmds, cmd)
@@ -1220,6 +1221,7 @@ func NewModel(app *app.App) tea.Model {
 	commandProvider := completions.NewCommandCompletionProvider(app)
 	fileProvider := completions.NewFileContextGroup(app)
 	symbolsProvider := completions.NewSymbolsContextGroup(app)
+	agentsProvider := completions.NewAgentsContextGroup(app)
 
 	messages := chat.NewMessagesComponent(app)
 	editor := chat.NewEditorComponent(app)
@@ -1240,6 +1242,7 @@ func NewModel(app *app.App) tea.Model {
 		commandProvider:      commandProvider,
 		fileProvider:         fileProvider,
 		symbolsProvider:      symbolsProvider,
+		agentsProvider:       agentsProvider,
 		leaderBinding:        leaderBinding,
 		showCompletionDialog: false,
 		toastManager:         toast.NewToastManager(),

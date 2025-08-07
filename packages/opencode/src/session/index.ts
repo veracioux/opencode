@@ -382,6 +382,16 @@ export namespace Session {
           .openapi({
             ref: "FilePartInput",
           }),
+        MessageV2.AgentPart.omit({
+          messageID: true,
+          sessionID: true,
+        })
+          .partial({
+            id: true,
+          })
+          .openapi({
+            ref: "AgentPartInput",
+          }),
       ]),
     ),
   })

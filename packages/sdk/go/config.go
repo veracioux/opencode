@@ -827,11 +827,12 @@ type ConfigPermissionBashString string
 const (
 	ConfigPermissionBashStringAsk   ConfigPermissionBashString = "ask"
 	ConfigPermissionBashStringAllow ConfigPermissionBashString = "allow"
+	ConfigPermissionBashStringDeny  ConfigPermissionBashString = "deny"
 )
 
 func (r ConfigPermissionBashString) IsKnown() bool {
 	switch r {
-	case ConfigPermissionBashStringAsk, ConfigPermissionBashStringAllow:
+	case ConfigPermissionBashStringAsk, ConfigPermissionBashStringAllow, ConfigPermissionBashStringDeny:
 		return true
 	}
 	return false
@@ -848,11 +849,12 @@ type ConfigPermissionBashMapItem string
 const (
 	ConfigPermissionBashMapAsk   ConfigPermissionBashMapItem = "ask"
 	ConfigPermissionBashMapAllow ConfigPermissionBashMapItem = "allow"
+	ConfigPermissionBashMapDeny  ConfigPermissionBashMapItem = "deny"
 )
 
 func (r ConfigPermissionBashMapItem) IsKnown() bool {
 	switch r {
-	case ConfigPermissionBashMapAsk, ConfigPermissionBashMapAllow:
+	case ConfigPermissionBashMapAsk, ConfigPermissionBashMapAllow, ConfigPermissionBashMapDeny:
 		return true
 	}
 	return false
@@ -863,11 +865,12 @@ type ConfigPermissionEdit string
 const (
 	ConfigPermissionEditAsk   ConfigPermissionEdit = "ask"
 	ConfigPermissionEditAllow ConfigPermissionEdit = "allow"
+	ConfigPermissionEditDeny  ConfigPermissionEdit = "deny"
 )
 
 func (r ConfigPermissionEdit) IsKnown() bool {
 	switch r {
-	case ConfigPermissionEditAsk, ConfigPermissionEditAllow:
+	case ConfigPermissionEditAsk, ConfigPermissionEditAllow, ConfigPermissionEditDeny:
 		return true
 	}
 	return false

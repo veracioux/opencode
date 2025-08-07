@@ -99,6 +99,8 @@ resources:
       fileSource: FileSource
       symbolSource: SymbolSource
       toolPart: ToolPart
+      agentPart: AgentPart
+      agentPartInput: AgentPartInput
       stepStartPart: StepStartPart
       stepFinishPart: StepFinishPart
       snapshotPart: SnapshotPart
