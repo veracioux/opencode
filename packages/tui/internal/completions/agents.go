@@ -45,7 +45,7 @@ func (cg *agentsContextGroup) GetChildEntries(
 		if query != "" && !strings.Contains(strings.ToLower(agent.Name), strings.ToLower(query)) {
 			continue
 		}
-		if agent.Mode == opencode.AgentModePrimary {
+		if agent.Mode == opencode.AgentModePrimary || agent.Name == "general" {
 			continue
 		}
 
