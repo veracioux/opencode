@@ -269,16 +269,19 @@ func (a *App) cycleMode(forward bool) (*App, tea.Cmd) {
 	return a, a.SaveState()
 }
 
-func (a *App) SwitchMode() (*App, tea.Cmd) {
+func (a *App) SwitchAgent() (*App, tea.Cmd) {
 	return a.cycleMode(true)
 }
 
-func (a *App) SwitchModeReverse() (*App, tea.Cmd) {
+func (a *App) SwitchAgentReverse() (*App, tea.Cmd) {
 	return a.cycleMode(false)
 }
 
 // findModelByFullID finds a model by its full ID in the format "provider/model"
-func findModelByFullID(providers []opencode.Provider, fullModelID string) (*opencode.Provider, *opencode.Model) {
+func findModelByFullID(
+	providers []opencode.Provider,
+	fullModelID string,
+) (*opencode.Provider, *opencode.Model) {
 	modelParts := strings.SplitN(fullModelID, "/", 2)
 	if len(modelParts) < 2 {
 		return nil, nil
@@ -291,7 +294,10 @@ func findModelByFullID(providers []opencode.Provider, fullModelID string) (*open
 }
 
 // findModelByProviderAndModelID finds a model by provider ID and model ID
-func findModelByProviderAndModelID(providers []opencode.Provider, providerID, modelID string) (*opencode.Provider, *opencode.Model) {
+func findModelByProviderAndModelID(
+	providers []opencode.Provider,
+	providerID, modelID string,
+) (*opencode.Provider, *opencode.Model) {
 	for _, provider := range providers {
 		if provider.ID != providerID {
 			continue
@@ -347,10 +353,17 @@ func (a *App) InitializeProvider() tea.Cmd {
 
 	// Priority 1: Command line --model flag (InitialModel)
 	if a.InitialModel != nil && *a.InitialModel != "" {
-		if provider, model := findModelByFullID(providers, *a.InitialModel); provider != nil && model != nil {
+		if provider, model := findModelByFullID(providers, *a.InitialModel); provider != nil &&
+			model != nil {
 			selectedProvider = provider
 			selectedModel = model
-			slog.Debug("Selected model from command line", "provider", provider.ID, "model", model.ID)
+			slog.Debug(
+				"Selected model from command line",
+				"provider",
+				provider.ID,
+				"model",
+				model.ID,
+			)
 		} else {
 			slog.Debug("Command line model not found", "model", *a.InitialModel)
 		}
@@ -358,7 +371,8 @@ func (a *App) InitializeProvider() tea.Cmd {
 
 	// Priority 2: Config file model setting
 	if selectedProvider == nil && a.Config.Model != "" {
-		if provider, model := findModelByFullID(providers, a.Config.Model); provider != nil && model != nil {
+		if provider, model := findModelByFullID(providers, a.Config.Model); provider != nil &&
+			model != nil {
 			selectedProvider = provider
 			selectedModel = model
 			slog.Debug("Selected model from config", "provider", provider.ID, "model", model.ID)
@@ -370,10 +384,17 @@ func (a *App) InitializeProvider() tea.Cmd {
 	// Priority 3: Recent model usage (most recently used model)
 	if selectedProvider == nil && len(a.State.RecentlyUsedModels) > 0 {
 		recentUsage := a.State.RecentlyUsedModels[0] // Most recent is first
-		if provider, model := findModelByProviderAndModelID(providers, recentUsage.ProviderID, recentUsage.ModelID); provider != nil && model != nil {
+		if provider, model := findModelByProviderAndModelID(providers, recentUsage.ProviderID, recentUsage.ModelID); provider != nil &&
+			model != nil {
 			selectedProvider = provider
 			selectedModel = model
-			slog.Debug("Selected model from recent usage", "provider", provider.ID, "model", model.ID)
+			slog.Debug(
+				"Selected model from recent usage",
+				"provider",
+				provider.ID,
+				"model",
+				model.ID,
+			)
 		} else {
 			slog.Debug("Recent model not found", "provider", recentUsage.ProviderID, "model", recentUsage.ModelID)
 		}
@@ -381,7 +402,8 @@ func (a *App) InitializeProvider() tea.Cmd {
 
 	// Priority 4: State-based model (backwards compatibility)
 	if selectedProvider == nil && a.State.Provider != "" && a.State.Model != "" {
-		if provider, model := findModelByProviderAndModelID(providers, a.State.Provider, a.State.Model); provider != nil && model != nil {
+		if provider, model := findModelByProviderAndModelID(providers, a.State.Provider, a.State.Model); provider != nil &&
+			model != nil {
 			selectedProvider = provider
 			selectedModel = model
 			slog.Debug("Selected model from state", "provider", provider.ID, "model", model.ID)
@@ -397,7 +419,13 @@ func (a *App) InitializeProvider() tea.Cmd {
 			if model := getDefaultModel(providersResponse, *provider); model != nil {
 				selectedProvider = provider
 				selectedModel = model
-				slog.Debug("Selected model from internal priority (Anthropic)", "provider", provider.ID, "model", model.ID)
+				slog.Debug(
+					"Selected model from internal priority (Anthropic)",
+					"provider",
+					provider.ID,
+					"model",
+					model.ID,
+				)
 			}
 		}
 
@@ -407,7 +435,13 @@ func (a *App) InitializeProvider() tea.Cmd {
 			if model := getDefaultModel(providersResponse, *provider); model != nil {
 				selectedProvider = provider
 				selectedModel = model
-				slog.Debug("Selected model from fallback (first available)", "provider", provider.ID, "model", model.ID)
+				slog.Debug(
+					"Selected model from fallback (first available)",
+					"provider",
+					provider.ID,
+					"model",
+					model.ID,
+				)
 			}
 		}
 	}

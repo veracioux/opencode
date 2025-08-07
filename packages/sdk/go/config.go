@@ -1108,10 +1108,14 @@ type KeybindsConfig struct {
 	SessionShare string `json:"session_share,required"`
 	// Unshare current session
 	SessionUnshare string `json:"session_unshare,required"`
-	// Next mode
+	// Next agent
 	SwitchAgent string `json:"switch_agent,required"`
-	// Previous Mode
+	// Previous agent
 	SwitchAgentReverse string `json:"switch_agent_reverse,required"`
+	// @deprecated use switch_agent. Next mode
+	SwitchMode string `json:"switch_mode,required"`
+	// @deprecated use switch_agent_reverse. Previous mode
+	SwitchModeReverse string `json:"switch_mode_reverse,required"`
 	// List available themes
 	ThemeList string `json:"theme_list,required"`
 	// Toggle tool details
@@ -1157,6 +1161,8 @@ type keybindsConfigJSON struct {
 	SessionUnshare       apijson.Field
 	SwitchAgent          apijson.Field
 	SwitchAgentReverse   apijson.Field
+	SwitchMode           apijson.Field
+	SwitchModeReverse    apijson.Field
 	ThemeList            apijson.Field
 	ToolDetails          apijson.Field
 	raw                  string

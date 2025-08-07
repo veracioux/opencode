@@ -108,6 +108,12 @@ export namespace Config {
     if (result.keybinds?.messages_revert && !result.keybinds.messages_undo) {
       result.keybinds.messages_undo = result.keybinds.messages_revert
     }
+    if (result.keybinds?.switch_mode && !result.keybinds.switch_agent) {
+      result.keybinds.switch_agent = result.keybinds.switch_mode
+    }
+    if (result.keybinds?.switch_mode_reverse && !result.keybinds.switch_agent_reverse) {
+      result.keybinds.switch_agent_reverse = result.keybinds.switch_mode_reverse
+    }
 
     if (!result.username) {
       const os = await import("os")
@@ -169,8 +175,14 @@ export namespace Config {
     .object({
       leader: z.string().optional().default("ctrl+x").describe("Leader key for keybind combinations"),
       app_help: z.string().optional().default("<leader>h").describe("Show help dialog"),
-      switch_agent: z.string().optional().default("tab").describe("Next mode"),
-      switch_agent_reverse: z.string().optional().default("shift+tab").describe("Previous Mode"),
+      switch_mode: z.string().optional().default("none").describe("@deprecated use switch_agent. Next mode"),
+      switch_mode_reverse: z
+        .string()
+        .optional()
+        .default("none")
+        .describe("@deprecated use switch_agent_reverse. Previous mode"),
+      switch_agent: z.string().optional().default("tab").describe("Next agent"),
+      switch_agent_reverse: z.string().optional().default("shift+tab").describe("Previous agent"),
       editor_open: z.string().optional().default("<leader>e").describe("Open external editor"),
       session_export: z.string().optional().default("<leader>x").describe("Export session to editor"),
       session_new: z.string().optional().default("<leader>n").describe("Create a new session"),
