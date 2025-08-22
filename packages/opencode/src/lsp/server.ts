@@ -160,10 +160,7 @@ export namespace LSPServer {
 
         const extractedPath = path.join(Global.Path.bin, "vscode-eslint-main")
         const finalPath = path.join(Global.Path.bin, "vscode-eslint")
-
-        if (await Bun.file(finalPath).exists()) {
-          await fs.rm(finalPath, { force: true, recursive: true })
-        }
+        await fs.rm(finalPath, { force: true, recursive: true }).catch(() => {})
         await fs.rename(extractedPath, finalPath)
 
         await $`npm install`.cwd(finalPath).quiet()
