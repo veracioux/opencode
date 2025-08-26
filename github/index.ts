@@ -19,7 +19,9 @@ let exitCode = 0
 type PromptFiles = Awaited<ReturnType<typeof getUserPrompt>>["promptFiles"]
 
 try {
-  Context.assertEventName("issue_comment")
+  Context.assertEventName("issue_comment", "pull_request_review_comment")
+  // TODO
+  console.log("!@#!@#! Context", Context.state().context)
   assertPayloadKeyword()
   await assertOpencodeConnected()
 
