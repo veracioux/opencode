@@ -184,7 +184,6 @@ function defineReviewCommentMode() {
       await rest.pulls.updateReviewComment({
         owner: Context.repo().owner,
         repo: Context.repo().repo,
-        pull_number: mode.entity().number,
         comment_id: commentId,
         body,
       })
