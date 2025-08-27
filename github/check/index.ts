@@ -6,6 +6,7 @@ import { Opencode } from "../src/opencode"
 import { Context } from "../src/context"
 
 try {
+  console.log("!#!@#!@ CONTEXT", Context.payload())
   Context.assertEventName("pull_request_opened", "pull_request_synchronize", "pull_request_reopened")
   await check()
   process.exit(0)
