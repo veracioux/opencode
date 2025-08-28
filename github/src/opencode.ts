@@ -1,7 +1,6 @@
 import { spawn } from "node:child_process"
 import { lazy } from "./lazy"
 import { createOpencodeClient } from "@opencode-ai/sdk"
-import { Git } from "./git"
 import { Auth } from "./auth"
 
 export namespace Opencode {

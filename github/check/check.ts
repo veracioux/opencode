@@ -41,11 +41,11 @@ If the check passed, do not create any file.
       `)
 
     // parse for reason
-    let reason
+    let content
     try {
-      reason = await Bun.file(filename).text()
+      content = await Bun.file(filename).json()
     } catch (e) {}
-    if (reason) throw new Error(reason)
+    if (content) throw new Error(content.reason ?? "unknown reason")
   } finally {
     Opencode.closeServer()
     await Auth.revoke()
