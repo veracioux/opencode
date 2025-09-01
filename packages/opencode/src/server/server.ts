@@ -53,6 +53,9 @@ export namespace Server {
   const app = new Hono()
   export const App = app
     .onError((err, c) => {
+      log.error("failed", {
+        error: err,
+      })
       if (err instanceof NamedError) {
         return c.json(err.toObject(), {
           status: 400,
@@ -606,7 +609,7 @@ export namespace Server {
       "/session/:id/message",
       describeRoute({
         description: "Create and send a new message to a session",
-        operationId: "session.chat",
+        operationId: "session.prompt",
         responses: {
           200: {
             description: "Created message",
@@ -629,11 +632,11 @@ export namespace Server {
           id: z.string().openapi({ description: "Session ID" }),
         }),
       ),
-      zValidator("json", Session.ChatInput.omit({ sessionID: true })),
+      zValidator("json", Session.PromptInput.omit({ sessionID: true })),
       async (c) => {
         const sessionID = c.req.valid("param").id
         const body = c.req.valid("json")
-        const msg = await Session.chat({ ...body, sessionID })
+        const msg = await Session.prompt({ ...body, sessionID })
         return c.json(msg)
       },
     )

@@ -4,6 +4,8 @@ import type { Options as ClientOptions, TDataShape, Client } from "./client/inde
 import type {
   ProjectListData,
   ProjectListResponses,
+  ButtCurrentData,
+  ButtCurrentResponses,
   EventSubscribeData,
   EventSubscribeResponses,
   ConfigGetData,
@@ -35,8 +37,8 @@ import type {
   SessionSummarizeResponses,
   SessionMessagesData,
   SessionMessagesResponses,
-  SessionChatData,
-  SessionChatResponses,
+  SessionPromptData,
+  SessionPromptResponses,
   SessionMessageData,
   SessionMessageResponses,
   SessionCommandData,
@@ -127,6 +129,18 @@ class Project extends _HeyApiClient {
   public list<ThrowOnError extends boolean = false>(options?: Options<ProjectListData, ThrowOnError>) {
     return (options?.client ?? this._client).get<ProjectListResponses, unknown, ThrowOnError>({
       url: "/project",
+      ...options,
+    })
+  }
+}
+
+class Butt extends _HeyApiClient {
+  /**
+   * Get the current project
+   */
+  public current<ThrowOnError extends boolean = false>(options?: Options<ButtCurrentData, ThrowOnError>) {
+    return (options?.client ?? this._client).get<ButtCurrentResponses, unknown, ThrowOnError>({
+      url: "/project/current",
       ...options,
     })
   }
@@ -318,8 +332,8 @@ class Session extends _HeyApiClient {
   /**
    * Create and send a new message to a session
    */
-  public chat<ThrowOnError extends boolean = false>(options: Options<SessionChatData, ThrowOnError>) {
-    return (options.client ?? this._client).post<SessionChatResponses, unknown, ThrowOnError>({
+  public prompt<ThrowOnError extends boolean = false>(options: Options<SessionPromptData, ThrowOnError>) {
+    return (options.client ?? this._client).post<SessionPromptResponses, unknown, ThrowOnError>({
       url: "/session/{id}/message",
       ...options,
       headers: {
@@ -635,6 +649,7 @@ export class OpencodeClient extends _HeyApiClient {
     })
   }
   project = new Project({ client: this._client })
+  butt = new Butt({ client: this._client })
   event = new Event({ client: this._client })
   config = new Config({ client: this._client })
   path = new Path({ client: this._client })

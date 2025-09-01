@@ -645,7 +645,11 @@ export type Config = {
       options?: {
         apiKey?: string
         baseURL?: string
-        [key: string]: unknown | string | undefined
+        /**
+         * Timeout in milliseconds for requests to this provider. Default is 300000 (5 minutes). Set to false to disable timeout.
+         */
+        timeout?: number | false
+        [key: string]: unknown | string | (number | false) | undefined
       }
     }
   }
@@ -1052,6 +1056,8 @@ export type LayoutConfig = "auto" | "stretch"
 export type Path = {
   state: string
   config: string
+  worktree: string
+  directory: string
 }
 
 export type _Error = {
@@ -1195,6 +1201,24 @@ export type ProjectListResponses = {
 }
 
 export type ProjectListResponse = ProjectListResponses[keyof ProjectListResponses]
+
+export type ButtCurrentData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/project/current"
+}
+
+export type ButtCurrentResponses = {
+  /**
+   * Current project
+   */
+  200: Project
+}
+
+export type ButtCurrentResponse = ButtCurrentResponses[keyof ButtCurrentResponses]
 
 export type EventSubscribeData = {
   body?: never
@@ -1519,11 +1543,13 @@ export type SessionMessagesResponses = {
 
 export type SessionMessagesResponse = SessionMessagesResponses[keyof SessionMessagesResponses]
 
-export type SessionChatData = {
+export type SessionPromptData = {
   body?: {
     messageID?: string
-    providerID: string
-    modelID: string
+    model?: {
+      providerID: string
+      modelID: string
+    }
     agent?: string
     system?: string
     tools?: {
@@ -1553,7 +1579,7 @@ export type SessionChatData = {
   url: "/session/{id}/message"
 }
 
-export type SessionChatResponses = {
+export type SessionPromptResponses = {
   /**
    * Created message
    */
@@ -1563,7 +1589,7 @@ export type SessionChatResponses = {
   }
 }
 
-export type SessionChatResponse = SessionChatResponses[keyof SessionChatResponses]
+export type SessionPromptResponse = SessionPromptResponses[keyof SessionPromptResponses]
 
 export type SessionMessageData = {
   body?: never

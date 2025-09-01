@@ -147,7 +147,7 @@ resources:
       summarize: post /session/{id}/summarize
       message: get /session/{id}/message/{messageID}
       messages: get /session/{id}/message
-      chat: post /session/{id}/message
+      prompt: post /session/{id}/message
       command: post /session/{id}/command
       shell: post /session/{id}/shell
       update: patch /session/{id}

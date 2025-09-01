@@ -153,7 +153,10 @@ export namespace Provider {
         options: Record<string, any>
       }
     } = {}
-    const models = new Map<string, { info: ModelsDev.Model; language: LanguageModel }>()
+    const models = new Map<
+      string,
+      { providerID: string; modelID: string; info: ModelsDev.Model; language: LanguageModel }
+    >()
     const sdk = new Map<string, SDK>()
 
     log.info("init")
@@ -362,10 +365,14 @@ export namespace Provider {
       const language = provider.getModel ? await provider.getModel(sdk, modelID) : sdk.languageModel(modelID)
       log.info("found", { providerID, modelID })
       s.models.set(key, {
+        providerID,
+        modelID,
         info,
         language,
       })
       return {
+        modelID,
+        providerID,
         info,
         language,
       }

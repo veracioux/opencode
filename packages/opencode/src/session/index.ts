@@ -364,11 +364,15 @@ export namespace Session {
     return part
   }
 
-  export const ChatInput = z.object({
+  export const PromptInput = z.object({
     sessionID: Identifier.schema("session"),
     messageID: Identifier.schema("message").optional(),
-    providerID: z.string(),
-    modelID: z.string(),
+    model: z
+      .object({
+        providerID: z.string(),
+        modelID: z.string(),
+      })
+      .optional(),
     agent: z.string().optional(),
     system: z.string().optional(),
     tools: z.record(z.boolean()).optional(),
@@ -407,10 +411,10 @@ export namespace Session {
       ]),
     ),
   })
-  export type ChatInput = z.infer<typeof ChatInput>
+  export type ChatInput = z.infer<typeof PromptInput>
 
-  export async function chat(
-    input: z.infer<typeof ChatInput>,
+  export async function prompt(
+    input: z.infer<typeof PromptInput>,
   ): Promise<{ info: MessageV2.Assistant; parts: MessageV2.Part[] }> {
     const l = log.clone().tag("session", input.sessionID)
     l.info("chatting")
@@ -652,7 +656,16 @@ export namespace Session {
       })
     }
 
-    const model = await Provider.getModel(input.providerID, input.modelID)
+    const agent = await Agent.get(inputAgent)
+    const model = await (async () => {
+      if (input.model) {
+        return input.model
+      }
+      if (agent.model) {
+        return agent.model
+      }
+      return Provider.defaultModel()
+    })().then((x) => Provider.getModel(x.providerID, x.modelID))
     let msgs = await messages(input.sessionID)
 
     const previous = msgs.filter((x) => x.info.role === "assistant").at(-1)?.info as MessageV2.Assistant
@@ -667,10 +680,10 @@ export namespace Session {
 
         await summarize({
           sessionID: input.sessionID,
-          providerID: input.providerID,
-          modelID: input.modelID,
+          providerID: model.providerID,
+          modelID: model.info.id,
         })
-        return chat(input)
+        return prompt(input)
       }
     }
     using abort = lock(input.sessionID)
@@ -679,17 +692,17 @@ export namespace Session {
     if (lastSummary) msgs = msgs.filter((msg) => msg.info.id >= lastSummary.info.id)
 
     if (msgs.filter((m) => m.info.role === "user").length === 1 && !session.parentID && isDefaultTitle(session.title)) {
-      const small = (await Provider.getSmallModel(input.providerID)) ?? model
+      const small = (await Provider.getSmallModel(model.providerID)) ?? model
       generateText({
         maxOutputTokens: small.info.reasoning ? 1024 : 20,
         providerOptions: {
-          [input.providerID]: {
+          [model.providerID]: {
             ...small.info.options,
-            ...ProviderTransform.options(input.providerID, small.info.id, input.sessionID),
+            ...ProviderTransform.options(small.providerID, small.modelID, input.sessionID),
           },
         },
         messages: [
-          ...SystemPrompt.title(input.providerID).map(
+          ...SystemPrompt.title(model.providerID).map(
             (x): ModelMessage => ({
               role: "system",
               content: x,
@@ -724,7 +737,6 @@ export namespace Session {
         })
     }
 
-    const agent = await Agent.get(inputAgent)
     if (agent.name === "plan") {
       msgs.at(-1)?.parts.push({
         id: Identifier.ascending("part"),
@@ -747,12 +759,12 @@ export namespace Session {
         synthetic: true,
       })
     }
-    let system = SystemPrompt.header(input.providerID)
+    let system = SystemPrompt.header(model.providerID)
     system.push(
       ...(() => {
         if (input.system) return [input.system]
         if (agent.prompt) return [agent.prompt]
-        return SystemPrompt.provider(input.modelID)
+        return SystemPrompt.provider(model.modelID)
       })(),
     )
     system.push(...(await SystemPrompt.environment()))
@@ -777,8 +789,8 @@ export namespace Session {
         reasoning: 0,
         cache: { read: 0, write: 0 },
       },
-      modelID: input.modelID,
-      providerID: input.providerID,
+      modelID: model.modelID,
+      providerID: model.providerID,
       time: {
         created: Date.now(),
       },
@@ -796,10 +808,10 @@ export namespace Session {
 
     const enabledTools = pipe(
       agent.tools,
-      mergeDeep(await ToolRegistry.enabled(input.providerID, input.modelID, agent)),
+      mergeDeep(await ToolRegistry.enabled(model.providerID, model.modelID, agent)),
       mergeDeep(input.tools ?? {}),
     )
-    for (const item of await ToolRegistry.tools(input.providerID, input.modelID)) {
+    for (const item of await ToolRegistry.tools(model.providerID, model.modelID)) {
       if (Wildcard.all(item.id, enabledTools) === false) continue
       tools[item.id] = tool({
         id: item.id as any,
@@ -909,16 +921,16 @@ export namespace Session {
       "chat.params",
       {
         model: model.info,
-        provider: await Provider.getProvider(input.providerID),
+        provider: await Provider.getProvider(model.providerID),
         message: userMsg,
       },
       {
         temperature: model.info.temperature
-          ? (agent.temperature ?? ProviderTransform.temperature(input.providerID, input.modelID))
+          ? (agent.temperature ?? ProviderTransform.temperature(model.providerID, model.modelID))
           : undefined,
-        topP: agent.topP ?? ProviderTransform.topP(input.providerID, input.modelID),
+        topP: agent.topP ?? ProviderTransform.topP(model.providerID, model.modelID),
         options: {
-          ...ProviderTransform.options(input.providerID, input.modelID, input.sessionID),
+          ...ProviderTransform.options(model.providerID, model.modelID, input.sessionID),
           ...model.info.options,
           ...agent.options,
         },
@@ -962,8 +974,8 @@ export namespace Session {
               reasoning: 0,
               cache: { read: 0, write: 0 },
             },
-            modelID: input.modelID,
-            providerID: input.providerID,
+            modelID: model.modelID,
+            providerID: model.providerID,
             mode: inputAgent,
             time: {
               created: Date.now(),
@@ -987,7 +999,7 @@ export namespace Session {
         }
       },
       headers:
-        input.providerID === "opencode"
+        model.providerID === "opencode"
           ? {
               "x-opencode-session": input.sessionID,
               "x-opencode-request": userMsg.id,
@@ -1010,7 +1022,7 @@ export namespace Session {
         return false
       },
       providerOptions: {
-        [input.providerID]: params.options,
+        [model.providerID]: params.options,
       },
       temperature: params.temperature,
       topP: params.topP,
@@ -1031,7 +1043,7 @@ export namespace Session {
             async transformParams(args) {
               if (args.type === "stream") {
                 // @ts-expect-error
-                args.params.prompt = ProviderTransform.message(args.params.prompt, input.providerID, input.modelID)
+                args.params.prompt = ProviderTransform.message(args.params.prompt, model.providerID, model.modelID)
               }
               return args.params
             },
@@ -1044,7 +1056,7 @@ export namespace Session {
     const unprocessed = queued.find((x) => !x.processed)
     if (unprocessed) {
       unprocessed.processed = true
-      return chat(unprocessed.input)
+      return prompt(unprocessed.input)
     }
     for (const item of queued) {
       item.callback(result)
@@ -1220,16 +1232,9 @@ export namespace Session {
   const fileRegex = /@([^\s]+)/g
 
   export async function command(input: CommandInput) {
+    log.info("command", input)
     const command = await Command.get(input.command)
     const agent = command.agent ?? input.agent ?? "build"
-    const fmtModel = (model: { providerID: string; modelID: string }) => `${model.providerID}/${model.modelID}`
-
-    const model =
-      command.model ??
-      (command.agent && (await Agent.get(command.agent).then((x) => (x.model ? fmtModel(x.model) : undefined)))) ??
-      input.model ??
-      (input.agent && (await Agent.get(input.agent).then((x) => (x.model ? fmtModel(x.model) : undefined)))) ??
-      fmtModel(await Provider.defaultModel())
 
     let template = command.template.replace("$ARGUMENTS", input.arguments)
 
@@ -1273,10 +1278,18 @@ export namespace Session {
       })
     }
 
-    return chat({
+    return prompt({
       sessionID: input.sessionID,
       messageID: input.messageID,
-      ...Provider.parseModel(model!),
+      model: (() => {
+        if (input.model) {
+          return Provider.parseModel(input.model)
+        }
+        if (command.model) {
+          return Provider.parseModel(command.model)
+        }
+        return undefined
+      })(),
       agent,
       parts,
     })
@@ -1643,7 +1656,7 @@ export namespace Session {
     const filtered = msgs.filter((msg) => !lastSummary || msg.info.id >= lastSummary.info.id)
     const model = await Provider.getModel(input.providerID, input.modelID)
     const system = [
-      ...SystemPrompt.summarize(input.providerID),
+      ...SystemPrompt.summarize(model.providerID),
       ...(await SystemPrompt.environment()),
       ...(await SystemPrompt.custom()),
     ]
@@ -1661,7 +1674,7 @@ export namespace Session {
       summary: true,
       cost: 0,
       modelID: input.modelID,
-      providerID: input.providerID,
+      providerID: model.providerID,
       tokens: {
         input: 0,
         output: 0,
@@ -1770,11 +1783,13 @@ export namespace Session {
     providerID: string
     messageID: string
   }) {
-    await Session.chat({
+    await Session.prompt({
       sessionID: input.sessionID,
       messageID: input.messageID,
-      providerID: input.providerID,
-      modelID: input.modelID,
+      model: {
+        providerID: input.providerID,
+        modelID: input.modelID,
+      },
       parts: [
         {
           id: Identifier.ascending("part"),

@@ -786,12 +786,14 @@ func (a *App) SendPrompt(ctx context.Context, prompt Prompt) (*App, tea.Cmd) {
 	a.Messages = append(a.Messages, message)
 
 	cmds = append(cmds, func() tea.Msg {
-		_, err := a.Client.Session.Chat(ctx, a.Session.ID, opencode.SessionChatParams{
-			ProviderID: opencode.F(a.Provider.ID),
-			ModelID:    opencode.F(a.Model.ID),
-			Agent:      opencode.F(a.Agent().Name),
-			MessageID:  opencode.F(messageID),
-			Parts:      opencode.F(message.ToSessionChatParams()),
+		_, err := a.Client.Session.Prompt(ctx, a.Session.ID, opencode.SessionPromptParams{
+			Model: opencode.F(opencode.SessionPromptParamsModel{
+				ProviderID: opencode.F(a.Provider.ID),
+				ModelID:    opencode.F(a.Model.ID),
+			}),
+			Agent:     opencode.F(a.Agent().Name),
+			MessageID: opencode.F(messageID),
+			Parts:     opencode.F(message.ToSessionChatParams()),
 		})
 		if err != nil {
 			errormsg := fmt.Sprintf("failed to send message: %v", err)
