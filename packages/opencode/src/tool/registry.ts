@@ -124,35 +124,13 @@ export namespace ToolRegistry {
     return allTools().map((t) => t.id)
   }
 
-  export async function tools(providerID: string, _modelID: string) {
+  export async function tools(_providerID: string, _modelID: string) {
     const result = await Promise.all(
       allTools().map(async (t) => ({
         id: t.id,
         ...(await t.init()),
       })),
     )
-
-    if (providerID === "openai") {
-      return result.map((t) => ({
-        ...t,
-        parameters: optionalToNullable(t.parameters as unknown as z.ZodTypeAny),
-      }))
-    }
-
-    if (providerID === "azure") {
-      return result.map((t) => ({
-        ...t,
-        parameters: optionalToNullable(t.parameters as unknown as z.ZodTypeAny),
-      }))
-    }
-
-    if (providerID === "google") {
-      return result.map((t) => ({
-        ...t,
-        parameters: sanitizeGeminiParameters(t.parameters as unknown as z.ZodTypeAny),
-      }))
-    }
-
     return result
   }
 
@@ -179,22 +157,14 @@ export namespace ToolRegistry {
     return result
   }
 
-<<<<<<< Updated upstream
-  function sanitizeGeminiParameters(schema: z.ZodTypeAny, visited = new Set<z.ZodTypeAny>()): z.ZodTypeAny {
-=======
   function sanitizeGeminiParameters(schema: z.ZodType, visited = new Set()): z.ZodType {
->>>>>>> Stashed changes
     if (!schema || visited.has(schema)) {
       return schema
     }
     visited.add(schema)
 
     if (schema instanceof z.ZodDefault) {
-<<<<<<< Updated upstream
-      const innerSchema = schema._def.innerType
-=======
       const innerSchema = schema.unwrap()
->>>>>>> Stashed changes
       // Handle Gemini's incompatibility with `default` on `anyOf` (unions).
       if (innerSchema instanceof z.ZodUnion) {
         // The schema was `z.union(...).default(...)`, which is not allowed.

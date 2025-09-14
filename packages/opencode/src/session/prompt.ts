@@ -19,6 +19,7 @@ import {
   type StreamTextResult,
   LoadAPIKeyError,
   stepCountIs,
+  jsonSchema,
 } from "ai"
 import { SessionCompaction } from "./compaction"
 import { Instance } from "../project/instance"
@@ -393,10 +394,11 @@ export namespace SessionPrompt {
     )
     for (const item of await ToolRegistry.tools(input.providerID, input.modelID)) {
       if (Wildcard.all(item.id, enabledTools) === false) continue
+      const schema = ProviderTransform.schema(input.providerID, input.modelID, z.toJSONSchema(item.parameters))
       tools[item.id] = tool({
         id: item.id as any,
         description: item.description,
-        inputSchema: item.parameters as z.core.$ZodType,
+        inputSchema: jsonSchema(schema as any),
         async execute(args, options) {
           await Plugin.trigger(
             "tool.execute.before",

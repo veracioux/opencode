@@ -41,7 +41,7 @@
     "diff": "8.0.2",
     "gray-matter": "4.0.3",
     "hono": "catalog:",
-    "hono-openapi": "1.0.6",
+    "hono-openapi": "1.0.7",
     "ignore": "7.0.5",
     "jsonc-parser": "3.3.1",
     "minimatch": "10.0.3",

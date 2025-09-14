@@ -935,6 +935,12 @@ export type Config = {
   }
 }
 
+export type _Error = {
+  data: {
+    [key: string]: unknown
+  }
+}
+
 export type HttpParamSpec = {
   type: "string" | "number" | "boolean" | "array"
   description?: string
@@ -956,6 +962,16 @@ export type HttpToolRegistration = {
     [key: string]: string
   }
 }
+
+export type ToolIds = Array<string>
+
+export type ToolListItem = {
+  id: string
+  description: string
+  parameters: unknown
+}
+
+export type ToolList = Array<ToolListItem>
 
 export type Path = {
   state: string
@@ -1132,26 +1148,12 @@ export type WellKnownAuth = {
 
 export type Auth = OAuth | ApiAuth | WellKnownAuth
 
-export type _Error = {
-  data: {
-    [key: string]: unknown
-  }
-}
-
-export type ToolIds = Array<string>
-
-export type ToolListItem = {
-  id: string
-  description: string
-  parameters: unknown
-}
-
-export type ToolList = Array<ToolListItem>
-
 export type ProjectListData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/project"
 }
 
@@ -1167,7 +1169,9 @@ export type ProjectListResponse = ProjectListResponses[keyof ProjectListResponse
 export type ProjectCurrentData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/project/current"
 }
 
@@ -1183,7 +1187,9 @@ export type ProjectCurrentResponse = ProjectCurrentResponses[keyof ProjectCurren
 export type EventSubscribeData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/event"
 }
 
@@ -1199,7 +1205,9 @@ export type EventSubscribeResponse = EventSubscribeResponses[keyof EventSubscrib
 export type ConfigGetData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/config"
 }
 
@@ -1215,8 +1223,8 @@ export type ConfigGetResponse = ConfigGetResponses[keyof ConfigGetResponses]
 export type ToolRegisterData = {
   body?: HttpToolRegistration
   path?: never
-  query: {
-    directory: string
+  query?: {
+    directory?: string
   }
   url: "/experimental/tool/register"
 }
@@ -1239,11 +1247,38 @@ export type ToolRegisterResponses = {
 
 export type ToolRegisterResponse = ToolRegisterResponses[keyof ToolRegisterResponses]
 
+export type ToolIdsData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/experimental/tool/ids"
+}
+
+export type ToolIdsErrors = {
+  /**
+   * Bad request
+   */
+  400: _Error
+}
+
+export type ToolIdsError = ToolIdsErrors[keyof ToolIdsErrors]
+
+export type ToolIdsResponses = {
+  /**
+   * Tool IDs
+   */
+  200: ToolIds
+}
+
+export type ToolIdsResponse = ToolIdsResponses[keyof ToolIdsResponses]
+
 export type ToolListData = {
   body?: never
   path?: never
   query: {
-    directory: string
+    directory?: string
     provider: string
     model: string
   }
@@ -1271,7 +1306,9 @@ export type ToolListResponse = ToolListResponses[keyof ToolListResponses]
 export type PathGetData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/path"
 }
 
@@ -1287,7 +1324,9 @@ export type PathGetResponse = PathGetResponses[keyof PathGetResponses]
 export type SessionListData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session"
 }
 
@@ -1306,8 +1345,8 @@ export type SessionCreateData = {
     title?: string
   }
   path?: never
-  query: {
-    directory: string
+  query?: {
+    directory?: string
   }
   url: "/session"
 }
@@ -1335,7 +1374,9 @@ export type SessionDeleteData = {
   path: {
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}"
 }
 
@@ -1353,7 +1394,9 @@ export type SessionGetData = {
   path: {
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}"
 }
 
@@ -1373,7 +1416,9 @@ export type SessionUpdateData = {
   path: {
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}"
 }
 
@@ -1391,7 +1436,9 @@ export type SessionChildrenData = {
   path: {
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/children"
 }
 
@@ -1416,7 +1463,9 @@ export type SessionInitData = {
      */
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/init"
 }
 
@@ -1434,7 +1483,9 @@ export type SessionAbortData = {
   path: {
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/abort"
 }
 
@@ -1452,7 +1503,9 @@ export type SessionUnshareData = {
   path: {
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/share"
 }
 
@@ -1470,7 +1523,9 @@ export type SessionShareData = {
   path: {
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/share"
 }
 
@@ -1494,7 +1549,9 @@ export type SessionSummarizeData = {
      */
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/summarize"
 }
 
@@ -1515,7 +1572,9 @@ export type SessionMessagesData = {
      */
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/message"
 }
 
@@ -1551,7 +1610,9 @@ export type SessionPromptData = {
      */
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/message"
 }
 
@@ -1579,7 +1640,9 @@ export type SessionMessageData = {
      */
     messageID: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/message/{messageID}"
 }
 
@@ -1609,7 +1672,9 @@ export type SessionCommandData = {
      */
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/command"
 }
 
@@ -1636,7 +1701,9 @@ export type SessionShellData = {
      */
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/shell"
 }
 
@@ -1657,7 +1724,9 @@ export type SessionRevertData = {
   path: {
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/revert"
 }
 
@@ -1675,7 +1744,9 @@ export type SessionUnrevertData = {
   path: {
     id: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/unrevert"
 }
 
@@ -1696,7 +1767,9 @@ export type PostSessionIdPermissionsPermissionIdData = {
     id: string
     permissionID: string
   }
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/session/{id}/permissions/{permissionID}"
 }
 
@@ -1713,7 +1786,9 @@ export type PostSessionIdPermissionsPermissionIdResponse =
 export type CommandListData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/command"
 }
 
@@ -1729,7 +1804,9 @@ export type CommandListResponse = CommandListResponses[keyof CommandListResponse
 export type ConfigProvidersData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/config/providers"
 }
 
@@ -1751,6 +1828,7 @@ export type FindTextData = {
   body?: never
   path?: never
   query: {
+    directory?: string
     pattern: string
   }
   url: "/find"
@@ -1785,6 +1863,7 @@ export type FindFilesData = {
   body?: never
   path?: never
   query: {
+    directory?: string
     query: string
   }
   url: "/find/file"
@@ -1803,6 +1882,7 @@ export type FindSymbolsData = {
   body?: never
   path?: never
   query: {
+    directory?: string
     query: string
   }
   url: "/find/symbol"
@@ -1821,6 +1901,7 @@ export type FileListData = {
   body?: never
   path?: never
   query: {
+    directory?: string
     path: string
   }
   url: "/file"
@@ -1839,6 +1920,7 @@ export type FileReadData = {
   body?: never
   path?: never
   query: {
+    directory?: string
     path: string
   }
   url: "/file/content"
@@ -1856,7 +1938,9 @@ export type FileReadResponse = FileReadResponses[keyof FileReadResponses]
 export type FileStatusData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/file/status"
 }
 
@@ -1891,7 +1975,9 @@ export type AppLogData = {
     }
   }
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/log"
 }
 
@@ -1907,7 +1993,9 @@ export type AppLogResponse = AppLogResponses[keyof AppLogResponses]
 export type AppAgentsData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/agent"
 }
 
@@ -1925,7 +2013,9 @@ export type TuiAppendPromptData = {
     text: string
   }
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/tui/append-prompt"
 }
 
@@ -1941,7 +2031,9 @@ export type TuiAppendPromptResponse = TuiAppendPromptResponses[keyof TuiAppendPr
 export type TuiOpenHelpData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/tui/open-help"
 }
 
@@ -1957,7 +2049,9 @@ export type TuiOpenHelpResponse = TuiOpenHelpResponses[keyof TuiOpenHelpResponse
 export type TuiOpenSessionsData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/tui/open-sessions"
 }
 
@@ -1973,7 +2067,9 @@ export type TuiOpenSessionsResponse = TuiOpenSessionsResponses[keyof TuiOpenSess
 export type TuiOpenThemesData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/tui/open-themes"
 }
 
@@ -1989,7 +2085,9 @@ export type TuiOpenThemesResponse = TuiOpenThemesResponses[keyof TuiOpenThemesRe
 export type TuiOpenModelsData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/tui/open-models"
 }
 
@@ -2005,7 +2103,9 @@ export type TuiOpenModelsResponse = TuiOpenModelsResponses[keyof TuiOpenModelsRe
 export type TuiSubmitPromptData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/tui/submit-prompt"
 }
 
@@ -2021,7 +2121,9 @@ export type TuiSubmitPromptResponse = TuiSubmitPromptResponses[keyof TuiSubmitPr
 export type TuiClearPromptData = {
   body?: never
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/tui/clear-prompt"
 }
 
@@ -2039,7 +2141,9 @@ export type TuiExecuteCommandData = {
     command: string
   }
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/tui/execute-command"
 }
 
@@ -2059,7 +2163,9 @@ export type TuiShowToastData = {
     variant: "info" | "success" | "warning" | "error"
   }
   path?: never
-  query?: never
+  query?: {
+    directory?: string
+  }
   url: "/tui/show-toast"
 }
 
@@ -2077,8 +2183,8 @@ export type AuthSetData = {
   path: {
     id: string
   }
-  query: {
-    directory: string
+  query?: {
+    directory?: string
   }
   url: "/auth/{id}"
 }
@@ -2100,33 +2206,6 @@ export type AuthSetResponses = {
 }
 
 export type AuthSetResponse = AuthSetResponses[keyof AuthSetResponses]
-
-export type ToolIdsData = {
-  body?: never
-  path?: never
-  query: {
-    directory: string
-  }
-  url: "/experimental/tool/ids"
-}
-
-export type ToolIdsErrors = {
-  /**
-   * Bad request
-   */
-  400: _Error
-}
-
-export type ToolIdsError = ToolIdsErrors[keyof ToolIdsErrors]
-
-export type ToolIdsResponses = {
-  /**
-   * Tool IDs
-   */
-  200: ToolIds
-}
-
-export type ToolIdsResponse = ToolIdsResponses[keyof ToolIdsResponses]
 
 export type ClientOptions = {
   baseUrl: `${string}://${string}` | (string & {})
