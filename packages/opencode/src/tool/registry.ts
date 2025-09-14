@@ -279,14 +279,9 @@ export namespace ToolRegistry {
       const newShape: Record<string, z.core.$ZodType> = {}
 
       for (const [key, value] of Object.entries(shape)) {
-<<<<<<< Updated upstream
-        if (value instanceof z.ZodOptional) {
-          newShape[key] = value.unwrap().nullable()
-=======
         const zodValue = value as z.ZodTypeAny
         if (zodValue instanceof z.core.$ZodOptional) {
           newShape[key] = zodValue.nullable()
->>>>>>> Stashed changes
         } else {
           newShape[key] = optionalToNullable(value)
         }
