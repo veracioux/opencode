@@ -1,5 +1,3 @@
-import { Instance } from "../project/instance"
-
 export namespace FileIgnore {
   const DEFAULT_PATTERNS = [
     // Dependencies
