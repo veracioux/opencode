@@ -143,6 +143,26 @@ export function Prompt(props: PromptProps) {
                     })()
                 const messageID = Identifier.ascending("message")
                 const input = store.input
+                if (input.startsWith("/")) {
+                  const [command, ...args] = input.split(" ")
+                  sdk.session.command({
+                    path: {
+                      id: sessionID,
+                    },
+                    body: {
+                      command: command.slice(1),
+                      arguments: args.join(" "),
+                      agent: local.agent.current().name,
+                      model: `${local.model.current().providerID}/${local.model.current().modelID}`,
+                      messageID,
+                    },
+                  })
+                  setStore({
+                    input: "",
+                    parts: [],
+                  })
+                  return
+                }
                 const parts = store.parts
                 setStore({
                   input: "",
@@ -234,7 +254,7 @@ function Autocomplete(props: {
   })
   const filter = createMemo(() => {
     if (!store.visible) return ""
-    return props.value.substring(store.index + 1)
+    return props.value.substring(store.index + 1).split(" ")[0]
   })
 
   const [files] = createResource(
@@ -293,17 +313,8 @@ function Autocomplete(props: {
           display: "/" + command.name,
           description: command.description,
           onSelect: () => {
-            sdk.session.command({
-              path: {
-                id: s.id,
-              },
-              body: {
-                command: command.name,
-                agent: local.agent.current().name,
-                model: `${local.model.current().providerID}/${local.model.current().modelID}`,
-                arguments: "",
-              },
-            })
+            props.input().value = "/" + command.name + " "
+            props.input().cursorPosition = props.input().value.length
           },
         })
       }
@@ -436,7 +447,7 @@ function Autocomplete(props: {
   }
 
   function hide() {
-    if (store.visible === "/") props.input().value = ""
+    if (store.visible === "/" && !props.value.endsWith(" ")) props.input().value = ""
     setStore("visible", false)
   }
 
