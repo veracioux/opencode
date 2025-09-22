@@ -1,5 +1,5 @@
 import { InputRenderable, TextAttributes, BoxRenderable, type ParsedKey } from "@opentui/core"
-import { createEffect, createMemo, createResource, For, Match, onMount, Switch } from "solid-js"
+import { createEffect, createMemo, createResource, For, Match, onMount, Show, Switch } from "solid-js"
 
 import { useLocal } from "../context/local"
 import { Theme } from "../context/theme"
@@ -75,6 +75,9 @@ export function Prompt(props: PromptProps) {
           </box>
           <box paddingTop={1} paddingBottom={2} backgroundColor={Theme.backgroundElement} flexGrow={1}>
             <input
+              onPaste={function (text) {
+                this.insertText(text)
+              }}
               onInput={(value) => {
                 let diff = value.length - store.input.length
                 setStore(
@@ -198,7 +201,14 @@ export function Prompt(props: PromptProps) {
 type AutocompleteRef = {
   onInput: (value: string) => void
   onKeyDown: (e: ParsedKey) => void
-  visible: boolean
+  visible: false | "@" | "/"
+}
+
+type AutocompleteOption = {
+  type: string
+  value: string
+  display: string
+  description?: string
 }
 
 function Autocomplete(props: {
@@ -212,7 +222,7 @@ function Autocomplete(props: {
   const [store, setStore] = createStore({
     index: 0,
     selected: 0,
-    visible: false,
+    visible: false as AutocompleteRef["visible"],
     position: { x: 0, y: 0, width: 0 },
   })
   const filter = createMemo(() => {
@@ -237,10 +247,32 @@ function Autocomplete(props: {
     },
   )
 
+  const commands: {
+    name: string
+    description: string
+  }[] = {}
+
   const options = createMemo(() => {
-    const mixed = [...files().map((x) => ({ type: "file", value: x }))]
+    const mixed: AutocompleteOption[] =
+      store.visible === "@"
+        ? [...files().map((x) => ({ type: "file", value: x, display: x }))]
+        : [
+            {
+              type: "command",
+              value: "foo",
+              description: "This is a foo command",
+              display: "/foo".padEnd(10),
+            },
+            {
+              type: "command",
+              value: "model",
+              description: "This is a bar command",
+              display: "/model".padEnd(10),
+            },
+          ]
+    if (!filter()) return mixed
     const result = fuzzysort.go(filter(), mixed, {
-      keys: ["value"],
+      keys: ["display"],
     })
     return result.map((arr) => arr.obj)
   })
@@ -253,14 +285,48 @@ function Autocomplete(props: {
   function move(direction: -1 | 1) {
     if (!store.visible) return
     let next = store.selected + direction
-    if (next < 0) next = files().length - 1
-    if (next >= files().length) next = 0
+    if (next < 0) next = options().length - 1
+    if (next >= options().length) next = 0
     setStore("selected", next)
   }
 
-  function show() {
+  function select() {
+    const selected = options()[store.selected]
+    if (!selected) return
+
+    if (selected.type === "file") {
+      const part: Prompt["parts"][number] = {
+        type: "file",
+        mime: "text/plain",
+        filename: selected.value,
+        url: `file://${process.cwd()}/${selected.value}`,
+        source: {
+          type: "file",
+          text: {
+            start: store.index,
+            end: store.index + selected.value.length + 1,
+            value: "@" + selected,
+          },
+          path: selected.value,
+        },
+      }
+      props.setPrompt((draft) => {
+        const append = "@" + selected.value + " "
+        if (store.index === 0) draft.input = append
+        if (store.index > 0) draft.input = draft.input.slice(0, store.index) + append
+        draft.parts.push(part)
+      })
+    }
+
+    if (selected.type === "command") {
+    }
+
+    setTimeout(() => hide(), 0)
+  }
+
+  function show(mode: "@" | "/") {
     setStore({
-      visible: true,
+      visible: mode,
       index: props.input().cursorPosition,
       position: {
         x: props.anchor().x,
@@ -271,6 +337,7 @@ function Autocomplete(props: {
   }
 
   function hide() {
+    if (store.visible === "/") props.input().value = ""
     setStore("visible", false)
   }
 
@@ -287,61 +354,57 @@ function Autocomplete(props: {
           if (e.name === "up") move(-1)
           if (e.name === "down") move(1)
           if (e.name === "escape") hide()
-          if (e.name === "return") {
-            const file = files()[store.selected]
-            if (!file) return
-            const part: Prompt["parts"][number] = {
-              type: "file",
-              mime: "text/plain",
-              filename: file,
-              url: `file://${process.cwd()}/${file}`,
-              source: {
-                type: "file",
-                text: {
-                  start: store.index,
-                  end: store.index + file.length + 1,
-                  value: "@" + file,
-                },
-                path: file,
-              },
-            }
-            props.setPrompt((draft) => {
-              const append = "@" + file + " "
-              if (store.index === 0) draft.input = append
-              if (store.index > 0) draft.input = draft.input.slice(0, store.index) + append
-              draft.parts.push(part)
-            })
-            setTimeout(() => hide(), 0)
-          }
+          if (e.name === "return") select()
         }
         if (!store.visible && e.name === "@") {
           const last = props.value.at(-1)
           if (last === " " || last === undefined) {
-            show()
+            show("@")
           }
+        }
+
+        if (!store.visible && e.name === "/") {
+          if (props.input().cursorPosition === 0) show("/")
         }
       },
     })
   })
+
+  const height = createMemo(() => {
+    if (options().length) return Math.min(10, options().length)
+    return 1
+  })
+
   return (
     <box
-      visible={store.visible}
+      visible={store.visible !== false}
       position="absolute"
-      top={store.position.y - 10}
+      top={store.position.y - height()}
       left={store.position.x}
       width={store.position.width}
       zIndex={100}
       {...SplitBorder}
     >
-      <box backgroundColor={Theme.backgroundElement} height={10}>
-        <For each={options()}>
+      <box backgroundColor={Theme.backgroundElement} height={height()}>
+        <For
+          each={options()}
+          fallback={
+            <box paddingLeft={1} paddingRight={1}>
+              <text>No matching items</text>
+            </box>
+          }
+        >
           {(option, index) => (
             <box
               paddingLeft={1}
               paddingRight={1}
               backgroundColor={index() === store.selected ? Theme.primary : undefined}
+              flexDirection="row"
             >
-              <text fg={index() === store.selected ? Theme.background : Theme.text}>{option.value}</text>
+              <text fg={index() === store.selected ? Theme.background : Theme.text}>{option.display}</text>
+              <Show when={option.description}>
+                <text fg={index() === store.selected ? Theme.background : Theme.textMuted}> {option.description}</text>
+              </Show>
             </box>
           )}
         </For>
