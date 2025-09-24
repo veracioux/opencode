@@ -202,7 +202,7 @@ function Option(props: {
         <text fg={props.active ? Theme.background : Theme.textMuted}> {props.description}</text>
       </box>
       <Show when={props.keybind}>
-        <text fg={Theme.textMuted}>{keybind.print(props.keybind as any)}</text>
+        <text fg={props.active ? Theme.background : Theme.textMuted}>{keybind.print(props.keybind as any)}</text>
       </Show>
     </box>
   )
