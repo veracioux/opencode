@@ -24,12 +24,13 @@ export function init() {
   const renderer = useRenderer()
 
   let focus: Renderable | null
+  let timeout: NodeJS.Timeout
   function leader(active: boolean) {
     if (active) {
       setStore("leader", true)
       focus = renderer.currentFocusedRenderable
       focus?.blur()
-      setTimeout(() => {
+      timeout = setTimeout(() => {
         leader(false)
       }, 2000)
       return
@@ -40,6 +41,7 @@ export function init() {
         focus.focus()
       }
       setStore("leader", false)
+      clearTimeout(timeout)
     }
   }
 
@@ -49,7 +51,7 @@ export function init() {
       return
     }
 
-    if (store.leader) {
+    if (store.leader && evt.name) {
       setImmediate(() => {
         leader(false)
       })
