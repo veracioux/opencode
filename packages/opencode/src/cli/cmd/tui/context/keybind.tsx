@@ -90,7 +90,8 @@ export function init() {
     print(key: keyof KeybindsConfig) {
       const first = keybinds()[key]?.at(0)
       if (!first) return ""
-      return Keybind.toString(first)
+      const result = Keybind.toString(first)
+      return result.replace("<leader>", Keybind.toString(keybinds().leader![0]!))
     },
   }
   return result

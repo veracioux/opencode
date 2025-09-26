@@ -24,7 +24,7 @@ export namespace Keybind {
     let result = parts.join("+")
 
     if (info.leader) {
-      result = `<leader>${result}`
+      result = `<leader>,${result}`
     }
 
     return result

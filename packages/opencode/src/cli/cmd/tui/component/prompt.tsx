@@ -14,7 +14,7 @@ import type { FilePart } from "@opencode-ai/sdk"
 import fuzzysort from "fuzzysort"
 import { useCommandDialog } from "./dialog-command"
 import { useKeybind } from "../context/keybind"
-import clipboard from "clipboardy"
+import { Clipboard } from "../../../../util/clipboard"
 
 export type PromptProps = {
   sessionID?: string
@@ -71,9 +71,11 @@ export function Prompt(props: PromptProps) {
           <box paddingTop={1} paddingBottom={2} backgroundColor={Theme.backgroundElement} flexGrow={1}>
             <input
               onPaste={async function (text) {
-                const data = (await clipboard.read().catch(() => {})) ?? text
-                console.log(data)
-                this.insertText(data)
+                const content = await Clipboard.read()
+                console.log(content)
+                if (!content) {
+                  this.insertText(text)
+                }
               }}
               onInput={(value) => {
                 let diff = value.length - store.input.length

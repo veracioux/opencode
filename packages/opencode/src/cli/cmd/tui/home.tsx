@@ -2,6 +2,7 @@ import { Installation } from "../../../installation"
 import { useTheme } from "./context/theme"
 import { TextAttributes } from "@opentui/core"
 import { Prompt } from "./component/prompt"
+import { For } from "solid-js"
 
 export function Home() {
   const { currentTheme } = useTheme()
@@ -46,23 +47,33 @@ function HelpRow(props: { children: string; slash: string; theme: any }) {
   )
 }
 
+const LOGO_LEFT = [
+`                   `,
+`█▀▀█ █▀▀█ █▀▀█ █▀▀▄`,
+`█░░█ █░░█ █▀▀▀ █░░█`,
+`▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀`,
+]
+
+const LOGO_RIGHT = [
+`             ▄     `,
+`█▀▀▀ █▀▀█ █▀▀█ █▀▀█`,
+`█░░░ █░░█ █░░█ █▀▀▀`,
+`▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`,
+]
+
 function Logo(props: { theme: any }) {
   return (
     <box>
-      <box flexDirection="row">
-        <text fg={props.theme.textMuted}>{"█▀▀█ █▀▀█ █▀▀ █▀▀▄"}</text>
-        <text fg={props.theme.text} attributes={TextAttributes.BOLD}>
-          {" █▀▀ █▀▀█ █▀▀▄ █▀▀"}
-        </text>
-      </box>
-      <box flexDirection="row">
-        <text fg={props.theme.textMuted}>{`█░░█ █░░█ █▀▀ █░░█`}</text>
-        <text fg={props.theme.text}>{` █░░ █░░█ █░░█ █▀▀`}</text>
-      </box>
-      <box flexDirection="row">
-        <text fg={props.theme.textMuted}>{`▀▀▀▀ █▀▀▀ ▀▀▀ ▀  ▀`}</text>
-        <text fg={props.theme.text}>{` ▀▀▀ ▀▀▀▀ ▀▀▀  ▀▀▀`}</text>
-      </box>
+      <For each={LOGO_LEFT}>
+        {(line, index) =>  (
+          <box flexDirection="row" gap={1}>
+            <text fg={props.theme.textMuted}>{line}</text>
+            <text fg={props.theme.text} attributes={TextAttributes.BOLD}>
+              {LOGO_RIGHT[index()]}
+            </text>
+          </box>
+        )}
+      </For>
       <box flexDirection="row" justifyContent="flex-end">
         <text fg={props.theme.textMuted}>{Installation.VERSION}</text>
       </box>
