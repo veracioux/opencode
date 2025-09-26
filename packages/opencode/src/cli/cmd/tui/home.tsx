@@ -47,25 +47,15 @@ function HelpRow(props: { children: string; slash: string; theme: any }) {
   )
 }
 
-const LOGO_LEFT = [
-`                   `,
-`█▀▀█ █▀▀█ █▀▀█ █▀▀▄`,
-`█░░█ █░░█ █▀▀▀ █░░█`,
-`▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀`,
-]
+const LOGO_LEFT = [`                   `, `█▀▀█ █▀▀█ █▀▀█ █▀▀▄`, `█░░█ █░░█ █▀▀▀ █░░█`, `▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀`]
 
-const LOGO_RIGHT = [
-`             ▄     `,
-`█▀▀▀ █▀▀█ █▀▀█ █▀▀█`,
-`█░░░ █░░█ █░░█ █▀▀▀`,
-`▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`,
-]
+const LOGO_RIGHT = [`             ▄     `, `█▀▀▀ █▀▀█ █▀▀█ █▀▀█`, `█░░░ █░░█ █░░█ █▀▀▀`, `▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`]
 
 function Logo(props: { theme: any }) {
   return (
     <box>
       <For each={LOGO_LEFT}>
-        {(line, index) =>  (
+        {(line, index) => (
           <box flexDirection="row" gap={1}>
             <text fg={props.theme.textMuted}>{line}</text>
             <text fg={props.theme.text} attributes={TextAttributes.BOLD}>
