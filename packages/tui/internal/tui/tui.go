@@ -956,17 +956,16 @@ func (a Model) home() (string, int, int) {
 	muted := styles.NewStyle().Foreground(t.TextMuted()).Background(t.Background()).Render
 
 	open := `
-
-█▀▀█ █▀▀█ █▀▀█ █▀▀▄
-█░░█ █░░█ █▀▀▀ █░░█
-▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀`
+                    
+█▀▀█ █▀▀█ █▀▀█ █▀▀▄ 
+█░░█ █░░█ █▀▀▀ █░░█ 
+▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ `
 
 	code := `
              ▄
 █▀▀▀ █▀▀█ █▀▀█ █▀▀█
 █░░░ █░░█ █░░█ █▀▀▀
 ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`
-
 
 	logo := lipgloss.JoinHorizontal(
 		lipgloss.Top,
@@ -1043,7 +1042,7 @@ func (a Model) home() (string, int, int) {
 	)
 
 	editorX := max(0, (effectiveWidth-editorWidth)/2)
-	editorY := (a.height / 2) + (mainHeight / 2) - 2
+	editorY := (a.height / 2) + (mainHeight / 2) - 3
 
 	if editorLines > 1 {
 		content := a.editor.Content()

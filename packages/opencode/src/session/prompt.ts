@@ -892,6 +892,7 @@ export namespace SessionPrompt {
                   time: {
                     start: Date.now(),
                   },
+                  metadata: value.providerMetadata,
                 }
                 break
 
@@ -913,6 +914,7 @@ export namespace SessionPrompt {
                     ...part.time,
                     end: Date.now(),
                   }
+                  if (value.providerMetadata) part.metadata = value.providerMetadata
                   await Session.updatePart(part)
                   delete reasoningMap[value.id]
                 }
@@ -954,6 +956,7 @@ export namespace SessionPrompt {
                         start: Date.now(),
                       },
                     },
+                    metadata: value.providerMetadata,
                   })
                   toolcalls[value.toolCallId] = part as MessageV2.ToolPart
                 }
@@ -1042,12 +1045,14 @@ export namespace SessionPrompt {
                   time: {
                     start: Date.now(),
                   },
+                  metadata: value.providerMetadata,
                 }
                 break
 
               case "text-delta":
                 if (currentText) {
                   currentText.text += value.text
+                  if (value.providerMetadata) currentText.metadata = value.providerMetadata
                   if (currentText.text) await Session.updatePart(currentText)
                 }
                 break
@@ -1059,6 +1064,7 @@ export namespace SessionPrompt {
                     start: Date.now(),
                     end: Date.now(),
                   }
+                  if (value.providerMetadata) currentText.metadata = value.providerMetadata
                   await Session.updatePart(currentText)
                 }
                 currentText = undefined
