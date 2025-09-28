@@ -1,4 +1,4 @@
-import { createContext, useContext, type ParentProps } from "solid-js"
+import { createContext, Show, useContext, type ParentProps } from "solid-js"
 
 export function createSimpleContext<T>(input: { name: string; init: () => T }) {
   const ctx = createContext<T>()
@@ -6,7 +6,12 @@ export function createSimpleContext<T>(input: { name: string; init: () => T }) {
   return {
     provider: (props: ParentProps) => {
       const init = input.init()
-      return <ctx.Provider value={init}>{props.children}</ctx.Provider>
+      return (
+        // @ts-expect-error
+        <Show when={init.ready === undefined || init.ready === true}>
+          <ctx.Provider value={init}>{props.children}</ctx.Provider>
+        </Show>
+      )
     },
     use() {
       const value = useContext(ctx)

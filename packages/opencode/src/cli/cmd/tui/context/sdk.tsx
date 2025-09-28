@@ -1,32 +1,18 @@
-import { createContext, useContext, type ParentProps } from "solid-js"
 import { createOpencodeClient } from "@opencode-ai/sdk"
 import { Server } from "@/server/server"
+import { createSimpleContext } from "./helper"
 
-function init() {
-  const client = createOpencodeClient({
-    baseUrl: "http://localhost:4096",
-    // @ts-ignore
-    fetch: async (r) => {
+export const { use: useSDK, provider: SDKProvider } = createSimpleContext({
+  name: "SDK",
+  init: () => {
+    const client = createOpencodeClient({
+      baseUrl: "http://localhost:4096",
       // @ts-ignore
-      return Server.App().fetch(r)
-    },
-  })
-  return client
-}
-
-type SDKContext = ReturnType<typeof init>
-
-const ctx = createContext<SDKContext>()
-
-export function SDKProvider(props: ParentProps) {
-  const value = init()
-  return <ctx.Provider value={value}>{props.children}</ctx.Provider>
-}
-
-export function useSDK() {
-  const value = useContext(ctx)
-  if (!value) {
-    throw new Error("useSDK must be used within a SDKProvider")
-  }
-  return value
-}
+      fetch: async (r) => {
+        // @ts-ignore
+        return Server.App().fetch(r)
+      },
+    })
+    return client
+  },
+})

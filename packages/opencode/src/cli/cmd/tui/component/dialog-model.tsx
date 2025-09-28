@@ -52,8 +52,8 @@ export function DialogModel() {
       current={local.model.current()}
       options={options()}
       onSelect={(option) => {
-        local.model.set(option.value, { recent: true })
         dialog.clear()
+        local.model.set(option.value, { recent: true })
       }}
     />
   )

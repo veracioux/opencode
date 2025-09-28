@@ -1,5 +1,5 @@
 import { useKeyboard, useTerminalDimensions } from "@opentui/solid"
-import { createContext, For, Show, useContext, type JSX, type ParentProps } from "solid-js"
+import { batch, createContext, For, Show, useContext, type JSX, type ParentProps } from "solid-js"
 import { Theme } from "@tui/context/theme"
 import { RGBA } from "@opentui/core"
 import { createStore, produce } from "solid-js/store"
@@ -51,31 +51,54 @@ export function Dialog(
 
 function init() {
   const [store, setStore] = createStore({
-    stack: [] as JSX.Element[],
+    stack: [] as {
+      element: JSX.Element
+      onClose?: () => void
+    }[],
     size: "medium" as "medium" | "large",
   })
 
   useKeyboard((evt) => {
     if (evt.name === "escape" && store.stack.length > 0) {
+      const current = store.stack.at(-1)!
+      current.onClose?.()
       setStore("stack", store.stack.slice(0, -1))
       evt.preventDefault()
     }
   })
 
   return {
-    push(input: JSX.Element) {
+    push(element: JSX.Element, onClose?: () => void) {
       setStore(
         "stack",
-        produce((val) => val.push(input)),
+        produce((val) =>
+          val.push({
+            element,
+            onClose,
+          }),
+        ),
       )
     },
     clear() {
-      setStore("size", "medium")
-      setStore("stack", [])
+      for (const item of store.stack) {
+        if (item.onClose) item.onClose()
+      }
+      batch(() => {
+        setStore("size", "medium")
+        setStore("stack", [])
+      })
     },
-    replace(input: any) {
+    replace(input: any, onClose?: () => void) {
+      for (const item of store.stack) {
+        if (item.onClose) item.onClose()
+      }
       setStore("size", "medium")
-      setStore("stack", [input])
+      setStore("stack", [
+        {
+          element: input,
+          onClose,
+        },
+      ])
     },
     get stack() {
       return store.stack
@@ -102,7 +125,7 @@ export function DialogProvider(props: ParentProps) {
         <For each={value.stack}>
           {(item, index) => (
             <Show when={index() === 0}>
-              <Dialog size={value.size}>{item}</Dialog>
+              <Dialog size={value.size}>{item.element}</Dialog>
             </Show>
           )}
         </For>

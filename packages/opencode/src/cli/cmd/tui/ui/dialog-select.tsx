@@ -73,7 +73,6 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
     if (next >= flat().length) next = 0
     setStore("selected", next)
     const target = scroll.getChildren().find((child) => {
-      console.log(child.id)
       return child.id === JSON.stringify(selected()?.value)
     })
     if (!target) return

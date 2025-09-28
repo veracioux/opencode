@@ -1,31 +1,28 @@
 import { Installation } from "@/installation"
-import { useTheme } from "@tui/context/theme"
 import { TextAttributes } from "@opentui/core"
 import { Prompt } from "@tui/component/prompt"
 import { For } from "solid-js"
+import { Theme } from "@tui/context/theme"
 
 export function Home() {
-  const { currentTheme } = useTheme()
-  const theme = currentTheme()
-
   return (
     <box flexGrow={1} justifyContent="center" alignItems="center">
       <box>
-        <Logo theme={theme} />
+        <Logo />
         <box paddingTop={2}>
-          <HelpRow slash="new" theme={theme}>
+          <HelpRow slash="new">
             new session
           </HelpRow>
-          <HelpRow slash="help" theme={theme}>
+          <HelpRow slash="help">
             show help
           </HelpRow>
-          <HelpRow slash="share" theme={theme}>
+          <HelpRow slash="share">
             share session
           </HelpRow>
-          <HelpRow slash="models" theme={theme}>
+          <HelpRow slash="models">
             list models
           </HelpRow>
-          <HelpRow slash="agents" theme={theme}>
+          <HelpRow slash="agents">
             list agents
           </HelpRow>
         </box>
@@ -37,12 +34,12 @@ export function Home() {
   )
 }
 
-function HelpRow(props: { children: string; slash: string; theme: any }) {
+function HelpRow(props: { children: string; slash: string }) {
   return (
     <text>
-      <span style={{ bold: true, fg: props.theme.primary }}>/{props.slash.padEnd(10, " ")}</span>
+      <span style={{ bold: true, fg: Theme.primary }}>/{props.slash.padEnd(10, " ")}</span>
       <span>{props.children.padEnd(19, " ")} </span>
-      <span style={{ fg: props.theme.textMuted }}>ctrl+x n</span>
+      <span style={{ fg: Theme.textMuted }}>ctrl+x n</span>
     </text>
   )
 }
@@ -51,21 +48,21 @@ const LOGO_LEFT = [`                   `, `█▀▀█ █▀▀█ █▀▀�
 
 const LOGO_RIGHT = [`             ▄     `, `█▀▀▀ █▀▀█ █▀▀█ █▀▀█`, `█░░░ █░░█ █░░█ █▀▀▀`, `▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`]
 
-function Logo(props: { theme: any }) {
+function Logo() {
   return (
     <box>
       <For each={LOGO_LEFT}>
         {(line, index) => (
           <box flexDirection="row" gap={1}>
-            <text fg={props.theme.textMuted}>{line}</text>
-            <text fg={props.theme.text} attributes={TextAttributes.BOLD}>
+            <text fg={Theme.textMuted}>{line}</text>
+            <text fg={Theme.text} attributes={TextAttributes.BOLD}>
               {LOGO_RIGHT[index()]}
             </text>
           </box>
         )}
       </For>
       <box flexDirection="row" justifyContent="flex-end">
-        <text fg={props.theme.textMuted}>{Installation.VERSION}</text>
+        <text fg={Theme.textMuted}>{Installation.VERSION}</text>
       </box>
     </box>
   )

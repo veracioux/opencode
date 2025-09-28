@@ -2,8 +2,7 @@ import { cmd } from "@/cli/cmd/cmd"
 import { render, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
 import { TextAttributes } from "@opentui/core"
 import { RouteProvider, useRoute } from "@tui/context/route"
-import { Switch, Match, createEffect } from "solid-js"
-import { ThemeProvider, useTheme } from "@tui/context/theme"
+import { Switch, Match, createEffect, untrack } from "solid-js"
 import { Installation } from "@/installation"
 import { Global } from "@/global"
 import { DialogProvider, useDialog } from "@tui/ui/dialog"
@@ -17,10 +16,12 @@ import { DialogSessionList } from "@tui/component/dialog-session-list"
 import { KeybindProvider, useKeybind } from "@tui/context/keybind"
 import { Config } from "@/config/config"
 import { Instance } from "@/project/instance"
+import { Theme } from "@tui/context/theme"
 
 import { Home } from "@tui/routes/home"
 import { Session } from "@tui/routes/session"
 import { PromptHistoryProvider } from "./component/prompt/history"
+import { DialogAlert } from "./ui/dialog-alert"
 
 export const TuiCommand = cmd({
   command: "$0 [project]",
@@ -75,23 +76,21 @@ export const TuiCommand = cmd({
       () => {
         return (
           <RouteProvider>
-            <ThemeProvider>
-              <SDKProvider>
-                <SyncProvider>
-                  <LocalProvider>
-                    <KeybindProvider>
-                      <DialogProvider>
-                        <CommandProvider>
-                          <PromptHistoryProvider>
-                            <App />
-                          </PromptHistoryProvider>
-                        </CommandProvider>
-                      </DialogProvider>
-                    </KeybindProvider>
-                  </LocalProvider>
-                </SyncProvider>
-              </SDKProvider>
-            </ThemeProvider>
+            <SDKProvider>
+              <SyncProvider>
+                <LocalProvider>
+                  <KeybindProvider>
+                    <DialogProvider>
+                      <CommandProvider>
+                        <PromptHistoryProvider>
+                          <App />
+                        </PromptHistoryProvider>
+                      </CommandProvider>
+                    </DialogProvider>
+                  </KeybindProvider>
+                </LocalProvider>
+              </SyncProvider>
+            </SDKProvider>
           </RouteProvider>
         )
       },
@@ -180,10 +179,21 @@ function App() {
     },
   ])
 
-  const { currentTheme } = useTheme()
+  createEffect(() => {
+    const providerID = local.model.current().providerID
+    if (providerID === "openrouter" && !local.kv.data.openrouter_warning) {
+      untrack(() => {
+        DialogAlert.show(
+          dialog,
+          "Warning",
+          "While openrouter is a convenient way to access LLMs your request will often be routed to subpar providers that do not work well in our testing.\n\nFor reliable access to models check out OpenCode Zen\nhttps://opencode.ai/zen",
+        ).then(() => local.kv.set("openrouter_warning", true))
+      })
+    }
+  })
 
   return (
-    <box width={dimensions().width} height={dimensions().height} backgroundColor={currentTheme().background}>
+    <box width={dimensions().width} height={dimensions().height} backgroundColor={Theme.background}>
       <box flexDirection="column" flexGrow={1}>
         <Switch>
           <Match when={route.data.type === "home"}>
@@ -196,27 +206,27 @@ function App() {
       </box>
       <box
         height={1}
-        backgroundColor={currentTheme().backgroundPanel}
+        backgroundColor={Theme.backgroundPanel}
         flexDirection="row"
         justifyContent="space-between"
         flexShrink={0}
       >
         <box flexDirection="row">
-          <box flexDirection="row" backgroundColor={currentTheme().backgroundElement} paddingLeft={1} paddingRight={1}>
-            <text fg={currentTheme().textMuted}>open</text>
+          <box flexDirection="row" backgroundColor={Theme.backgroundElement} paddingLeft={1} paddingRight={1}>
+            <text fg={Theme.textMuted}>open</text>
             <text attributes={TextAttributes.BOLD}>code </text>
-            <text fg={currentTheme().textMuted}>v{Installation.VERSION}</text>
+            <text fg={Theme.textMuted}>v{Installation.VERSION}</text>
           </box>
           <box paddingLeft={1} paddingRight={1}>
-            <text fg={currentTheme().textMuted}>{process.cwd().replace(Global.Path.home, "~")}</text>
+            <text fg={Theme.textMuted}>{process.cwd().replace(Global.Path.home, "~")}</text>
           </box>
         </box>
         <box flexDirection="row" flexShrink={0}>
-          <text fg={currentTheme().textMuted} paddingRight={1}>
+          <text fg={Theme.textMuted} paddingRight={1}>
             tab
           </text>
           <text fg={local.agent.color(local.agent.current().name)}>┃</text>
-          <text bg={local.agent.color(local.agent.current().name)} fg={currentTheme().background} wrap={false}>
+          <text bg={local.agent.color(local.agent.current().name)} fg={Theme.background} wrap={false}>
             {" "}
             <span style={{ bold: true }}>{local.agent.current().name.toUpperCase()}</span>
             <span> AGENT </span>
