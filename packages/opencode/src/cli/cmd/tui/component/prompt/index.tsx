@@ -34,7 +34,7 @@ export function Prompt(props: PromptProps) {
   let anchor: BoxRenderable
   let autocomplete: AutocompleteRef
 
-  const dialog = useDialog()
+
   const keybind = useKeybind()
   const local = useLocal()
   const sdk = useSDK()

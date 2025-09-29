@@ -1,9 +1,8 @@
 import { useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
-import { batch, createContext, For, Show, useContext, type JSX, type ParentProps } from "solid-js"
+import { batch, createContext, Show, useContext, type JSX, type ParentProps } from "solid-js"
 import { Theme } from "@tui/context/theme"
 import { Renderable, RGBA } from "@opentui/core"
-import { createStore, produce } from "solid-js/store"
-import { render } from "solid-js/web"
+import { createStore } from "solid-js/store"
 
 const Border = {
   topLeft: "┃",

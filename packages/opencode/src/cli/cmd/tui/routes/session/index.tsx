@@ -242,7 +242,7 @@ export function Session() {
   const dialog = useDialog()
 
   return (
-    <box paddingTop={1} paddingBottom={1} paddingLeft={2} paddingRight={2} flexGrow={1} onKeyDown={(e) => {}}>
+    <box paddingTop={1} paddingBottom={1} paddingLeft={2} paddingRight={2} flexGrow={1}>
       <Show when={session()}>
         <Header />
         <scrollbox
