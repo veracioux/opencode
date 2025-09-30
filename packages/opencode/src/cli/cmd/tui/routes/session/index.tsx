@@ -522,7 +522,7 @@ function ToolPart(props: { part: ToolPart; message: AssistantMessage }) {
     const permission = permissions[permissionIndex]
 
     const style: BoxProps =
-      container === "block"
+      container === "block" || permission
         ? {
             border: permissionIndex === 0 ? (["left", "right"] as const) : (["left"] as const),
             paddingTop: 1,
