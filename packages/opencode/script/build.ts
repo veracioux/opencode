@@ -50,7 +50,7 @@ for (const [os, arch] of targets) {
       execArgv: [`--user-agent=opencode/${version}`, `--env-file=""`, `--`],
       windows: {},
     },
-    entrypoints: ["./src/index.ts"],
+    entrypoints: ["./src/index.ts", "./src/cli/cmd/tui/worker.ts"],
     define: {
       OPENCODE_VERSION: `'${version}'`,
       OPENCODE_TUI_PATH: `'../../../dist/${name}/bin/tui'`,
