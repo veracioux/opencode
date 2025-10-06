@@ -153,6 +153,7 @@ export function Prompt(props: PromptProps) {
         },
       })
     }
+    history.append(store.prompt)
     setStore("prompt", {
       input: "",
       parts: [],
