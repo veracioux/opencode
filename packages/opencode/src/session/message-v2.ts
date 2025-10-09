@@ -155,6 +155,8 @@ export namespace MessageV2 {
   export const ToolStatePending = z
     .object({
       status: z.literal("pending"),
+      input: z.any(),
+      raw: z.string(),
     })
     .meta({
       ref: "ToolStatePending",
@@ -276,6 +278,7 @@ export namespace MessageV2 {
       ])
       .optional(),
     system: z.string().array(),
+    finish: z.string().optional(),
     modelID: z.string(),
     providerID: z.string(),
     mode: z.string(),
@@ -394,6 +397,8 @@ export namespace MessageV2 {
                 if (part.toolInvocation.state === "partial-call") {
                   return {
                     status: "pending",
+                    input: {},
+                    raw: "",
                   }
                 }
 
