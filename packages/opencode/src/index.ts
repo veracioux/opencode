@@ -20,8 +20,6 @@ import { GithubCommand } from "./cli/cmd/github"
 import { ExportCommand } from "./cli/cmd/export"
 import { AttachCommand } from "./cli/cmd/attach"
 
-const cancel = new AbortController()
-
 process.on("unhandledRejection", (e) => {
   Log.Default.error("rejection", {
     e: e instanceof Error ? e.message : e,
@@ -136,5 +134,3 @@ try {
   // Explicitly exit to avoid any hanging subprocesses.
   process.exit();
 }
-
-cancel.abort()
