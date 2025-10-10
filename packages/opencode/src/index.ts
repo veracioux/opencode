@@ -22,8 +22,6 @@ import { AttachCommand } from "./cli/cmd/attach"
 import { AcpCommand } from "./cli/cmd/acp"
 import { EOL } from "os"
 
-const cancel = new AbortController()
-
 process.on("unhandledRejection", (e) => {
   Log.Default.error("rejection", {
     e: e instanceof Error ? e.message : e,
@@ -142,5 +140,3 @@ try {
   // Explicitly exit to avoid any hanging subprocesses.
   process.exit();
 }
-
-cancel.abort()
