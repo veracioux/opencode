@@ -154,7 +154,6 @@ export const BashTool = Tool.define("bash", {
       stdio: ["ignore", "pipe", "pipe"],
       timeout,
     })
-    process.stdin?.end()
 
     let output = ""
 
