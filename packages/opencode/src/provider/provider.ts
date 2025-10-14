@@ -569,6 +569,7 @@ export namespace Provider {
       providerID: z.string(),
       modelID: z.string(),
     }),
+    400,
   )
 
   export const InitError = NamedError.create(
