@@ -6,9 +6,9 @@ import { Rpc } from "@/util/rpc"
 
 await Log.init({
   print: process.argv.includes("--print-logs"),
-  dev: Installation.isDev(),
+  dev: Installation.isLocal(),
   level: (() => {
-    if (Installation.isDev()) return "DEBUG"
+    if (Installation.isLocal()) return "DEBUG"
     return "INFO"
   })(),
 })
