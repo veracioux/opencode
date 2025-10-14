@@ -68,12 +68,12 @@ export namespace Server {
         })
         if (err instanceof NamedError) {
           return c.json(err.toObject(), {
-            status: 400,
+            status: err.httpCode,
           })
         }
         const message = err instanceof Error && err.stack ? err.stack : err.toString()
         return c.json(new NamedError.Unknown({ message }).toObject(), {
-          status: 400,
+          status: 500,
         })
       })
       .use(async (c, next) => {
