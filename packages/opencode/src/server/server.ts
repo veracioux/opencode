@@ -32,6 +32,7 @@ import { lazy } from "../util/lazy"
 import { Todo } from "../session/todo"
 import { InstanceBootstrap } from "../project/bootstrap"
 import { MCP } from "../mcp"
+import { Storage } from "../storage/storage"
 
 const ERRORS = {
   400: {
@@ -41,16 +42,32 @@ const ERRORS = {
         schema: resolver(
           z
             .object({
-              data: z.record(z.string(), z.any()),
+              data: z.any().nullable(),
+              errors: z.array(z.record(z.string(), z.any())),
+              success: z.literal(false),
             })
             .meta({
-              ref: "Error",
+              ref: "BadRequestError",
             }),
         ),
       },
     },
   },
+  404: {
+    description: "Not found",
+    content: {
+      "application/json": {
+        schema: resolver(
+          Storage.NotFoundError.Schema
+        )
+      },
+    },
+  },
 } as const
+
+function errors(...codes: number[]) {
+  return Object.fromEntries(codes.map((code) => [code, ERRORS[code as keyof typeof ERRORS]]))
+}
 
 export namespace Server {
   const log = Log.create({ service: "server" })
@@ -152,7 +169,7 @@ export namespace Server {
                 },
               },
             },
-            ...ERRORS,
+            ...errors(400),
           },
         }),
         validator("json", Config.Info),
@@ -176,7 +193,7 @@ export namespace Server {
                 },
               },
             },
-            ...ERRORS,
+            ...errors(400),
           },
         }),
         async (c) => {
@@ -209,7 +226,7 @@ export namespace Server {
                 },
               },
             },
-            ...ERRORS,
+            ...errors(400),
           },
         }),
         validator(
@@ -304,6 +321,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -332,6 +350,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -360,6 +379,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -380,7 +400,7 @@ export namespace Server {
           description: "Create a new session",
           operationId: "session.create",
           responses: {
-            ...ERRORS,
+            ...errors(400),
             200: {
               description: "Successfully created session",
               content: {
@@ -412,6 +432,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -439,6 +460,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -480,6 +502,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -540,6 +563,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -566,6 +590,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -595,6 +620,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -624,6 +650,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -660,6 +687,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -692,6 +720,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -726,6 +755,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -761,6 +791,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -791,6 +822,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -821,6 +853,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -851,6 +884,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -878,6 +912,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400, 404),
           },
         }),
         validator(
@@ -1131,6 +1166,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400),
           },
         }),
         validator(
@@ -1222,6 +1258,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400),
           },
         }),
         validator(
@@ -1354,6 +1391,7 @@ export namespace Server {
                 },
               },
             },
+            ...errors(400),
           },
         }),
         validator(
@@ -1405,7 +1443,7 @@ export namespace Server {
                 },
               },
             },
-            ...ERRORS,
+            ...errors(400),
           },
         }),
         validator(
