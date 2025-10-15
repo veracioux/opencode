@@ -18,7 +18,6 @@ export namespace Storage {
     z.object({
       message: z.string(),
     }),
-    404,
   )
 
   const MIGRATIONS: Migration[] = [

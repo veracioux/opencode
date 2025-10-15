@@ -1,4 +1,3 @@
-import type { ContentfulStatusCode } from "hono/utils/http-status";
 import z from "zod/v4"
 // import { Log } from "./log"
 
@@ -7,9 +6,8 @@ import z from "zod/v4"
 export abstract class NamedError extends Error {
   abstract schema(): z.core.$ZodType
   abstract toObject(): { name: string; data: any }
-  abstract httpCode: ContentfulStatusCode
 
-  static create<Name extends string, Data extends z.core.$ZodType>(name: Name, data: Data, httpCode: ContentfulStatusCode = 500) {
+  static create<Name extends string, Data extends z.core.$ZodType>(name: Name, data: Data) {
     const schema = z
       .object({
         name: z.literal(name),
@@ -22,7 +20,6 @@ export abstract class NamedError extends Error {
       public static readonly Schema = schema
 
       public override readonly name = name as Name
-      public readonly httpCode = httpCode
 
       constructor(
         public readonly data: z.input<Data>,

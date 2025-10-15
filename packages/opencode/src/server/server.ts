@@ -33,6 +33,7 @@ import { Todo } from "../session/todo"
 import { InstanceBootstrap } from "../project/bootstrap"
 import { MCP } from "../mcp"
 import { Storage } from "../storage/storage"
+import type { ContentfulStatusCode } from "hono/utils/http-status"
 
 const ERRORS = {
   400: {
@@ -84,9 +85,14 @@ export namespace Server {
           error: err,
         })
         if (err instanceof NamedError) {
-          return c.json(err.toObject(), {
-            status: err.httpCode,
-          })
+          let status: ContentfulStatusCode
+          if (err instanceof Storage.NotFoundError)
+            status = 404
+          else if (err instanceof Provider.ModelNotFoundError)
+            status = 400
+          else
+            status = 500
+          return c.json(err.toObject(), { status })
         }
         const message = err instanceof Error && err.stack ? err.stack : err.toString()
         return c.json(new NamedError.Unknown({ message }).toObject(), {
