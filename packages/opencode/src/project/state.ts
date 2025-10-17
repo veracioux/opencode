@@ -26,9 +26,9 @@ export namespace State {
   }
 
   export async function dispose(key: string) {
-    for (const [_, entry] of entries.get(key)?.entries() ?? []) {
-      if (!entry.dispose) continue
-      await entry.dispose(await entry.state)
-    }
+    await Promise.all(
+      (entries.get(key)?.values() ?? [])
+        .map(async (entry) => await entry.dispose?.(await entry.state)),
+    )
   }
 }
