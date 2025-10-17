@@ -10,7 +10,7 @@ export function FormatError(input: unknown) {
       `Config file at ${input.data.path} is not valid JSON(C)` + (input.data.message ? `: ${input.data.message}` : "")
     )
   }
-  if (Config.DirectoryError.isInstance(input)) {
+  if (Config.ConfigDirectoryTypoError.isInstance(input)) {
     return `Directory "${input.data.dir}" is not valid. Use "${input.data.suggestion}" instead. This is a common typo.`
   }
   if (Config.InvalidError.isInstance(input))
