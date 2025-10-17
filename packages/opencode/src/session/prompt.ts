@@ -205,6 +205,7 @@ export namespace SessionPrompt {
     )
 
     let step = 0
+    let ensureTitlePromise: Promise<void> | undefined = undefined
     while (true) {
       const msgs: MessageV2.WithParts[] = pipe(
         await getMessages({
@@ -216,7 +217,7 @@ export namespace SessionPrompt {
         (messages) => insertReminders({ messages, agent }),
       )
       if (step === 0)
-        ensureTitle({
+        ensureTitlePromise = ensureTitle({
           session,
           history: msgs,
           message: userMsg,
@@ -336,6 +337,9 @@ export namespace SessionPrompt {
       }
       state().queued.delete(input.sessionID)
       SessionCompaction.prune(input)
+      log.info("waiting for session title to be generated")
+      await ensureTitlePromise
+      log.info("session title awaited")
       return result
     }
   }
@@ -1635,7 +1639,7 @@ export namespace SessionPrompt {
         thinkingBudget: 0,
       }
     }
-    generateText({
+    await generateText({
       maxOutputTokens: small.info.reasoning ? 1500 : 20,
       providerOptions: {
         [small.providerID]: options,
