@@ -11,7 +11,7 @@ export function FormatError(input: unknown) {
     )
   }
   if (Config.ConfigDirectoryTypoError.isInstance(input)) {
-    return `Directory "${input.data.dir}" is not valid. Use "${input.data.suggestion}" instead. This is a common typo.`
+    return `Directory "${input.data.dir}" in ${input.data.path} is not valid. Use "${input.data.suggestion}" instead. This is a common typo.`
   }
   if (Config.InvalidError.isInstance(input))
     return [
