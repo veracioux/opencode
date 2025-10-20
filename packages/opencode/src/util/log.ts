@@ -21,6 +21,7 @@ export namespace Log {
   }
 
   export type Logger = {
+    log(level: Level, message?: any, extra?: Record<string, any>): void,
     debug(message?: any, extra?: Record<string, any>): void
     info(message?: any, extra?: Record<string, any>): void
     error(message?: any, extra?: Record<string, any>): void
@@ -34,6 +35,16 @@ export namespace Log {
       stop(): void
       [Symbol.dispose](): void
     }
+    /** Clone the logger with the specified options. */
+    opt(options: LoggerOptions): Logger
+  }
+
+  type LoggerOptions = {
+    /**
+     * If true, the logger will print to stderr even if printing to stderr was not explicitly enabled.
+     * When undefined, error messages will be printed to stderr by default.
+     */
+    important?: boolean
   }
 
   const loggers = new Map<string, Logger>()
@@ -51,22 +62,23 @@ export namespace Log {
     return logpath
   }
 
+  let printToStderr = false
+  let logFileWriter: Bun.FileSink | null = null
+
   export async function init(options: Options) {
     if (options.level) level = options.level
     cleanup(Global.Path.log)
-    if (options.print) return
+    if (options.print) {
+       printToStderr = true
+       return
+    }
     logpath = path.join(
       Global.Path.log,
       options.dev ? "dev.log" : new Date().toISOString().split(".")[0].replace(/:/g, "") + ".log",
     )
     const logfile = Bun.file(logpath)
+    logFileWriter = logfile.writer()
     await fs.truncate(logpath).catch(() => {})
-    const writer = logfile.writer()
-    process.stderr.write = (msg) => {
-      writer.write(msg)
-      writer.flush()
-      return true
-    }
   }
 
   async function cleanup(dir: string) {
@@ -120,26 +132,26 @@ export namespace Log {
       last = next.getTime()
       return [next.toISOString().split(".")[0], "+" + diff + "ms", prefix, message].filter(Boolean).join(" ") + "\n"
     }
-    const result: Logger = {
-      debug(message?: any, extra?: Record<string, any>) {
-        if (shouldLog("DEBUG")) {
-          process.stderr.write("DEBUG " + build(message, extra))
+    const result: Logger & { _options: LoggerOptions } = {
+      _options: {
+        important: undefined,
+      },
+      log(level: Level, message?: any, extra?: Record<string, any>) {
+        if (shouldLog(level)) {
+          write(level, level + " " + build(message, extra), this._options)
         }
+      },
+      debug(message?: any, extra?: Record<string, any>) {
+        this.log("DEBUG", message, extra)
       },
       info(message?: any, extra?: Record<string, any>) {
-        if (shouldLog("INFO")) {
-          process.stderr.write("INFO  " + build(message, extra))
-        }
+        this.log("INFO", message, extra)
       },
       error(message?: any, extra?: Record<string, any>) {
-        if (shouldLog("ERROR")) {
-          process.stderr.write("ERROR " + build(message, extra))
-        }
+        this.log("ERROR", message, extra)
       },
       warn(message?: any, extra?: Record<string, any>) {
-        if (shouldLog("WARN")) {
-          process.stderr.write("WARN  " + build(message, extra))
-        }
+        this.log("WARN", message, extra)
       },
       tag(key: string, value: string) {
         if (tags) tags[key] = value
@@ -165,6 +177,11 @@ export namespace Log {
           },
         }
       },
+      opt(options: LoggerOptions) {
+        const logger = this.clone() as Logger & { _options: LoggerOptions }
+        logger._options = options
+        return logger
+      }
     }
 
     if (service && typeof service === "string") {
@@ -172,5 +189,39 @@ export namespace Log {
     }
 
     return result
+  }
+
+  let messageQueue: { level: Level, message: string }[] = []
+  let backgroundMode = false
+
+  function write(level: Level, message: string, options?: { ignoreFile?: boolean, important?: boolean }) {
+    const shouldWriteToFile = !options?.ignoreFile && !printToStderr && !!logFileWriter
+    const isImportant = options?.important ?? (levelPriority[level] >= levelPriority["ERROR"])
+    const shouldWriteToStderr = printToStderr || isImportant
+    if (shouldWriteToFile) {
+      logFileWriter!.write(message)
+      logFileWriter!.flush()
+    }
+    if (shouldWriteToStderr) {
+      if (backgroundMode) messageQueue.push({ level, message })
+      else process.stderr.write(message)
+    }
+  }
+
+  /**
+   * Collect log messages in the background, to be flushed to stderr on-demand later.
+   */
+  export function setBackgroundMode(value: boolean) {
+    backgroundMode = value
+  }
+
+  /**
+   * Flush collected background log messages to stderr.
+   */
+  export function flushBackgroundLogs() {
+    for (const entry of messageQueue) {
+      write(entry.level, entry.message, { ignoreFile: true })
+    }
+    messageQueue = []
   }
 }

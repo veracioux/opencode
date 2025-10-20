@@ -133,6 +133,8 @@ export const TuiCommand = cmd({
         Log.Default.info("tui", {
           cmd,
         })
+        // Collect logs in the background to prevent them from messing up the TUI
+        Log.setBackgroundMode(true)
         const proc = Bun.spawn({
           cmd: [
             ...cmd,
@@ -178,6 +180,8 @@ export const TuiCommand = cmd({
         })()
 
         await proc.exited
+        Log.setBackgroundMode(false)
+        Log.flushBackgroundLogs()
         server.stop()
 
         return "done"

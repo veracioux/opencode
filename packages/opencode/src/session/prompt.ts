@@ -1223,7 +1223,7 @@ export namespace SessionPrompt {
             }
           }
         } catch (e) {
-          log.error("process", {
+          log.opt({ important: false }).error("process", {
             error: e,
           })
           const error = MessageV2.fromError(e, { providerID: input.providerID })
