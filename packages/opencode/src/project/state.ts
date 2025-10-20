@@ -44,9 +44,9 @@ export namespace State {
 
     setTimeout(() => {
       if (!disposalFinished) {
-        Log.Default.warn("state disposal is taking an unusually long time, please report this as a bug.")
+        Log.Default.warn("state disposal is taking an unusually long time - if it does not complete in a reasonable time, please report this as a bug")
       }
-    }, 5000).unref()
+    }, 10000).unref()
 
     await Promise.allSettled(
       [...record.entries.values()]
