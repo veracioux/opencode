@@ -41,6 +41,12 @@ export const Instance = {
   state<S>(init: () => S, dispose?: (state: Awaited<S>) => Promise<void>): () => S {
     return State.create(() => Instance.directory, init, dispose)
   },
+  /**
+   * Track promises, making sure they have settled before Instance disposal is allowed to complete.
+   */
+  trackPromises(promises: Promise<any>[]) {
+    State.trackPromises(Instance.directory, promises)
+  },
   async dispose() {
     await State.dispose(Instance.directory)
   },

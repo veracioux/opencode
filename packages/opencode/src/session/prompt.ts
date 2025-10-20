@@ -77,14 +77,10 @@ export namespace SessionPrompt {
 
       return {
         queued,
-        ensureTitlePromise: undefined as Promise<void> | undefined,
       }
     },
     async (current) => {
       current.queued.clear()
-      log.info("waiting for session title to be generated")
-      await current.ensureTitlePromise
-      log.info("session title awaited")
     },
   )
 
@@ -251,13 +247,15 @@ export namespace SessionPrompt {
       step++
       await processor.next(msgs.findLast((m) => m.info.role === "user")?.info.id!)
       if (step === 1) {
-        state().ensureTitlePromise = ensureTitle({
-          session,
-          history: msgs,
-          message: userMsg,
-          providerID: model.providerID,
-          modelID: model.info.id,
-        })
+        Instance.trackPromises([
+          ensureTitle({
+            session,
+            history: msgs,
+            message: userMsg,
+            providerID: model.providerID,
+            modelID: model.info.id,
+          }),
+        ])
         SessionSummary.summarize({
           sessionID: input.sessionID,
           messageID: userMsg.info.id,
