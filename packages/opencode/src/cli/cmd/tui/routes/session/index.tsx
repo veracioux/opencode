@@ -504,6 +504,7 @@ export function Session() {
               />
             </box>
           </Show>
+          <Toast />
         </box>
         <Show when={sidebarVisible()}>
           <Sidebar sessionID={route.sessionID} />

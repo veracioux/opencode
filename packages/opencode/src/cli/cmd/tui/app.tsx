@@ -20,6 +20,7 @@ import { Home } from "@tui/routes/home"
 import { Session } from "@tui/routes/session"
 import { PromptHistoryProvider } from "./component/prompt/history"
 import { DialogAlert } from "./ui/dialog-alert"
+import { ToastProvider } from "./ui/toast"
 import { ExitProvider } from "./context/exit"
 
 export async function tui(input: { url: string; sessionID?: string; onExit?: () => Promise<void> }) {
@@ -39,13 +40,15 @@ export async function tui(input: { url: string; sessionID?: string; onExit?: () 
                 <SyncProvider>
                   <LocalProvider>
                     <KeybindProvider>
-                      <DialogProvider>
-                        <CommandProvider>
-                          <PromptHistoryProvider>
-                            <App />
-                          </PromptHistoryProvider>
-                        </CommandProvider>
-                      </DialogProvider>
+                      <ToastProvider>
+                        <DialogProvider>
+                          <CommandProvider>
+                            <PromptHistoryProvider>
+                              <App />
+                            </PromptHistoryProvider>
+                          </CommandProvider>
+                        </DialogProvider>
+                      </ToastProvider>
                     </KeybindProvider>
                   </LocalProvider>
                 </SyncProvider>
