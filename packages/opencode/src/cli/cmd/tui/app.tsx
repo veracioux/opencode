@@ -2,12 +2,12 @@ import { render, useKeyboard, useRenderer, useTerminalDimensions } from "@opentu
 import { Clipboard } from "@tui/util/clipboard"
 import { TextAttributes } from "@opentui/core"
 import { RouteProvider, useRoute, type Route } from "@tui/context/route"
-import { Switch, Match, createEffect, untrack, ErrorBoundary } from "solid-js"
+import { Switch, Match, createEffect, untrack, ErrorBoundary, createMemo, createSignal } from "solid-js"
 import { Installation } from "@/installation"
 import { Global } from "@/global"
 import { DialogProvider, useDialog } from "@tui/ui/dialog"
 import { SDKProvider, useSDK } from "@tui/context/sdk"
-import { SyncProvider } from "@tui/context/sync"
+import { SyncProvider, useSync } from "@tui/context/sync"
 import { LocalProvider, useLocal } from "@tui/context/local"
 import { DialogModel } from "@tui/component/dialog-model"
 import { DialogStatus } from "@tui/component/dialog-status"
@@ -20,8 +20,9 @@ import { Home } from "@tui/routes/home"
 import { Session } from "@tui/routes/session"
 import { PromptHistoryProvider } from "./component/prompt/history"
 import { DialogAlert } from "./ui/dialog-alert"
-import { ToastProvider } from "./ui/toast"
+import { ToastProvider, useToast } from "./ui/toast"
 import { ExitProvider } from "./context/exit"
+import type { SessionRoute } from "./context/route"
 
 export async function tui(input: { url: string; sessionID?: string; onExit?: () => Promise<void> }) {
   const routeData: Route | undefined = input.sessionID
@@ -76,6 +77,9 @@ function App() {
   const local = useLocal()
   const command = useCommandDialog()
   const { event } = useSDK()
+  const sync = useSync()
+  const toast = useToast()
+  const [sessionExists, setSessionExists] = createSignal(false)
 
   useKeyboard(async (evt) => {
     if (evt.meta && evt.name === "t") {
@@ -86,6 +90,23 @@ function App() {
     if (evt.meta && evt.name === "d") {
       renderer.console.toggle()
       return
+    }
+  })
+
+  // Make sure session is valid, otherwise redirect to home
+  createEffect(async () => {
+    if (route.data.type === "session") {
+      const data = route.data as SessionRoute
+      await sync.session.sync(data.sessionID)
+        .catch((err) => {
+          toast.show({
+            message: `Failed to load session ${data.sessionID}: ${err.data?.message ?? err.error?.[0]?.message ?? "Unknown error"}`,
+            type: "error",
+            duration: 5000
+          })
+          return route.navigate({ type: "home" })
+        })
+      setSessionExists(true)
     }
   })
 
@@ -204,7 +225,7 @@ function App() {
           <Match when={route.data.type === "home"}>
             <Home />
           </Match>
-          <Match when={route.data.type === "session"}>
+          <Match when={route.data.type === "session" && sessionExists()}>
             <Session />
           </Match>
         </Switch>
