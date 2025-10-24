@@ -36,7 +36,6 @@ import type { TaskTool } from "@/tool/task"
 import { useKeyboard, useTerminalDimensions, type BoxProps, type JSX } from "@opentui/solid"
 import { useSDK } from "@tui/context/sdk"
 import { useCommandDialog } from "@tui/component/dialog-command"
-import { Clipboard } from "@tui/util/clipboard"
 import { Shimmer } from "@tui/ui/shimmer"
 import { useKeybind } from "@tui/context/keybind"
 import { Header } from "./header"
@@ -49,8 +48,9 @@ import { DialogConfirm } from "@tui/ui/dialog-confirm"
 import { DialogTimeline } from "./dialog-timeline"
 import { Sidebar } from "./sidebar"
 import { LANGUAGE_EXTENSIONS } from "@/lsp/language"
-
 import parsers from "../../../../../../parsers-config.json"
+import { Clipboard } from "../../util/clipboard"
+import { Toast, useToast } from "../../ui/toast"
 
 addDefaultParsers(parsers.parsers)
 
@@ -83,6 +83,8 @@ export function Session() {
   const contentWidth = createMemo(() => dimensions().width - (sidebarVisible() ? 42 : 0) - 4)
 
   createEffect(() => sync.session.sync(route.sessionID))
+
+  const toast = useToast()
 
   const sdk = useSDK()
 
@@ -175,13 +177,18 @@ export function Session() {
       disabled: !!session()?.share?.url,
       category: "Session",
       onSelect: async (dialog) => {
-        const result = await sdk.client.session.share({
-          path: {
-            id: route.sessionID,
-          },
-        })
-        if (result.data?.share?.url) {
-          await Clipboard.copy(result.data.share.url)
+        try {
+          const response = await sdk.client.session.share({
+            path: {
+              id: route.sessionID,
+            },
+          })
+          Clipboard.copy(response.data!.share!.url).catch(() =>
+            toast.show({ message: "Failed to copy URL to clipboard", type: "error", duration: 3000 })
+          )
+          toast.show({ message: "Share URL copied to clipboard!", type: "success", duration: 3000 })
+        } catch {
+          toast.show({ message: "Failed to share session", type: "error", duration: 3000 })
         }
         dialog.clear()
       },
