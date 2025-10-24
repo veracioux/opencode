@@ -5,7 +5,7 @@ import { SplitBorder } from "../component/border"
 
 export interface ToastOptions {
   message: string | null
-  duration: number
+  duration?: number
   type: "info" | "success" | "warning" | "error"
 }
 
@@ -51,7 +51,7 @@ function init() {
       if (timeoutHandle) clearTimeout(timeoutHandle)
       timeoutHandle = setTimeout(() => {
         setStore("currentToast", null)
-      }, duration).unref()
+      }, duration ?? 5000).unref()
     },
     get currentToast(): ToastOptions | null {
       return store.currentToast
