@@ -177,19 +177,20 @@ export function Session() {
       disabled: !!session()?.share?.url,
       category: "Session",
       onSelect: async (dialog) => {
-        try {
-          const response = await sdk.client.session.share({
-            path: {
-              id: route.sessionID,
-            },
-          })
-          Clipboard.copy(response.data!.share!.url).catch(() =>
-            toast.show({ message: "Failed to copy URL to clipboard", type: "error", duration: 3000 })
+        await sdk.client.session.share({
+          path: {
+            id: route.sessionID,
+          },
+        })
+          .then((res) =>
+            Clipboard.copy(res.data!.share!.url).catch(() =>
+              toast.show({ message: "Failed to copy URL to clipboard", type: "error", duration: 3000 })
+            )
           )
-          toast.show({ message: "Share URL copied to clipboard!", type: "success", duration: 3000 })
-        } catch {
-          toast.show({ message: "Failed to share session", type: "error", duration: 3000 })
-        }
+          .then(() =>
+            toast.show({ message: "Share URL copied to clipboard!", type: "success", duration: 3000 })
+          )
+          .catch(() => toast.show({ message: "Failed to share session", type: "error", duration: 3000 }))
         dialog.clear()
       },
     },
