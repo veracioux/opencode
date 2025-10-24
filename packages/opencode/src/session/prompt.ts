@@ -1358,8 +1358,6 @@ export namespace SessionPrompt {
 
               case "finish":
                 assistantMsg.time.completed = Date.now()
-                assistantMsg.finish = value.finishReason
-                if (blocked) assistantMsg.finish = "rejected"
                 await Session.updateMessage(assistantMsg)
                 break
 
@@ -1374,7 +1372,6 @@ export namespace SessionPrompt {
           log.error("process", {
             error: e,
           })
-          assistantMsg.finish = "error"
           const error = MessageV2.fromError(e, { providerID: input.providerID })
           if (retries.count < retries.max && MessageV2.APIError.isInstance(error) && error.data.isRetryable) {
             shouldRetry = true

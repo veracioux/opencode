@@ -9,7 +9,7 @@
     "test": "bun test",
     "build": "./script/build.ts",
     "dev": "bun run --conditions=browser ./src/index.ts",
-    "random": "echo 'This is a modified random script'"
+    "random": "echo 'Random script updated at $(date)'"
   },
   "bin": {
     "opencode": "./bin/opencode"

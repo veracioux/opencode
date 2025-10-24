@@ -672,7 +672,6 @@ export type AssistantMessage = {
   }
   error?: ProviderAuthError | UnknownError | MessageOutputLengthError | MessageAbortedError | ApiError
   system: Array<string>
-  finish?: string
   parentID: string
   modelID: string
   providerID: string
@@ -855,6 +854,7 @@ export type StepFinishPart = {
   sessionID: string
   messageID: string
   type: "step-finish"
+  reason: string
   snapshot?: string
   cost: number
   tokens: {

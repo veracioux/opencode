@@ -314,7 +314,6 @@ export namespace MessageV2 {
       ])
       .optional(),
     system: z.string().array(),
-    finish: z.string().optional(),
     parentID: z.string(),
     modelID: z.string(),
     providerID: z.string(),
