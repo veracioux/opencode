@@ -12,7 +12,6 @@ import { Log } from "../../util/log"
 import { Ide } from "../../ide"
 
 import { Flag } from "../../flag/flag"
-import { Session } from "../../session"
 import { $ } from "bun"
 import { bootstrap } from "../bootstrap"
 
@@ -40,16 +39,17 @@ export const TuiCommand = cmd({
         alias: ["m"],
         describe: "model to use in the format of provider/model",
       })
-      .option("continue", {
-        alias: ["c"],
-        describe: "continue the last session",
-        type: "boolean",
-      })
-      .option("session", {
-        alias: ["s"],
-        describe: "session id to continue",
-        type: "string",
-      })
+      // Migrated to opentui
+      // .option("continue", {
+      //   alias: ["c"],
+      //   describe: "continue the last session",
+      //   type: "boolean",
+      // })
+      // .option("session", {
+      //   alias: ["s"],
+      //   describe: "session id to continue",
+      //   type: "string",
+      // })
       .option("prompt", {
         alias: ["p"],
         type: "string",
@@ -73,32 +73,36 @@ export const TuiCommand = cmd({
   handler: async (args) => {
     while (true) {
       const cwd = args.project ? path.resolve(args.project) : process.cwd()
-      try {
-        process.chdir(cwd)
-      } catch (e) {
-        UI.error("Failed to change directory to " + cwd)
-        return
-      }
+
+      // MIGRATED TO OPENTUI:
+      // try {
+      //   process.chdir(cwd)
+      // } catch (e) {
+      //   UI.error("Failed to change directory to " + cwd)
+      //   return
+      // }
       const result = await bootstrap(cwd, async () => {
-        const sessionID = await (async () => {
-          if (args.continue) {
-            const it = Session.list()
-            try {
-              for await (const s of it) {
-                if (s.parentID === undefined) {
-                  return s.id
-                }
-              }
-              return
-            } finally {
-              await it.return()
-            }
-          }
-          if (args.session) {
-            return args.session
-          }
-          return undefined
-        })()
+        const sessionID = "make-typechecker-happy"
+        // MIGRATED TO OPENTUI:
+        // const sessionID = await (async () => {
+        //   if (args.continue) {
+        //     const it = Session.list()
+        //     try {
+        //       for await (const s of it) {
+        //         if (s.parentID === undefined) {
+        //           return s.id
+        //         }
+        //       }
+        //       return
+        //     } finally {
+        //       await it.return()
+        //     }
+        //   }
+        //   if (args.session) {
+        //     return args.session
+        //   }
+        //   return undefined
+        // })()
         const providers = await Provider.list()
         if (Object.keys(providers).length === 0) {
           return "needs_provider"
