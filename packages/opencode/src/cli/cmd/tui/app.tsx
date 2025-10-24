@@ -98,11 +98,10 @@ function App() {
     if (route.data.type === "session") {
       const data = route.data as SessionRoute
       await sync.session.sync(data.sessionID)
-        .catch((err) => {
+        .catch(() => {
           toast.show({
-            message: `Failed to load session ${data.sessionID}: ${err.data?.message ?? err.error?.[0]?.message ?? "Unknown error"}`,
+            message: `Session not found: ${data.sessionID}`,
             type: "error",
-            duration: 5000
           })
           return route.navigate({ type: "home" })
         })
