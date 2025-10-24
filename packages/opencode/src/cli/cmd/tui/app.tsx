@@ -1,7 +1,7 @@
 import { render, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
 import { Clipboard } from "@tui/util/clipboard"
 import { TextAttributes } from "@opentui/core"
-import { RouteProvider, useRoute } from "@tui/context/route"
+import { RouteProvider, useRoute, type Route } from "@tui/context/route"
 import { Switch, Match, createEffect, untrack, ErrorBoundary } from "solid-js"
 import { Installation } from "@/installation"
 import { Global } from "@/global"
@@ -22,13 +22,19 @@ import { PromptHistoryProvider } from "./component/prompt/history"
 import { DialogAlert } from "./ui/dialog-alert"
 import { ExitProvider } from "./context/exit"
 
-export async function tui(input: { url: string; onExit?: () => Promise<void> }) {
+export async function tui(input: { url: string; sessionID?: string; onExit?: () => Promise<void> }) {
+  const routeData: Route | undefined = input.sessionID
+    ? {
+      type: "session",
+      sessionID: input.sessionID,
+    }
+    : undefined
   await render(
     () => {
       return (
         <ErrorBoundary fallback={<text>Something went wrong</text>}>
           <ExitProvider onExit={input.onExit}>
-            <RouteProvider>
+            <RouteProvider data={routeData}>
               <SDKProvider url={input.url}>
                 <SyncProvider>
                   <LocalProvider>
