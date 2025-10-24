@@ -207,13 +207,13 @@ export function Session() {
         })
           .then((res) =>
             Clipboard.copy(res.data!.share!.url).catch(() =>
-              toast.show({ message: "Failed to copy URL to clipboard", variant: "error", duration: 3000 })
+              toast.show({ message: "Failed to copy URL to clipboard", variant: "error" })
             )
           )
           .then(() =>
-            toast.show({ message: "Share URL copied to clipboard!", variant: "success", duration: 3000 })
+            toast.show({ message: "Share URL copied to clipboard!", variant: "success" })
           )
-          .catch(() => toast.show({ message: "Failed to share session", variant: "error", duration: 3000 }))
+          .catch(() => toast.show({ message: "Failed to share session", variant: "error" }))
         dialog.clear()
       },
     },
