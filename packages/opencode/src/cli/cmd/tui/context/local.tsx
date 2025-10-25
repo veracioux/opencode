@@ -48,24 +48,26 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           setAgentStore("current", name)
         },
         move(direction: 1 | -1) {
-          let next = agents().findIndex((x) => x.name === agentStore.current) + direction
-          if (next < 0) next = agents().length - 1
-          if (next >= agents().length) next = 0
-          const value = agents()[next]
-          setAgentStore("current", value.name)
-          if (value.model) {
-            if (isModelValid(sync.data.provider, value.model))
-              model.set({
-                providerID: value.model.providerID,
-                modelID: value.model.modelID,
-              })
-            else
-              toast.show({
-                type: "warning",
-                message: `Agent's configured model ${value.model.providerID}/${value.model.modelID} is not valid`,
-                duration: 2000,
-              })
-          }
+          batch(() => {
+            let next = agents().findIndex((x) => x.name === agentStore.current) + direction
+            if (next < 0) next = agents().length - 1
+            if (next >= agents().length) next = 0
+            const value = agents()[next]
+            setAgentStore("current", value.name)
+            if (value.model) {
+              if (isModelValid(sync.data.provider, value.model))
+                model.set({
+                  providerID: value.model.providerID,
+                  modelID: value.model.modelID,
+                })
+              else
+                toast.show({
+                  type: "warning",
+                  message: `Agent ${value.name}'s configured model ${value.model.providerID}/${value.model.modelID} is not valid`,
+                  duration: 2000,
+                })
+            }
+          })
         },
         color(name: string) {
           const index = agents().findIndex((x) => x.name === name)
