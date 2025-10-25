@@ -16,6 +16,20 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
     const sync = useSync()
     const toast = useToast()
 
+    function isModelValid(model: { providerID: string, modelID: string }) {
+      const provider = sync.data.provider.find((x) => x.id === model.providerID)
+      return !!provider?.models[model.modelID]
+    }
+
+    function getFirstValidModel(...modelFns: (() => { providerID: string, modelID: string } | undefined)[]) {
+      for (const modelFn of modelFns) {
+        const model = modelFn()
+        if (!model) continue
+        if (isModelValid(model))
+          return model
+      }
+    }
+
     // Set initial model if provided
     onMount(() => {
       batch(() => {
@@ -33,6 +47,24 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           model.set({ providerID, modelID }, { recent: true })
         }
       })
+    })
+
+    // Automatically update model when agent changes
+    createEffect(() => {
+      const value = agent.current()
+      if (value.model) {
+        if (isModelValid(value.model))
+          model.set({
+            providerID: value.model.providerID,
+            modelID: value.model.modelID,
+          })
+        else
+          toast.show({
+            type: "warning",
+            message: `Agent ${value.name}'s configured model ${value.model.providerID}/${value.model.modelID} is not valid`,
+            duration: 3000,
+          })
+      }
     })
 
     const agent = iife(() => {
@@ -65,19 +97,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             if (next >= agents().length) next = 0
             const value = agents()[next]
             setAgentStore("current", value.name)
-            if (value.model) {
-              if (isModelValid(sync.data.provider, value.model))
-                model.set({
-                  providerID: value.model.providerID,
-                  modelID: value.model.modelID,
-                })
-              else
-                toast.show({
-                  type: "warning",
-                  message: `Agent ${value.name}'s configured model ${value.model.providerID}/${value.model.modelID} is not valid`,
-                  duration: 3000,
-                })
-            }
           })
         },
         color(name: string) {
@@ -130,17 +149,9 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       })
 
       const fallbackModel = createMemo(() => {
-        function isValid(providerID: string, modelID: string) {
-          const provider = sync.data.provider.find((x) => x.id === providerID)
-          if (!provider) return false
-          const model = provider.models[modelID]
-          if (!model) return false
-          return true
-        }
-
         if (sync.data.config.model) {
           const [providerID, modelID] = sync.data.config.model.split("/")
-          if (isValid(providerID, modelID)) {
+          if (isModelValid({ providerID, modelID })) {
             return {
               providerID,
               modelID,
@@ -149,7 +160,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         }
 
         for (const item of modelStore.recent) {
-          if (isValid(item.providerID, item.modelID)) {
+          if (isModelValid(item)) {
             return item
           }
         }
@@ -164,7 +175,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       const currentModel = createMemo(() => {
         const a = agent.current()
         return getFirstValidModel(
-          sync.data.provider,
           () => modelStore.model[a.name],
           () => a.model,
           fallbackModel,
@@ -190,7 +200,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         }),
         set(model: { providerID: string; modelID: string }, options?: { recent?: boolean }) {
           batch(() => {
-            if (!isModelValid(sync.data.provider, model)) {
+            if (!isModelValid(model)) {
               toast.show({
                 message: `Model ${model.providerID}/${model.modelID} is not valid`,
                 type: "warning",
@@ -222,7 +232,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         .then((x) => {
           setKvStore(x)
         })
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => {
           setReady(true)
         })
@@ -257,17 +267,3 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
     return result
   },
 })
-
-export function isModelValid(providers: Provider[], model: { providerID: string, modelID: string }) {
-  const provider = providers.find((x) => x.id === model.providerID)
-  return !!provider?.models[model.modelID]
-}
-
-export function getFirstValidModel(providers: Provider[], ...modelFns: (() => { providerID: string, modelID: string } | undefined)[]) {
-  for (const modelFn of modelFns) {
-    const model = modelFn()
-    if (!model) continue
-    if (isModelValid(providers, model))
-      return model
-  }
-}
