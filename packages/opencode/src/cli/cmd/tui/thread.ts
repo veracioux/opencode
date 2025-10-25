@@ -17,6 +17,11 @@ export const TuiThreadCommand = cmd({
         type: "string",
         describe: "path to start opencode in",
       })
+      .option("model", {
+        type: "string",
+        alias: ["m"],
+        describe: "model to use in the format of provider/model",
+      })
       .option("continue", {
         alias: ["c"],
         describe: "continue the last session",
@@ -85,6 +90,7 @@ export const TuiThreadCommand = cmd({
       await tui({
         url: server.url,
         sessionID,
+        model: args.model,
         onExit: async () => {
           await client.call("shutdown", undefined)
         },

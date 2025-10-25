@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store"
-import { batch, createEffect, createMemo, createSignal } from "solid-js"
+import { batch, createEffect, createMemo, createSignal, onMount } from "solid-js"
 import { useSync } from "@tui/context/sync"
 import { Theme } from "@tui/context/theme"
 import { uniqueBy } from "remeda"
@@ -12,9 +12,23 @@ import type { Provider } from "@opencode-ai/sdk"
 
 export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
   name: "Local",
-  init: () => {
+  init: (props: { initialModel?: string }) => {
     const sync = useSync()
     const toast = useToast()
+
+    // Set initial model if provided
+    onMount(() => {
+      if (props.initialModel) {
+        const [providerID, modelID] = props.initialModel.split("/")
+        if (!providerID || !modelID)
+          return toast.show({
+            type: "warning",
+            message: `Invalid model format: ${props.initialModel}`,
+            duration: 2000,
+          })
+        model.set({ providerID, modelID }, { recent: true })
+      }
+    })
 
     const agent = iife(() => {
       const agents = createMemo(() => sync.data.agent.filter((x) => x.mode !== "subagent"))
@@ -46,7 +60,11 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
                 modelID: value.model.modelID,
               })
             else
-              toast.show({ message: `Agent's configured model ${value.model.providerID}/${value.model.modelID} is not valid`, type: "warning", duration: 2000 })
+              toast.show({
+                type: "warning",
+                message: `Agent's configured model ${value.model.providerID}/${value.model.modelID} is not valid`,
+                duration: 2000,
+              })
           }
         },
         color(name: string) {
@@ -160,7 +178,11 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         set(model: { providerID: string; modelID: string }, options?: { recent?: boolean }) {
           batch(() => {
             if (!isModelValid(sync.data.provider, model)) {
-              toast.show({ message: `Model ${model.providerID}/${model.modelID} is not valid`, type: "warning", duration: 2000 })
+              toast.show({
+                message: `Model ${model.providerID}/${model.modelID} is not valid`,
+                type: "warning",
+                duration: 2000,
+              })
               return
             }
 
@@ -233,6 +255,6 @@ export function getFirstValidModel(providers: Provider[], ...modelFns: (() => { 
     const model = modelFn()
     if (!model) continue
     if (isModelValid(providers, model))
-       return model
+      return model
   }
 }
