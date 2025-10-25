@@ -24,7 +24,7 @@ import { ToastProvider, useToast } from "./ui/toast"
 import { ExitProvider } from "./context/exit"
 import type { SessionRoute } from "./context/route"
 
-export async function tui(input: { url: string; sessionID?: string; model?: string; onExit?: () => Promise<void> }) {
+export async function tui(input: { url: string; sessionID?: string; model?: string; agent?: string; onExit?: () => Promise<void> }) {
   const routeData: Route | undefined = input.sessionID
     ? {
       type: "session",
@@ -40,7 +40,7 @@ export async function tui(input: { url: string; sessionID?: string; model?: stri
               <RouteProvider data={routeData}>
                 <SDKProvider url={input.url}>
                   <SyncProvider>
-                    <LocalProvider initialModel={input.model}>
+                    <LocalProvider initialModel={input.model} initialAgent={input.agent}>
                       <KeybindProvider>
                         <DialogProvider>
                           <CommandProvider>

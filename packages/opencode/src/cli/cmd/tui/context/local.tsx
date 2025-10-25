@@ -12,22 +12,27 @@ import type { Provider } from "@opencode-ai/sdk"
 
 export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
   name: "Local",
-  init: (props: { initialModel?: string }) => {
+  init: (props: { initialModel?: string; initialAgent?: string }) => {
     const sync = useSync()
     const toast = useToast()
 
     // Set initial model if provided
     onMount(() => {
-      if (props.initialModel) {
-        const [providerID, modelID] = props.initialModel.split("/")
-        if (!providerID || !modelID)
-          return toast.show({
-            type: "warning",
-            message: `Invalid model format: ${props.initialModel}`,
-            duration: 2000,
-          })
-        model.set({ providerID, modelID }, { recent: true })
-      }
+      batch(() => {
+        if (props.initialAgent) {
+          agent.set(props.initialAgent)
+        }
+        if (props.initialModel) {
+          const [providerID, modelID] = props.initialModel.split("/")
+          if (!providerID || !modelID)
+            return toast.show({
+              type: "warning",
+              message: `Invalid model format: ${props.initialModel}`,
+              duration: 3000,
+            })
+          model.set({ providerID, modelID }, { recent: true })
+        }
+      })
     })
 
     const agent = iife(() => {
@@ -45,6 +50,12 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           return agents().find((x) => x.name === agentStore.current)!
         },
         set(name: string) {
+          if (!agents().some((x) => x.name === name))
+            return toast.show({
+              type: "warning",
+              message: `Agent not found: ${name}`,
+              duration: 3000,
+            })
           setAgentStore("current", name)
         },
         move(direction: 1 | -1) {
@@ -64,7 +75,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
                 toast.show({
                   type: "warning",
                   message: `Agent ${value.name}'s configured model ${value.model.providerID}/${value.model.modelID} is not valid`,
-                  duration: 2000,
+                  duration: 3000,
                 })
             }
           })
@@ -183,7 +194,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
               toast.show({
                 message: `Model ${model.providerID}/${model.modelID} is not valid`,
                 type: "warning",
-                duration: 2000,
+                duration: 3000,
               })
               return
             }

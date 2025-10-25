@@ -32,6 +32,10 @@ export const TuiThreadCommand = cmd({
         describe: "session id to continue",
         type: "string",
       })
+      .option("agent", {
+        type: "string",
+        describe: "agent to use",
+      })
       .option("port", {
         type: "number",
         describe: "port to listen on",
@@ -91,6 +95,7 @@ export const TuiThreadCommand = cmd({
         url: server.url,
         sessionID,
         model: args.model,
+        agent: args.agent,
         onExit: async () => {
           await client.call("shutdown", undefined)
         },
