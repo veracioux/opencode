@@ -36,12 +36,12 @@ export async function tui(input: { url: string; sessionID?: string; onExit?: () 
       return (
         <ErrorBoundary fallback={<text>Something went wrong</text>}>
           <ExitProvider onExit={input.onExit}>
-            <RouteProvider data={routeData}>
-              <SDKProvider url={input.url}>
-                <SyncProvider>
-                  <LocalProvider>
-                    <KeybindProvider>
-                      <ToastProvider>
+            <ToastProvider>
+              <RouteProvider data={routeData}>
+                <SDKProvider url={input.url}>
+                  <SyncProvider>
+                    <LocalProvider>
+                      <KeybindProvider>
                         <DialogProvider>
                           <CommandProvider>
                             <PromptHistoryProvider>
@@ -49,12 +49,12 @@ export async function tui(input: { url: string; sessionID?: string; onExit?: () 
                             </PromptHistoryProvider>
                           </CommandProvider>
                         </DialogProvider>
-                      </ToastProvider>
-                    </KeybindProvider>
-                  </LocalProvider>
-                </SyncProvider>
-              </SDKProvider>
-            </RouteProvider>
+                      </KeybindProvider>
+                    </LocalProvider>
+                  </SyncProvider>
+                </SDKProvider>
+              </RouteProvider>
+            </ToastProvider>
           </ExitProvider>
         </ErrorBoundary>
       )
