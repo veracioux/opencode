@@ -15,7 +15,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
 
     const agent = iife(() => {
       const agents = createMemo(() => sync.data.agent.filter((x) => x.mode !== "subagent"))
-      const [store, setStore] = createStore<{
+      const [agentStore, setAgentStore] = createStore<{
         current: string
       }>({
         current: agents()[0].name,
@@ -25,17 +25,17 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           return agents()
         },
         current() {
-          return agents().find((x) => x.name === store.current)!
+          return agents().find((x) => x.name === agentStore.current)!
         },
         set(name: string) {
-          setStore("current", name)
+          setAgentStore("current", name)
         },
         move(direction: 1 | -1) {
-          let next = agents().findIndex((x) => x.name === store.current) + direction
+          let next = agents().findIndex((x) => x.name === agentStore.current) + direction
           if (next < 0) next = agents().length - 1
           if (next >= agents().length) next = 0
           const value = agents()[next]
-          setStore("current", value.name)
+          setAgentStore("current", value.name)
           if (value.model)
             model.set({
               providerID: value.model.providerID,
@@ -51,7 +51,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
     })
 
     const model = iife(() => {
-      const [store, setStore] = createStore<{
+      const [modelStore, setModelStore] = createStore<{
         ready: boolean
         model: Record<
           string,
@@ -75,23 +75,23 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       file
         .json()
         .then((x) => {
-          setStore("recent", x.recent)
+          setModelStore("recent", x.recent)
         })
         .catch(() => {})
         .finally(() => {
-          setStore("ready", true)
+          setModelStore("ready", true)
         })
 
       createEffect(() => {
         Bun.write(
           file,
           JSON.stringify({
-            recent: store.recent,
+            recent: modelStore.recent,
           }),
         )
       })
 
-      const fallback = createMemo(() => {
+      const fallbackModel = createMemo(() => {
         function isValid(providerID: string, modelID: string) {
           const provider = sync.data.provider.find((x) => x.id === providerID)
           if (!provider) return false
@@ -110,7 +110,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           }
         }
 
-        for (const item of store.recent) {
+        for (const item of modelStore.recent) {
           if (isValid(item.providerID, item.modelID)) {
             return item
           }
@@ -123,21 +123,21 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         }
       })
 
-      const current = createMemo(() => {
+      const currentModel = createMemo(() => {
         const a = agent.current()
-        return store.model[agent.current().name] ?? (a.model ? a.model : fallback())
+        return modelStore.model[agent.current().name] ?? (a.model ? a.model : fallbackModel())
       })
 
       return {
-        current,
+        current: currentModel,
         get ready() {
-          return store.ready
+          return modelStore.ready
         },
         recent() {
-          return store.recent
+          return modelStore.recent
         },
         parsed: createMemo(() => {
-          const value = current()
+          const value = currentModel()
           const provider = sync.data.provider.find((x) => x.id === value.providerID)!
           const model = provider.models[value.modelID]
           return {
@@ -147,11 +147,11 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         }),
         set(model: { providerID: string; modelID: string }, options?: { recent?: boolean }) {
           batch(() => {
-            setStore("model", agent.current().name, model)
+            setModelStore("model", agent.current().name, model)
             if (options?.recent) {
-              const uniq = uniqueBy([model, ...store.recent], (x) => x.providerID + x.modelID)
+              const uniq = uniqueBy([model, ...modelStore.recent], (x) => x.providerID + x.modelID)
               if (uniq.length > 5) uniq.pop()
-              setStore("recent", uniq)
+              setModelStore("recent", uniq)
             }
           })
         },
@@ -160,7 +160,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
 
     const kv = iife(() => {
       const [ready, setReady] = createSignal(false)
-      const [store, setStore] = createStore({
+      const [kvStore, setKvStore] = createStore({
         openrouter_warning: false,
       })
       const file = Bun.file(path.join(Global.Path.state, "kv.json"))
@@ -168,7 +168,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       file
         .json()
         .then((x) => {
-          setStore(x)
+          setKvStore(x)
         })
         .catch(() => {})
         .finally(() => {
@@ -177,13 +177,13 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
 
       return {
         get data() {
-          return store
+          return kvStore
         },
         get ready() {
           return ready()
         },
         set(key: string, value: any) {
-          setStore(key as any, value)
+          setKvStore(key as any, value)
           Bun.write(
             file,
             JSON.stringify({
