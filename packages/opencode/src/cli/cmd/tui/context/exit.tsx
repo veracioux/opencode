@@ -8,7 +8,6 @@ export const { use: useExit, provider: ExitProvider } = createSimpleContext({
     return async () => {
       renderer.destroy()
       await input.onExit?.()
-      process.exit(0)
     }
   },
 })

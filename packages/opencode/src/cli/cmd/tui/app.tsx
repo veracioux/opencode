@@ -23,39 +23,46 @@ import { DialogAlert } from "./ui/dialog-alert"
 import { ExitProvider } from "./context/exit"
 
 export async function tui(input: { url: string; onExit?: () => Promise<void> }) {
-  await render(
-    () => {
-      return (
-        <ErrorBoundary fallback={<text>Something went wrong</text>}>
-          <ExitProvider onExit={input.onExit}>
-            <RouteProvider>
-              <SDKProvider url={input.url}>
-                <SyncProvider>
-                  <LocalProvider>
-                    <KeybindProvider>
-                      <DialogProvider>
-                        <CommandProvider>
-                          <PromptHistoryProvider>
-                            <App />
-                          </PromptHistoryProvider>
-                        </CommandProvider>
-                      </DialogProvider>
-                    </KeybindProvider>
-                  </LocalProvider>
-                </SyncProvider>
-              </SDKProvider>
-            </RouteProvider>
-          </ExitProvider>
-        </ErrorBoundary>
-      )
-    },
-    {
-      targetFps: 60,
-      gatherStats: false,
-      exitOnCtrlC: false,
-      useKittyKeyboard: true,
-    },
-  )
+  return new Promise<void>(async (resolve) => {
+    const onExit = async () => {
+      await input.onExit?.()
+      resolve()
+    }
+
+    await render(
+      () => {
+        return (
+          <ErrorBoundary fallback={<text>Something went wrong</text>}>
+            <ExitProvider onExit={onExit}>
+              <RouteProvider>
+                <SDKProvider url={input.url}>
+                  <SyncProvider>
+                    <LocalProvider>
+                      <KeybindProvider>
+                        <DialogProvider>
+                          <CommandProvider>
+                            <PromptHistoryProvider>
+                              <App />
+                            </PromptHistoryProvider>
+                          </CommandProvider>
+                        </DialogProvider>
+                      </KeybindProvider>
+                    </LocalProvider>
+                  </SyncProvider>
+                </SDKProvider>
+              </RouteProvider>
+            </ExitProvider>
+          </ErrorBoundary>
+        )
+      },
+      {
+        targetFps: 60,
+        gatherStats: false,
+        exitOnCtrlC: false,
+        useKittyKeyboard: true,
+      },
+    )
+  })
 }
 
 function App() {
