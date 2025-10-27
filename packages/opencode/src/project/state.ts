@@ -32,34 +32,35 @@ export namespace State {
     const entries = recordsByKey.get(key)
     if (!entries) return
 
+    log.info("waiting for state disposal to complete", { key })
+
     let disposalFinished = false
 
     setTimeout(() => {
       if (!disposalFinished) {
         log.warn(
-          "waiting for state disposal to complete... (this is usually a saving operation or subprocess shutdown)",
-        )
-      }
-    }, 1000).unref()
-
-    setTimeout(() => {
-      if (!disposalFinished) {
-        log.warn(
           "state disposal is taking an unusually long time - if it does not complete in a reasonable time, please report this as a bug",
+          { key },
         )
       }
     }, 10000).unref()
 
-    await Promise.allSettled([...entries.values()].map(async (entry) => await entry.dispose?.(await entry.state))).then(
-      (results) => {
-        for (const result of results) {
-          if (result.status === "rejected") {
-            log.error("Error while disposing state:", result.reason)
-          }
-        }
-      },
-    )
+    const tasks: Promise<void>[] = []
+    for (const entry of entries.values()) {
+      if (!entry.dispose) continue
+
+      const task = Promise.resolve(entry.state)
+        .then((state) => entry.dispose!(state))
+        .catch((error) => {
+          log.error("Error while disposing state:", { error, key })
+        })
+
+      tasks.push(task)
+    }
+
+    await Promise.all(tasks)
 
     disposalFinished = true
+    log.info("state disposal completed", { key })
   }
 }
