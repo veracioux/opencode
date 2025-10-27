@@ -5,7 +5,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { Config } from "../config/config"
 import { Log } from "../util/log"
 import { NamedError } from "../util/error"
-import z from "zod/v4"
+import z from "zod"
 import { Session } from "../session"
 import { Bus } from "../bus"
 import { Instance } from "../project/instance"
@@ -145,7 +145,7 @@ export namespace MCP {
       }
     },
     async (state) => {
-      Instance.trackPromises(Object.values(state.clients).map(client => client.close()))
+      await Promise.all(Object.values(state.clients).map((client) => client.close()))
     },
   )
 

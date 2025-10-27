@@ -19,6 +19,8 @@ import { McpCommand } from "./cli/cmd/mcp"
 import { GithubCommand } from "./cli/cmd/github"
 import { ExportCommand } from "./cli/cmd/export"
 import { AttachCommand } from "./cli/cmd/attach"
+import { AcpCommand } from "./cli/cmd/acp"
+import { EOL } from "os"
 
 process.on("unhandledRejection", (e) => {
   Log.Default.error("rejection", {
@@ -65,6 +67,7 @@ const cli = yargs(hideBin(process.argv))
     })
   })
   .usage("\n" + UI.logo())
+  .command(AcpCommand)
   .command(McpCommand)
   .command(TuiCommand)
   .command(AttachCommand)
@@ -125,7 +128,10 @@ try {
   Log.Default.error("fatal", data)
   const formatted = FormatError(e)
   if (formatted) UI.error(formatted)
-  if (formatted === undefined) UI.error("Unexpected error, check log file at " + Log.file() + " for more details")
+  if (formatted === undefined) {
+    UI.error("Unexpected error, check log file at " + Log.file() + " for more details" + EOL)
+    console.error(e)
+  }
   process.exitCode = 1
 } finally {
   // Some subprocesses don't react properly to SIGTERM and similar signals.

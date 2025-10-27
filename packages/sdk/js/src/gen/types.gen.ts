@@ -534,11 +534,22 @@ export type Path = {
   directory: string
 }
 
+export type FileDiff = {
+  file: string
+  before: string
+  after: string
+  additions: number
+  deletions: number
+}
+
 export type Session = {
   id: string
   projectID: string
   directory: string
   parentID?: string
+  summary?: {
+    diffs: Array<FileDiff>
+  }
   share?: {
     url: string
   }
@@ -590,6 +601,11 @@ export type UserMessage = {
   time: {
     created: number
   }
+  summary?: {
+    title?: string
+    body?: string
+    diffs: Array<FileDiff>
+  }
 }
 
 export type ProviderAuthError = {
@@ -621,6 +637,19 @@ export type MessageAbortedError = {
   }
 }
 
+export type ApiError = {
+  name: "APIError"
+  data: {
+    message: string
+    statusCode?: number
+    isRetryable: boolean
+    responseHeaders?: {
+      [key: string]: string
+    }
+    responseBody?: string
+  }
+}
+
 export type AssistantMessage = {
   id: string
   sessionID: string
@@ -629,8 +658,9 @@ export type AssistantMessage = {
     created: number
     completed?: number
   }
-  error?: ProviderAuthError | UnknownError | MessageOutputLengthError | MessageAbortedError
+  error?: ProviderAuthError | UnknownError | MessageOutputLengthError | MessageAbortedError | ApiError
   system: Array<string>
+  parentID: string
   modelID: string
   providerID: string
   mode: string
@@ -798,6 +828,7 @@ export type StepStartPart = {
   sessionID: string
   messageID: string
   type: "step-start"
+  snapshot?: string
 }
 
 export type StepFinishPart = {
@@ -805,6 +836,8 @@ export type StepFinishPart = {
   sessionID: string
   messageID: string
   type: "step-finish"
+  reason: string
+  snapshot?: string
   cost: number
   tokens: {
     input: number
@@ -847,6 +880,18 @@ export type AgentPart = {
   }
 }
 
+export type RetryPart = {
+  id: string
+  sessionID: string
+  messageID: string
+  type: "retry"
+  attempt: number
+  error: ApiError
+  time: {
+    created: number
+  }
+}
+
 export type Part =
   | TextPart
   | ReasoningPart
@@ -857,6 +902,7 @@ export type Part =
   | SnapshotPart
   | PatchPart
   | AgentPart
+  | RetryPart
 
 export type TextPartInput = {
   id?: string
@@ -962,6 +1008,7 @@ export type FileNode = {
 }
 
 export type FileContent = {
+  type: "text"
   content: string
   diff?: string
   patch?: {
@@ -978,6 +1025,8 @@ export type FileContent = {
     }>
     index?: string
   }
+  encoding?: "base64"
+  mimeType?: string
 }
 
 export type File = {
@@ -1068,6 +1117,7 @@ export type EventMessagePartUpdated = {
   type: "message.part.updated"
   properties: {
     part: Part
+    delta?: string
   }
 }
 
@@ -1165,7 +1215,7 @@ export type EventSessionError = {
   type: "session.error"
   properties: {
     sessionID?: string
-    error?: ProviderAuthError | UnknownError | MessageOutputLengthError | MessageAbortedError
+    error?: ProviderAuthError | UnknownError | MessageOutputLengthError | MessageAbortedError | ApiError
   }
 }
 
@@ -1737,6 +1787,27 @@ export type SessionShareResponses = {
 
 export type SessionShareResponse = SessionShareResponses[keyof SessionShareResponses]
 
+export type SessionDiffData = {
+  body?: never
+  path: {
+    id: string
+  }
+  query?: {
+    directory?: string
+    messageID?: string
+  }
+  url: "/session/{id}/diff"
+}
+
+export type SessionDiffResponses = {
+  /**
+   * Successfully retrieved diff
+   */
+  200: Array<FileDiff>
+}
+
+export type SessionDiffResponse = SessionDiffResponses[keyof SessionDiffResponses]
+
 export type SessionSummarizeData = {
   body?: {
     providerID: string
@@ -1823,6 +1894,7 @@ export type SessionPromptData = {
       modelID: string
     }
     agent?: string
+    noReply?: boolean
     system?: string
     tools?: {
       [key: string]: boolean

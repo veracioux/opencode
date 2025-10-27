@@ -1,4 +1,4 @@
-import z from "zod/v4"
+import z from "zod"
 import { Bus } from "../bus"
 import { Flag } from "../flag/flag"
 import { Instance } from "../project/instance"
@@ -64,7 +64,7 @@ export namespace FileWatcher {
     },
     async (state) => {
       if (!state.sub) return
-      Instance.trackPromises([state.sub.unsubscribe()])
+      await state.sub?.unsubscribe()
     },
   )
 

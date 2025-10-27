@@ -2,7 +2,7 @@ import { Log } from "../util/log"
 import { LSPClient } from "./client"
 import path from "path"
 import { LSPServer } from "./server"
-import z from "zod/v4"
+import z from "zod"
 import { Config } from "../config/config"
 import { spawn } from "child_process"
 import { Instance } from "../project/instance"
@@ -101,7 +101,7 @@ export namespace LSP {
       }
     },
     async (state) => {
-      Instance.trackPromises(state.clients.map(client => client.shutdown()))
+      await Promise.all(state.clients.map((client) => client.shutdown()))
     },
   )
 
