@@ -61,14 +61,17 @@ export namespace Config {
       )),
     ]
 
+    let installDependenciesPromises: Promise<void>[] = []
+
     for (const dir of directories) {
       await assertValid(dir)
-      installDependencies(dir)
+      installDependenciesPromises.push(installDependencies(dir))
       result.command = mergeDeep(result.command ?? {}, await loadCommand(dir))
       result.agent = mergeDeep(result.agent, await loadAgent(dir))
       result.agent = mergeDeep(result.agent, await loadMode(dir))
       result.plugin.push(...(await loadPlugin(dir)))
     }
+    await Promise.all(installDependenciesPromises)
 
     // Migrate deprecated mode field to agent field
     for (const [name, mode] of Object.entries(result.mode)) {

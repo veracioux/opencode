@@ -155,7 +155,7 @@ export const TuiCommand = cmd({
           },
         })
 
-        ;(async () => {
+        await (async () => {
           // if (Installation.isLocal()) return
           const config = await Config.get()
           if (config.autoupdate === false || Flag.OPENCODE_DISABLE_AUTOUPDATE) return
@@ -168,7 +168,7 @@ export const TuiCommand = cmd({
             .then(() => Bus.publish(Installation.Event.Updated, { version: latest }))
             .catch(() => {})
         })()
-        ;(async () => {
+        await (async () => {
           if (Ide.alreadyInstalled()) return
           const ide = Ide.ide()
           if (ide === "unknown") return
