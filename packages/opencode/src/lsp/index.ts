@@ -101,7 +101,7 @@ export namespace LSP {
       }
     },
     async (state) => {
-      Instance.trackPromises(state.clients.map(client => client.shutdown()))
+      await Promise.all(state.clients.map((client) => client.shutdown()))
     },
   )
 

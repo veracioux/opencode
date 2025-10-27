@@ -145,7 +145,7 @@ export namespace MCP {
       }
     },
     async (state) => {
-      Instance.trackPromises(Object.values(state.clients).map(client => client.close()))
+      await Promise.all(Object.values(state.clients).map((client) => client.close()))
     },
   )
 

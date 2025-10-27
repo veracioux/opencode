@@ -64,7 +64,7 @@ export namespace FileWatcher {
     },
     async (state) => {
       if (!state.sub) return
-      Instance.trackPromises([state.sub.unsubscribe()])
+      await state.sub?.unsubscribe()
     },
   )
 
