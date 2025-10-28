@@ -169,7 +169,7 @@ export namespace Session {
     await Storage.write(["session", Instance.project.id, result.id], result)
     const cfg = await Config.get()
     if (!result.parentID && (Flag.OPENCODE_AUTO_SHARE || cfg.share === "auto"))
-      await share(result.id)
+      share(result.id)
         .then((share) => {
           update(result.id, (draft) => {
             draft.share = share
