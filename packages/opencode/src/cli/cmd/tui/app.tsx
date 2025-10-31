@@ -120,7 +120,7 @@ function App() {
       await sync.session.sync(data.sessionID).catch(() => {
         toast.show({
           message: `Session not found: ${data.sessionID}`,
-          type: "error",
+          variant: "error",
         })
         return route.navigate({ type: "home" })
       })
@@ -234,6 +234,14 @@ function App() {
 
   event.on(TuiEvent.CommandExecute.type, (evt) => {
     command.trigger(evt.properties.command)
+  })
+
+  event.on(TuiEvent.ToastShow.type, (evt) => {
+    toast.show({
+      title: evt.properties.title,
+      message: evt.properties.message,
+      variant: evt.properties.variant,
+    })
   })
 
   return (
