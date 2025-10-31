@@ -100,7 +100,7 @@ export function Session() {
   const keybind = useKeybind()
 
   createEffect(() => {
-    dialog.closeEvent.listen(() => {
+    dialog.allClosedEvent.listen(() => {
       prompt.focus()
     })
   })

@@ -19,7 +19,7 @@ export function Home() {
   let promptRef: PromptRef | undefined = undefined
 
   createEffect(() => {
-    dialog.closeEvent.listen(() => {
+    dialog.allClosedEvent.listen(() => {
       promptRef?.focus()
     })
   })
