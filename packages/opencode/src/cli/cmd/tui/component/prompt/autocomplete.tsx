@@ -270,6 +270,11 @@ export function Autocomplete(props: {
         description: "show help",
         onSelect: () => command.trigger("help.show"),
       },
+      {
+        display: "/exit",
+        description: "exit the app",
+        onSelect: () => command.trigger("app.exit"),
+      },
     )
     const max = firstBy(results, [(x) => x.display.length, "desc"])?.display.length
     if (!max) return results
