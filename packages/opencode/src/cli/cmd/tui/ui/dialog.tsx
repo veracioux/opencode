@@ -3,6 +3,7 @@ import { batch, createContext, Show, useContext, type JSX, type ParentProps } fr
 import { useTheme } from "@tui/context/theme"
 import { Renderable, RGBA } from "@opentui/core"
 import { createStore } from "solid-js/store"
+import { createEventBus } from "@solid-primitives/event-bus"
 
 const Border = {
   topLeft: "┃",
@@ -65,6 +66,7 @@ function init() {
     }[],
     size: "medium" as "medium" | "large",
   })
+  const closeEvent = createEventBus<void>()
 
   useKeyboard((evt) => {
     if (evt.name === "escape" && store.stack.length > 0) {
@@ -73,6 +75,7 @@ function init() {
       setStore("stack", store.stack.slice(0, -1))
       evt.preventDefault()
       refocus()
+      closeEvent.emit()
     }
   })
 
@@ -105,6 +108,7 @@ function init() {
         setStore("stack", [])
       })
       refocus()
+      closeEvent.emit()
     },
     replace(input: any, onClose?: () => void) {
       if (store.stack.length === 0) focus = renderer.currentFocusedRenderable
@@ -128,6 +132,9 @@ function init() {
     setSize(size: "medium" | "large") {
       setStore("size", size)
     },
+    get closeEvent() {
+      return closeEvent
+    }
   }
 }
 
