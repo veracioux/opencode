@@ -25,6 +25,7 @@ import { DialogAlert } from "./ui/dialog-alert"
 import { ToastProvider, useToast } from "./ui/toast"
 import { ExitProvider } from "./context/exit"
 import type { SessionRoute } from "./context/route"
+import { TuiEvent } from "./event"
 
 export function tui(input: {
   url: string
@@ -231,7 +232,7 @@ function App() {
     }
   })
 
-  event.on("tui.command.execute", (evt) => {
+  event.on(TuiEvent.CommandExecute.type, (evt) => {
     command.trigger(evt.properties.command)
   })
 
