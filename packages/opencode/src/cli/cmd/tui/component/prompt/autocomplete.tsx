@@ -271,6 +271,11 @@ export function Autocomplete(props: {
         onSelect: () => command.trigger("help.show"),
       },
       {
+        display: "/commands",
+        description: "show all commands",
+        onSelect: () => command.show(),
+      },
+      {
         display: "/exit",
         description: "exit the app",
         onSelect: () => command.trigger("app.exit"),
