@@ -128,15 +128,17 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
     if (evt.name === "pagedown") move(10)
     if (evt.name === "return") {
       const option = selected()
-      if (option.onSelect) option.onSelect(dialog)
-      props.onSelect?.(option)
+      if (option) {
+        option.onSelect?.(dialog)
+        props.onSelect?.(option)
+      }
     }
+    const s = selected()
+    if (!s) return
 
     for (const item of props.keybind ?? []) {
-      if (Keybind.match(item.keybind, keybind.parse(evt))) {
-        const s = selected()
-        if (s) item.onTrigger(s)
-      }
+      if (Keybind.match(item.keybind, keybind.parse(evt)))
+        item.onTrigger(s)
     }
   })
 
