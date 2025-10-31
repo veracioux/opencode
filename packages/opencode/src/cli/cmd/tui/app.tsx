@@ -241,6 +241,7 @@ function App() {
       title: evt.properties.title,
       message: evt.properties.message,
       variant: evt.properties.variant,
+      duration: evt.properties.duration,
     })
   })
 
