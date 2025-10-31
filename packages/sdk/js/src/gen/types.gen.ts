@@ -1157,6 +1157,7 @@ export type EventTuiToastShow = {
     title?: string
     message: string
     variant: "info" | "success" | "warning" | "error"
+    duration?: number
   }
 }
 
@@ -2728,6 +2729,7 @@ export type TuiShowToastData = {
     title?: string
     message: string
     variant: "info" | "success" | "warning" | "error"
+    duration?: number
   }
   path?: never
   query?: {
