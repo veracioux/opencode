@@ -23,21 +23,81 @@ import { Session } from "@tui/routes/session"
 import { PromptHistoryProvider } from "./component/prompt/history"
 import { DialogAlert } from "./ui/dialog-alert"
 import { ToastProvider, useToast } from "./ui/toast"
-import { ExitProvider } from "./context/exit"
+import { ExitProvider, useExit } from "./context/exit"
 import type { SessionRoute } from "./context/route"
 import { Session as SessionApi } from "@/session"
 import { TuiEvent } from "./event"
 import { KVProvider, useKV } from "./context/kv"
+
+async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
+  return new Promise((resolve) => {
+    let timeout: NodeJS.Timeout
+
+    const cleanup = () => {
+      process.stdin.setRawMode(false)
+      process.stdin.removeListener("data", handler)
+      clearTimeout(timeout)
+    }
+
+    const handler = (data: Buffer) => {
+      const str = data.toString()
+      const match = str.match(/\x1b]11;([^\x07\x1b]+)/)
+      if (match) {
+        cleanup()
+        const color = match[1]
+        // Parse RGB values from color string
+        // Formats: rgb:RR/GG/BB or #RRGGBB or rgb(R,G,B)
+        let r = 0,
+          g = 0,
+          b = 0
+
+        if (color.startsWith("rgb:")) {
+          const parts = color.substring(4).split("/")
+          r = parseInt(parts[0], 16) >> 8 // Convert 16-bit to 8-bit
+          g = parseInt(parts[1], 16) >> 8 // Convert 16-bit to 8-bit
+          b = parseInt(parts[2], 16) >> 8 // Convert 16-bit to 8-bit
+        } else if (color.startsWith("#")) {
+          r = parseInt(color.substring(1, 3), 16)
+          g = parseInt(color.substring(3, 5), 16)
+          b = parseInt(color.substring(5, 7), 16)
+        } else if (color.startsWith("rgb(")) {
+          const parts = color.substring(4, color.length - 1).split(",")
+          r = parseInt(parts[0])
+          g = parseInt(parts[1])
+          b = parseInt(parts[2])
+        }
+
+        // Calculate luminance using relative luminance formula
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+
+        // Determine if dark or light based on luminance threshold
+        resolve(luminance > 0.5 ? "light" : "dark")
+      }
+    }
+
+    process.stdin.setRawMode(true)
+    process.stdin.on("data", handler)
+    process.stdout.write("\x1b]11;?\x07")
+
+    timeout = setTimeout(() => {
+      cleanup()
+      resolve("dark")
+    }, 1000)
+  })
+}
 
 export function tui(input: {
   url: string
   sessionID?: string
   model?: string
   agent?: string
+  prompt?: string
   onExit?: () => Promise<void>
 }) {
   // promise to prevent immediate exit
-  return new Promise<void>((resolve) => {
+  return new Promise<void>(async (resolve) => {
+    const mode = await getTerminalBackgroundColor()
+
     const routeData: Route | undefined = input.sessionID
       ? {
           type: "session",
@@ -64,8 +124,12 @@ export function tui(input: {
                   <RouteProvider data={routeData}>
                     <SDKProvider url={input.url}>
                       <SyncProvider>
-                        <ThemeProvider>
-                          <LocalProvider initialModel={input.model} initialAgent={input.agent}>
+                        <ThemeProvider mode={mode}>
+                          <LocalProvider
+                            initialModel={input.model}
+                            initialAgent={input.agent}
+                            initialPrompt={input.prompt}
+                          >
                             <KeybindProvider>
                               <DialogProvider>
                                 <CommandProvider>
@@ -108,7 +172,8 @@ function App() {
   const sync = useSync()
   const toast = useToast()
   const [sessionExists, setSessionExists] = createSignal(false)
-  const { theme } = useTheme()
+  const { theme, mode, setMode } = useTheme()
+  const exit = useExit()
 
   useKeyboard(async (evt) => {
     if (evt.meta && evt.name === "t") {
@@ -237,6 +302,14 @@ function App() {
       category: "System",
     },
     {
+      title: `Switch to ${mode() === "dark" ? "light" : "dark"} mode`,
+      value: "theme.switch_mode",
+      onSelect: () => {
+        setMode(mode() === "dark" ? "light" : "dark")
+      },
+      category: "System",
+    },
+    {
       title: "Help",
       value: "help.show",
       onSelect: () => {
@@ -244,11 +317,17 @@ function App() {
       },
       category: "System",
     },
+    {
+      title: "Exit the app",
+      value: "app.exit",
+      onSelect: exit,
+      category: "System",
+    },
   ])
 
   createEffect(() => {
     const providerID = local.model.current().providerID
-    if (providerID === "openrouter" && !kv.data.openrouter_warning) {
+    if (providerID === "openrouter" && !kv.get("openrouter_warning", false)) {
       untrack(() => {
         DialogAlert.show(
           dialog,
@@ -296,8 +375,9 @@ function App() {
           /* @ts-expect-error */
           renderer.writeOut(finalOsc52)
           await Clipboard.copy(text)
+            .then(() => toast.show({ message: "Copied to clipboard", variant: "info" }))
+            .catch(toast.error)
           renderer.clearSelection()
-          toast.show({ message: "Copied to clipboard", variant: "info" })
         }
       }}
     >
@@ -326,7 +406,9 @@ function App() {
             paddingRight={1}
           >
             <text fg={theme.textMuted}>open</text>
-            <text attributes={TextAttributes.BOLD}>code </text>
+            <text fg={theme.text} attributes={TextAttributes.BOLD}>
+              code{" "}
+            </text>
             <text fg={theme.textMuted}>v{Installation.VERSION}</text>
           </box>
           <box paddingLeft={1} paddingRight={1}>
