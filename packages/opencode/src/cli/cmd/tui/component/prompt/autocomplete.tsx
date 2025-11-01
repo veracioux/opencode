@@ -14,9 +14,11 @@ export type AutocompleteRef = {
   onInput: (value: string) => void
   onKeyDown: (e: KeyEvent) => void
   visible: false | "@" | "/"
+  commands: AutocompleteOption[]
 }
 
 export type AutocompleteOption = {
+  trigger: `${"@" | "/"}${string}`
   display: string
   aliases?: string[]
   disabled?: boolean
@@ -122,6 +124,7 @@ export function Autocomplete(props: {
         options.push(
           ...result.data.map(
             (item): AutocompleteOption => ({
+              trigger: `@${item}`,
               display: item,
               onSelect: () => {
                 insertPart(item, {
@@ -159,7 +162,8 @@ export function Autocomplete(props: {
       .filter((agent) => !agent.builtIn && agent.mode !== "primary")
       .map(
         (agent): AutocompleteOption => ({
-          display: "@" + agent.name,
+          trigger: `@${agent.name}`,
+          display: `@${agent.name}`,
           onSelect: () => {
             insertPart(agent.name, {
               type: "agent",
@@ -179,11 +183,11 @@ export function Autocomplete(props: {
     props.sessionID ? sync.session.get(props.sessionID) : undefined,
   )
   const commands = createMemo((): AutocompleteOption[] => {
-    const results: AutocompleteOption[] = []
+    const results: Omit<AutocompleteOption, "display">[] = []
     const s = session()
     for (const command of sync.data.command) {
       results.push({
-        display: "/" + command.name,
+        trigger: `/${command.name}`,
         description: command.description,
         onSelect: () => {
           const newText = "/" + command.name + " "
@@ -197,35 +201,35 @@ export function Autocomplete(props: {
     if (s) {
       results.push(
         {
-          display: "/undo",
+          trigger: "/undo",
           description: "undo the last message",
           onSelect: () => command.trigger("session.undo"),
         },
         {
-          display: "/redo",
+          trigger: "/redo",
           description: "redo the last message",
           onSelect: () => command.trigger("session.redo"),
         },
         {
-          display: "/compact",
+          trigger: "/compact",
           aliases: ["/summarize"],
           description: "compact the session",
           onSelect: () => command.trigger("session.compact"),
         },
         {
-          display: "/share",
+          trigger: "/share",
           disabled: !!s.share?.url,
           description: "share a session",
           onSelect: () => command.trigger("session.share"),
         },
         {
-          display: "/unshare",
+          trigger: "/unshare",
           disabled: !s.share,
           description: "unshare a session",
           onSelect: () => command.trigger("session.unshare"),
         },
         {
-          display: "/rename",
+          trigger: "/rename",
           description: "rename session",
           onSelect: () => command.trigger("session.rename"),
         },
@@ -233,64 +237,64 @@ export function Autocomplete(props: {
     }
     results.push(
       {
-        display: "/new",
+        trigger: "/new",
         aliases: ["/clear"],
         description: "create a new session",
         onSelect: () => command.trigger("session.new"),
       },
       {
-        display: "/models",
+        trigger: "/models",
         description: "list models",
         onSelect: () => command.trigger("model.list"),
       },
       {
-        display: "/agents",
+        trigger: "/agents",
         description: "list agents",
         onSelect: () => command.trigger("agent.list"),
       },
       {
-        display: "/session",
+        trigger: "/session",
         aliases: ["/resume", "/continue"],
         description: "list sessions",
         onSelect: () => command.trigger("session.list"),
       },
       {
-        display: "/status",
+        trigger: "/status",
         description: "show status",
         onSelect: () => command.trigger("opencode.status"),
       },
       {
-        display: "/theme",
+        trigger: "/theme",
         description: "toggle theme",
         onSelect: () => command.trigger("theme.switch"),
       },
       {
-        display: "/editor",
+        trigger: "/editor",
         description: "open editor",
         onSelect: () => command.trigger("prompt.editor", "prompt"),
       },
       {
-        display: "/help",
+        trigger: "/help",
         description: "show help",
         onSelect: () => command.trigger("help.show"),
       },
       {
-        display: "/commands",
+        trigger: "/commands",
         description: "show all commands",
         onSelect: () => command.show(),
       },
       {
-        display: "/exit",
+        trigger: "/exit",
         aliases: ["/quit", "/q"],
         description: "exit the app",
         onSelect: () => command.trigger("app.exit"),
       },
     )
-    const max = firstBy(results, [(x) => x.display.length, "desc"])?.display.length
-    if (!max) return results
+    const max = firstBy(results, [(x) => x.trigger.length, "desc"])?.trigger.length
+    if (!max) return results.map((item) => ({ ...item, display: item.trigger }))
     return results.map((item) => ({
       ...item,
-      display: item.display.padEnd(max + 2),
+      display: item.trigger.padEnd(max + 2),
     }))
   })
 
@@ -357,6 +361,9 @@ export function Autocomplete(props: {
     props.ref({
       get visible() {
         return store.visible
+      },
+      get commands() {
+        return commands()
       },
       onInput(value: string) {
         if (store.visible && value.length <= store.index) hide()
