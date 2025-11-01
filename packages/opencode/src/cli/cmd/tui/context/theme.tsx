@@ -1,5 +1,5 @@
 import { SyntaxStyle, RGBA } from "@opentui/core"
-import { createMemo, createSignal } from "solid-js"
+import { createEffect, createMemo, createSignal } from "solid-js"
 import { useSync } from "@tui/context/sync"
 import { createSimpleContext } from "./helper"
 import aura from "../../../../../../tui/internal/theme/themes/aura.json" with { type: "json" }
@@ -25,6 +25,10 @@ import tokyonight from "../../../../../../tui/internal/theme/themes/tokyonight.j
 import vesper from "../../../../../../tui/internal/theme/themes/vesper.json" with { type: "json" }
 import zenburn from "../../../../../../tui/internal/theme/themes/zenburn.json" with { type: "json" }
 import { useKV } from "./kv"
+import path from "path"
+import { Config } from "@/config/config"
+import { useToast } from "../ui/toast"
+import { iife } from "@/util/iife"
 
 type Theme = {
   primary: RGBA
@@ -628,31 +632,75 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
   init: () => {
     const sync = useSync()
     const kv = useKV()
+    const toast = useToast()
 
     const [theme, setTheme] = createSignal(sync.data.config.theme ?? kv.data.theme)
 
-    const values = createMemo(() => {
-      return THEMES[theme()] ?? THEMES.opencode
+    const [customThemes, setCustomThemes] = createSignal<Record<string, Theme>>()
+
+    // Load custom themes in the background
+    createEffect(async () => {
+      const customThemes: Record<string, Theme> = {}
+      for (const configDir of await Config.directories()) {
+        for await (const themeFile of new Bun.Glob("themes/*.json").scan({ cwd: configDir, absolute: true })) {
+          const themeName = path.basename(themeFile, ".json")
+          const theme = await iife(
+            async () => {
+              return await Bun.file(themeFile).json()
+                .catch(e => {
+                  toast.show({
+                    variant: "error",
+                    message: `Failed to load theme ${themeName}: ${e.message}`,
+                  })
+                })
+            }
+          )
+          if (!theme) continue
+          if (THEMES[themeName])
+            toast.show({
+              variant: "warning",
+              message: `Custom theme '${themeName}' is overriding built-in theme of same name`,
+            })
+          else if (customThemes[themeName])
+            toast.show({
+              variant: "warning",
+              message: `Multiple custom themes named '${themeName}' are defined`,
+            })
+          customThemes[themeName] = resolveTheme(theme as ThemeJson)
+        }
+      }
+      setCustomThemes(customThemes)
+    })
+
+    const allThemes = createMemo(() => {
+      return { ...THEMES, ...customThemes() }
+    })
+
+    const selectedThemeDef = createMemo(() => {
+      const selected = theme()
+      return customThemes()?.[selected] ?? THEMES[selected] ?? THEMES.opencode
     })
 
     return {
-      theme: new Proxy(values(), {
+      theme: new Proxy(selectedThemeDef(), {
         get(_target, prop) {
-          // @ts-expect-error
-          return values()[prop]
+          return selectedThemeDef()[prop as keyof Theme]
         },
       }),
       get selected() {
         return kv.data.theme
       },
       set(theme: string) {
-        if (!THEMES[theme]) return
+        if (!this.all[theme]) return
         setTheme(theme)
         kv.set("theme", theme)
       },
       get ready() {
         return sync.ready
       },
+      get all() {
+        return allThemes()
+      }
     }
   },
 })

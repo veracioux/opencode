@@ -1,14 +1,16 @@
 import { DialogSelect, type DialogSelectRef } from "../ui/dialog-select"
 import { THEMES, useTheme } from "../context/theme"
 import { useDialog } from "../ui/dialog"
-import { onCleanup, onMount } from "solid-js"
+import { createMemo, onCleanup, onMount } from "solid-js"
 
 export function DialogThemeList() {
   const theme = useTheme()
-  const options = Object.keys(THEMES).map((value) => ({
-    title: value,
-    value: value as keyof typeof THEMES,
-  }))
+  const options = createMemo(() => {
+    return Object.keys(theme.all).map((value) => ({
+      title: value,
+      value: value as keyof typeof THEMES,
+    }))
+  })
   const dialog = useDialog()
   let confirmed = false
   let ref: DialogSelectRef<keyof typeof THEMES>
@@ -27,7 +29,7 @@ export function DialogThemeList() {
   return (
     <DialogSelect
       title="Themes"
-      options={options}
+      options={options()}
       onMove={(opt) => {
         theme.set(opt.value)
       }}
