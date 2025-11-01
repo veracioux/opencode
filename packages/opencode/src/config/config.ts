@@ -474,6 +474,7 @@ export namespace Config {
         .describe("Insert newline in input"),
       history_previous: z.string().optional().default("up").describe("Previous history item"),
       history_next: z.string().optional().default("down").describe("Previous history item"),
+      project_init: z.string().optional().default("none").describe("Create or update AGENTS.md"),
     })
     .strict()
     .meta({

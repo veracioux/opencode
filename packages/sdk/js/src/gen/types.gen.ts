@@ -166,6 +166,10 @@ export type KeybindsConfig = {
    * Previous history item
    */
   history_next?: string
+  /**
+   * Create or update AGENTS.md
+   */
+  project_init?: string
 }
 
 export type AgentConfig = {
@@ -1697,7 +1701,7 @@ export type SessionInitData = {
   body?: {
     modelID: string
     providerID: string
-    messageID: string
+    messageID?: string
   }
   path: {
     /**

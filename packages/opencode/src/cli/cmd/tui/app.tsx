@@ -28,6 +28,7 @@ import type { SessionRoute } from "./context/route"
 import { Session as SessionApi } from "@/session"
 import { TuiEvent } from "./event"
 import { KVProvider, useKV } from "./context/kv"
+import { iife } from "@/util/iife"
 
 export function tui(input: {
   url: string
@@ -40,9 +41,9 @@ export function tui(input: {
   return new Promise<void>((resolve) => {
     const routeData: Route | undefined = input.sessionID
       ? {
-          type: "session",
-          sessionID: input.sessionID,
-        }
+        type: "session",
+        sessionID: input.sessionID,
+      }
       : undefined
 
     const onExit = async () => {
@@ -109,6 +110,7 @@ function App() {
   const toast = useToast()
   const [sessionExists, setSessionExists] = createSignal(false)
   const { theme } = useTheme()
+  const sdk = useSDK()
 
   useKeyboard(async (evt) => {
     if (evt.meta && evt.name === "t") {
@@ -162,6 +164,57 @@ function App() {
         })
         dialog.clear()
       },
+    },
+    {
+      title: "Create/update AGENTS.md",
+      value: "session.init",
+      keybind: "project_init",
+      onSelect: async () => {
+        const sessionID = await iife(async () => {
+          if (route.data.type === "session" && route.data.sessionID)
+            return route.data.sessionID
+          const response = await sdk.client.session.create({ throwOnError: true })
+            .catch((err) => {
+              return toast.show({
+                title: "Failed to create session",
+                message: err.message,
+                variant: "error",
+              })
+            })
+          const sessionID = response?.data.id
+          if (sessionID)
+            route.navigate({
+              type: "session",
+              sessionID,
+            })
+          return sessionID
+        })
+
+        if (!sessionID)
+          return toast.show({
+            message: "Failed to create session",
+            variant: "error",
+          })
+
+        const { modelID, providerID } = local.model.current()
+        sdk.client.session.init({
+          body: {
+            providerID,
+            modelID,
+          },
+          path: {
+            id: sessionID,
+          },
+          throwOnError: true,
+        }).catch((err) => {
+          toast.show({
+            title: "Failed to initialize session",
+            message: err.message,
+            variant: "error",
+          })
+        })
+      },
+      category: "Session",
     },
     {
       title: "Switch model",

@@ -420,11 +420,11 @@ export namespace Session {
       sessionID: Identifier.schema("session"),
       modelID: z.string(),
       providerID: z.string(),
-      messageID: Identifier.schema("message"),
+      messageID: Identifier.schema("message").optional(),
     }),
     async (input) => {
       await SessionPrompt.prompt({
-        sessionID: input.sessionID,
+        sessionID: input.sessionID ?? Identifier.ascending("message"),
         messageID: input.messageID,
         model: {
           providerID: input.providerID,

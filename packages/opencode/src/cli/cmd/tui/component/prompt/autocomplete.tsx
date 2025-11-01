@@ -236,6 +236,11 @@ export function Autocomplete(props: {
         onSelect: () => command.trigger("session.new"),
       },
       {
+        display: "/init",
+        description: "create/update AGENTS.md",
+        onSelect: () => command.trigger("session.init"),
+      },
+      {
         display: "/models",
         description: "list models",
         onSelect: () => command.trigger("model.list"),
