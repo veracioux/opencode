@@ -8,6 +8,7 @@ import { Global } from "@/global"
 import { iife } from "@/util/iife"
 import { createSimpleContext } from "./helper"
 import { useToast } from "../ui/toast"
+import { createEventBus } from "@solid-primitives/event-bus"
 
 export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
   name: "Local",
@@ -239,16 +240,18 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       }
     })
 
-    const [initialPrompt, setInitialPrompt] = createSignal(props.initialPrompt)
+    const setInitialPrompt = createEventBus<string>()
+
+    onMount(() => {
+      if (props.initialPrompt)
+        setInitialPrompt.emit(props.initialPrompt)
+    })
 
     const result = {
       model,
       agent,
-      /** Get the initial prompt and reset it */
-      consumeInitialPrompt() {
-        const prompt = initialPrompt()
-        setInitialPrompt(undefined)
-        return prompt
+      get setInitialPrompt() {
+        return setInitialPrompt
       },
     }
     return result

@@ -194,16 +194,13 @@ export function Prompt(props: PromptProps) {
     input.focus()
   })
 
-  createEffect(() => {
+  local.setInitialPrompt.listen((initialPrompt) => {
     batch(() => {
-      const initialPrompt = local.consumeInitialPrompt()
-      if (initialPrompt) {
-        setStore("prompt", {
-          input: initialPrompt,
-          parts: [],
-        })
-        input.insertText(initialPrompt)
-      }
+      setStore("prompt", {
+        input: initialPrompt,
+        parts: [],
+      })
+      input.insertText(initialPrompt)
     })
   })
 
