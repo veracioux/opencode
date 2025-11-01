@@ -11,7 +11,7 @@ import { useToast } from "../ui/toast"
 
 export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
   name: "Local",
-  init: (props: { initialModel?: string; initialAgent?: string }) => {
+  init: (props: { initialModel?: string; initialAgent?: string; initialPrompt?: string }) => {
     const sync = useSync()
     const toast = useToast()
 
@@ -239,9 +239,17 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       }
     })
 
+    const [initialPrompt, setInitialPrompt] = createSignal(props.initialPrompt)
+
     const result = {
       model,
       agent,
+      /** Get the initial prompt and reset it */
+      consumeInitialPrompt() {
+        const prompt = initialPrompt()
+        setInitialPrompt(undefined)
+        return prompt
+      },
     }
     return result
   },

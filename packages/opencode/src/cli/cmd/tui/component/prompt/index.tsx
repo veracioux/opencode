@@ -9,7 +9,7 @@ import {
   dim,
   fg,
 } from "@opentui/core"
-import { createEffect, createMemo, Match, Switch, type JSX, onMount } from "solid-js"
+import { createEffect, createMemo, Match, Switch, type JSX, onMount, batch } from "solid-js"
 import { useLocal } from "@tui/context/local"
 import { SyntaxTheme, useTheme } from "@tui/context/theme"
 import { SplitBorder } from "@tui/component/border"
@@ -194,6 +194,19 @@ export function Prompt(props: PromptProps) {
     input.focus()
   })
 
+  createEffect(() => {
+    batch(() => {
+      const initialPrompt = local.consumeInitialPrompt()
+      if (initialPrompt) {
+        setStore("prompt", {
+          input: initialPrompt,
+          parts: [],
+        })
+        input.insertText(initialPrompt)
+      }
+    })
+  })
+
   onMount(() => {
     promptPartTypeId = input.extmarks.registerType("prompt-part")
   })
@@ -310,9 +323,9 @@ export function Prompt(props: PromptProps) {
     const sessionID = props.sessionID
       ? props.sessionID
       : await (async () => {
-          const sessionID = await sdk.client.session.create({}).then((x) => x.data!.id)
-          return sessionID
-        })()
+        const sessionID = await sdk.client.session.create({}).then((x) => x.data!.id)
+        return sessionID
+      })()
     const messageID = Identifier.ascending("message")
     let inputText = store.prompt.input
 
