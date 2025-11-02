@@ -1,7 +1,7 @@
 import type { BoxRenderable, TextareaRenderable, KeyEvent } from "@opentui/core"
 import fuzzysort from "fuzzysort"
 import { firstBy } from "remeda"
-import { createMemo, createResource, createEffect, onMount, For, Show } from "solid-js"
+import { createMemo, createResource, createEffect, onMount, For, Show, createSignal } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useSDK } from "@tui/context/sdk"
 import { useSync } from "@tui/context/sync"
@@ -9,6 +9,7 @@ import { useTheme } from "@tui/context/theme"
 import { SplitBorder } from "@tui/component/border"
 import { useCommandDialog } from "@tui/component/dialog-command"
 import type { PromptInfo } from "./history"
+import { debounce } from "@solid-primitives/scheduled"
 
 export type AutocompleteRef = {
   onInput: (value: string) => void
@@ -396,48 +397,57 @@ export function Autocomplete(props: {
     return 1
   })
 
-  return (
-    <box
-      visible={store.visible !== false}
-      position="absolute"
-      top={store.position.y - height()}
-      left={store.position.x}
-      width={store.position.width}
-      zIndex={100}
-      {...SplitBorder}
-      borderColor={theme.border}
-    >
-      <box backgroundColor={theme.backgroundElement} height={height()}>
-        <For
-          each={options()}
-          fallback={
-            <box paddingLeft={1} paddingRight={1}>
-              <text>No matching items</text>
-            </box>
-          }
-        >
-          {(option, index) => (
-            <box
-              paddingLeft={1}
-              paddingRight={1}
-              backgroundColor={index() === store.selected ? theme.primary : undefined}
-              flexDirection="row"
-            >
-              <text fg={index() === store.selected ? theme.background : theme.text} flexShrink={0}>
-                {option.display}
-              </text>
-              <Show when={option.description}>
-                <text
-                  fg={index() === store.selected ? theme.background : theme.textMuted}
-                  wrapMode="none"
-                >
-                  {option.description}
+  // Set up a debounced component to prevent flickering
+  const [component, _setComponent] = createSignal<JSX.Element>()
+  const setComponent = debounce(_setComponent, 10)
+  createEffect(() => {
+    const _height = height()
+    const selected = store.selected
+    setComponent(
+      <box
+        visible={store.visible !== false}
+        position="absolute"
+        top={store.position.y - _height}
+        left={store.position.x}
+        width={store.position.width}
+        zIndex={100}
+        {...SplitBorder}
+        borderColor={theme.border}
+      >
+        <box backgroundColor={theme.backgroundElement} height={_height}>
+          <For
+            each={options()}
+            fallback={
+              <box paddingLeft={1} paddingRight={1}>
+                <text>No matching items</text>
+              </box>
+            }
+          >
+            {(option, index) => (
+              <box
+                paddingLeft={1}
+                paddingRight={1}
+                backgroundColor={index() === selected ? theme.primary : undefined}
+                flexDirection="row"
+              >
+                <text fg={index() === selected ? theme.background : theme.text} flexShrink={0}>
+                  {option.display}
                 </text>
-              </Show>
-            </box>
-          )}
-        </For>
+                <Show when={option.description}>
+                  <text
+                    fg={index() === selected ? theme.background : theme.textMuted}
+                    wrapMode="none"
+                  >
+                    {option.description}
+                  </text>
+                </Show>
+              </box>
+            )}
+          </For>
+        </box>
       </box>
-    </box>
-  )
+    )
+  })
+
+  return <box>{component()}</box>
 }
