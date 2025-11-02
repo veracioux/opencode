@@ -141,5 +141,20 @@ try {
   // Most notably, some docker-container-based MCP servers don't handle such signals unless
   // run using `docker run --init`.
   // Explicitly exit to avoid any hanging subprocesses.
-  process.exit()
+
+  /** Make sure all output operations have finished on the given stream */
+  async function awaitStream(stream: NodeJS.WriteStream) {
+    return new Promise<void>((resolve, reject) => {
+      stream.write("", (err) => {
+        err ? resolve() : reject(err)
+      })
+    })
+  }
+
+  await Promise.all([
+    awaitStream(process.stdout),
+    awaitStream(process.stderr),
+  ])
+
+  setImmediate(() => process.exit())
 }
