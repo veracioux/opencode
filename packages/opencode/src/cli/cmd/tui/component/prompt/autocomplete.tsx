@@ -397,57 +397,63 @@ export function Autocomplete(props: {
     return 1
   })
 
-  // Set up a debounced component to prevent flickering
-  const [component, _setComponent] = createSignal<JSX.Element>()
-  const setComponent = debounce(_setComponent, 10)
+  const [debouncedState, _setDebouncedState] = createSignal({
+    options: options(),
+    height: height(),
+    selected: store.selected,
+  })
+  const setDebouncedState = debounce(_setDebouncedState, 10)
+
   createEffect(() => {
-    const _height = height()
-    const selected = store.selected
-    setComponent(
-      <box
-        visible={store.visible !== false}
-        position="absolute"
-        top={store.position.y - _height}
-        left={store.position.x}
-        width={store.position.width}
-        zIndex={100}
-        {...SplitBorder}
-        borderColor={theme.border}
-      >
-        <box backgroundColor={theme.backgroundElement} height={_height}>
-          <For
-            each={options()}
-            fallback={
-              <box paddingLeft={1} paddingRight={1}>
-                <text>No matching items</text>
-              </box>
-            }
-          >
-            {(option, index) => (
-              <box
-                paddingLeft={1}
-                paddingRight={1}
-                backgroundColor={index() === selected ? theme.primary : undefined}
-                flexDirection="row"
-              >
-                <text fg={index() === selected ? theme.background : theme.text} flexShrink={0}>
-                  {option.display}
-                </text>
-                <Show when={option.description}>
-                  <text
-                    fg={index() === selected ? theme.background : theme.textMuted}
-                    wrapMode="none"
-                  >
-                    {option.description}
-                  </text>
-                </Show>
-              </box>
-            )}
-          </For>
-        </box>
-      </box>
-    )
+    setDebouncedState({
+      options: options(),
+      height: height(),
+      selected: store.selected,
+    })
   })
 
-  return <box>{component()}</box>
+  return (
+    <box
+      visible={store.visible !== false}
+      position="absolute"
+      top={store.position.y - debouncedState().height}
+      left={store.position.x}
+      width={store.position.width}
+      zIndex={100}
+      {...SplitBorder}
+      borderColor={theme.border}
+    >
+      <box backgroundColor={theme.backgroundElement} height={debouncedState().height}>
+        <For
+          each={debouncedState().options}
+          fallback={
+            <box paddingLeft={1} paddingRight={1}>
+              <text>No matching items</text>
+            </box>
+          }
+        >
+          {(option, index) => (
+            <box
+              paddingLeft={1}
+              paddingRight={1}
+              backgroundColor={index() === debouncedState().selected ? theme.primary : undefined}
+              flexDirection="row"
+            >
+              <text fg={index() === debouncedState().selected ? theme.background : theme.text} flexShrink={0}>
+                {option.display}
+              </text>
+              <Show when={option.description}>
+                <text
+                  fg={index() === debouncedState().selected ? theme.background : theme.textMuted}
+                  wrapMode="none"
+                >
+                  {option.description}
+                </text>
+              </Show>
+            </box>
+          )}
+        </For>
+      </box>
+    </box>
+  )
 }
