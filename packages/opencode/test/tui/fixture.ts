@@ -1,12 +1,14 @@
 import { type CommandOption } from "@/cli/cmd/tui/component/dialog-command"
-import type { Agent } from "@opencode-ai/sdk"
+import { Config } from "@/config/config"
+import type { Agent, Model } from "@opencode-ai/sdk"
 import { RGBA } from "@opentui/core"
 import { createEventBus, createGlobalEmitter } from "@solid-primitives/event-bus"
 import { mock } from "bun:test"
 import { type Context } from "solid-js"
 
-const contextToUseFnMap = new Map<Context<any>, () => any>()
-const contextNameToCtxMap = new Map<string, Context<any>>()
+const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
+const nameToContextMap = new Map<string, Context<unknown>>()
+const contextToNameMap = new Map<Context<unknown>, string>()
 
 let knownUseFns: Awaited<ReturnType<typeof setUpProviderMocks>>
 
@@ -21,7 +23,8 @@ export async function setUpProviderMocks() {
         return mockedProviderValue ? ctx.Provider({ value: mockedProviderValue, children: props.children }) : provider(props)
       }
       contextToUseFnMap.set(ctx, use)
-      contextNameToCtxMap.set(input.name, ctx)
+      nameToContextMap.set(input.name, ctx)
+      contextToNameMap.set(ctx, input.name)
       return {
         provider: mockedProvider,
         use,
@@ -58,7 +61,7 @@ const mockedProviderValues = new Map<() => any, any>()
 type MockConfig = {
   [key in keyof typeof knownUseFns]?:
   | ReturnType<typeof knownUseFns[key]>
-  | ((draft: ReturnType<typeof knownUseFns[key]> | undefined) => ReturnType<typeof knownUseFns[key]>)
+  | ((draft: ReturnType<typeof knownUseFns[key]>) => ReturnType<typeof knownUseFns[key]>)
   | boolean
 }
 
@@ -78,18 +81,18 @@ export async function mockProviders(config?: MockConfig) {
       model: {
         ready: true,
         current: () => ({
-          modelID: "local-model-1",
-          providerID: "local-provider-1",
+          modelID: "mock-model-1",
+          providerID: "mock-provider-1",
         }),
         set: mock(),
         recent: () => [{
-          providerID: "local-provider-1",
-          modelID: "local-model-1",
+          providerID: "mock-provider-1",
+          modelID: "mock-model-1",
         }],
         cycle: mock(),
         parsed: mock(() => ({
-          provider: "local-provider-1",
-          model: "local-model-1",
+          provider: "mock-provider-1",
+          model: "mock-model-1",
         })),
       },
       agent: {
@@ -135,18 +138,47 @@ export async function mockProviders(config?: MockConfig) {
     useKeybind: {
       match: mock((keybind, evt) => false),
       all: [] as any,
-      parse: mock((evt) => ({})),
+      parse: mock((evt) => ({} as any)),
       print: mock((key) => ""),
       leader: false,
     },
     useSync: {
       data: {
         ready: true,
-        provider: [],
+        provider: [
+          {
+            id: "mock-provider-1",
+            name: "Mock Provider 1",
+            models: {
+              "mock-model-1": {
+                name: "Mock Model 1",
+              } as Model,
+              "mock-model-2": {
+                name: "Mock Model 2",
+              } as Model,
+            },
+            env: [],
+          },
+          {
+            id: "mock-provider-1",
+            name: "Mock Provider 1",
+            models: {
+              "mock-model-1": {
+                name: "Mock Model 1",
+              } as Model,
+              "mock-model-2": {
+                name: "Mock Model 2",
+              } as Model,
+            },
+            env: [],
+          }
+        ],
         agent: [],
         command: [],
         permission: {},
-        config: {},
+        config: {
+          keybinds: Config.Keybinds.parse({}),
+        },
         session: [],
         todo: {},
         message: {},
@@ -191,6 +223,9 @@ export async function mockProviders(config?: MockConfig) {
       case value === true:
       case value === undefined:
         mockedProviderValues.set(useFn, defaultConfig[key])
+        break
+      case value === false:
+        mockedProviderValues.delete(useFn)
         break
       case typeof value === "function":
         mockedProviderValues.set(useFn, value(mockedProviderValues.get(useFn)))
