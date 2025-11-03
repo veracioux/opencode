@@ -3,7 +3,7 @@ import { Config } from "@/config/config"
 import type { Agent, Model } from "@opencode-ai/sdk"
 import { RGBA } from "@opentui/core"
 import { createEventBus, createGlobalEmitter } from "@solid-primitives/event-bus"
-import { mock } from "bun:test"
+import { beforeEach, mock } from "bun:test"
 import { type Context } from "solid-js"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
@@ -65,7 +65,17 @@ export type MockConfig = {
   | boolean
 }
 
-export async function mockProviders(config?: MockConfig) {
+export async function mockProviders<T extends MockConfig>(config?: T): Promise<
+  Required<{
+    [key in keyof MockConfig]: Awaited<ReturnType<typeof knownUseFns[key]>>
+  }> & {
+    [key in keyof T]: T[key] extends (...args: any[]) => any
+    ? ReturnType<T[key]>
+    : T[key] extends boolean
+    ? never
+    : T[key]
+  }
+> {
   const { resolveTheme, THEMES, syntaxStyleFromTheme } = await import("@/cli/cmd/tui/context/theme")
   const defaultConfig = {
     useDialog:
@@ -159,8 +169,8 @@ export async function mockProviders(config?: MockConfig) {
             env: [],
           },
           {
-            id: "mock-provider-1",
-            name: "Mock Provider 1",
+            id: "mock-provider-2",
+            name: "Mock Provider 2",
             models: {
               "mock-model-1": {
                 name: "Mock Model 1",
@@ -228,8 +238,9 @@ export async function mockProviders(config?: MockConfig) {
     const useFn = knownUseFns[key]
     switch (true) {
       case value === true:
-      case value === undefined:
         mockedProviderValues.set(useFn, defaultConfig[key])
+        break
+      case value === undefined:
         break
       case value === false:
         mockedProviderValues.delete(useFn)
@@ -241,4 +252,14 @@ export async function mockProviders(config?: MockConfig) {
         mockedProviderValues.set(useFn, value)
     }
   }
+
+  return Object.fromEntries(Object.keys(knownUseFns).map((key) => {
+    return [key, mockedProviderValues.get(knownUseFns[key as keyof MockConfig])]
+  })) as any
 }
+
+export type RecursivePartial<T> = {
+  [P in keyof T]?: T[P] extends object
+  ? RecursivePartial<T[P]>
+  : T[P];
+};
