@@ -160,7 +160,7 @@ export function tui(input: {
   })
 }
 
-function App() {
+export function App() {
   const route = useRoute()
   const dimensions = useTerminalDimensions()
   const renderer = useRenderer()

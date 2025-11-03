@@ -1,0 +1,54 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`Home should render correctly 1`] = `
+"                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                      ▄                         
+                     █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█                    
+                     █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀                    
+                     ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀                    
+                                                       local                    
+                                                                                
+                     Commands                                                   
+                     List sessions                                              
+                     Switch model                                               
+                     Switch agent                                               
+                                                                                
+                                                                                
+   ┃                                                                         ┃  
+   ┃ >                                                                       ┃  
+   ┃                                                                         ┃  
+   local-provider-1 local-model-1                                               
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ opencode vlocal  /tmp                                         tab  MOCK AGENT 
+"
+`;
+
+exports[`Home should resize correctly 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                                         
+           List sessions                                    
+           Switch model                                     
+           Switch agent                                     
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  local-provider-1 local-model-1                            
+                                                            
+ opencode vlocal  /tmp                     tab  MOCK AGENT 
+"
+`;
