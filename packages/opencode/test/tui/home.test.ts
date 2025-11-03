@@ -16,8 +16,8 @@ describe("Home", () => {
   })
 
   beforeEach(async () => {
-    setUpProviderMocks()
-    mockProviders()
+    await setUpProviderMocks()
+    await mockProviders()
     homedir = await fs.mkdtemp(tmpdir + path.sep)
     process.env.HOME = homedir
   })
@@ -50,26 +50,14 @@ describe("Home", () => {
   })
 
   describe("Model dialog", () => {
-    // FIXME: Not implemented fully
     test("should open model dialog", async () => {
+      await mockProviders({
+        useKeybind: false,
+      })
       const testSetup = await testRenderTui({
-        width: 50,
+        width: 80,
         height: 25,
       })
-      await mockProviders(
-        {
-          useSync: {
-            data: {
-              config: {
-                keybinds: {
-                  model_list: "<leader>m",
-                }
-              }
-            }
-          },
-          useKeybind: false,
-        },
-      )
       // expect(useSyncMock.fn).toBeCalled()
       await testSetup.renderOnce()
       testSetup.mockInput.pressKey("x", { ctrl: true })
