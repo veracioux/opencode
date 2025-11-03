@@ -18,6 +18,7 @@ const ctx = createContext<Context>()
 
 export type CommandOption = DialogSelectOption & {
   keybind?: keyof KeybindsConfig
+  disableKeybind?: boolean
 }
 
 function init() {
@@ -32,7 +33,7 @@ function init() {
   useKeyboard((evt) => {
     if (!keybinds) return
     for (const option of options()) {
-      if (option.keybind && keybind.match(option.keybind, evt)) {
+      if (option.keybind && keybind.match(option.keybind, evt) && !option.disableKeybind) {
         evt.preventDefault()
         option.onSelect?.(dialog)
         return

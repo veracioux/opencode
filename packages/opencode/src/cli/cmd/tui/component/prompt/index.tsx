@@ -21,7 +21,7 @@ import { createStore, produce } from "solid-js/store"
 import { useKeybind } from "@tui/context/keybind"
 import { usePromptHistory, type PromptInfo } from "./history"
 import { type AutocompleteRef, Autocomplete } from "./autocomplete"
-import { useCommandDialog } from "../dialog-command"
+import { useCommandDialog, type CommandOption } from "../dialog-command"
 import { useRenderer } from "@opentui/solid"
 import { Editor } from "@tui/util/editor"
 import { useExit } from "../../context/exit"
@@ -97,6 +97,7 @@ export function Prompt(props: PromptProps) {
         title: "Open editor",
         category: "Session",
         keybind: "editor_open",
+        disableKeybind: !input?.focused,
         value: "prompt.editor",
         onSelect: async (dialog, trigger) => {
           dialog.clear()
@@ -116,6 +117,7 @@ export function Prompt(props: PromptProps) {
         title: "Clear prompt",
         value: "prompt.clear",
         disabled: true,
+        disableKeybind: !input?.focused,
         category: "Prompt",
         onSelect: (dialog) => {
           input.extmarks.clear()
@@ -131,6 +133,7 @@ export function Prompt(props: PromptProps) {
         title: "Submit prompt",
         value: "prompt.submit",
         disabled: true,
+        disableKeybind: !input?.focused,
         keybind: "input_submit",
         category: "Prompt",
         onSelect: (dialog) => {
@@ -143,6 +146,7 @@ export function Prompt(props: PromptProps) {
         title: "Paste",
         value: "prompt.paste",
         disabled: true,
+        disableKeybind: !input?.focused,
         keybind: "input_paste",
         category: "Prompt",
         onSelect: async () => {
@@ -156,7 +160,7 @@ export function Prompt(props: PromptProps) {
           }
         },
       },
-    ]
+    ] satisfies (CommandOption & Required<Pick<CommandOption, "disableKeybind">>)[]
   })
 
   sdk.event.on(TuiEvent.PromptAppend.type, (evt) => {
