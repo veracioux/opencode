@@ -13,7 +13,7 @@ export async function tmpdir<T>(options?: TmpDirOptions<T>) {
   await $`mkdir -p ${dirpath}`.quiet()
   if (options?.git) {
     await $`git init`.cwd(dirpath).quiet()
-    await $`git commit --no-gpg-sign --allow-empty -m "root commit ${dirpath}"`.cwd(dirpath).quiet()
+    await $`git commit --allow-empty -m "root commit ${dirpath}"`.cwd(dirpath).quiet()
   }
   const extra = await options?.init?.(dirpath)
   const result = {
