@@ -75,7 +75,6 @@ export async function mockProviders(config?: MockConfig) {
       stack: [] as any[],
       size: "medium",
       setSize: mock(),
-      allClosedEvent: createEventBus<void>(),
     },
     useLocal: {
       model: {
