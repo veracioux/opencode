@@ -10,9 +10,9 @@ const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
 const nameToContextMap = new Map<string, Context<unknown>>()
 const contextToNameMap = new Map<Context<unknown>, string>()
 
-let knownUseFns: Awaited<ReturnType<typeof setUpProviderMocks>>
+let knownUseFns: Awaited<ReturnType<typeof setUpProviderMocking>>
 
-export async function setUpProviderMocks() {
+export async function setUpProviderMocking() {
   const { createSimpleContext } = await import("@/cli/cmd/tui/context/helper")
   const { useContext } = await import("solid-js")
   mock.module("@/cli/cmd/tui/context/helper.tsx", () => ({
@@ -58,7 +58,7 @@ export async function setUpProviderMocks() {
 
 const mockedProviderValues = new Map<() => any, any>()
 
-type MockConfig = {
+export type MockConfig = {
   [key in keyof typeof knownUseFns]?:
   | ReturnType<typeof knownUseFns[key]>
   | ((draft: ReturnType<typeof knownUseFns[key]>) => ReturnType<typeof knownUseFns[key]>)
@@ -173,7 +173,15 @@ export async function mockProviders(config?: MockConfig) {
             env: [],
           }
         ],
-        agent: [],
+        agent: [
+          {
+            name: "mock-agent-1",
+            model: {
+              providerID: "mock-provider-1",
+              modelID: "mock-model-1",
+            },
+          } as Agent
+        ],
         command: [],
         permission: {},
         config: {

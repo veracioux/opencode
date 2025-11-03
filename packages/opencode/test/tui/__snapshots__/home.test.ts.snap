@@ -11,21 +11,21 @@ exports[`Home should render correctly 1`] = `
                      ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀                    
                                                        local                    
                                                                                 
-                     Commands                                                   
-                     List sessions                                              
-                     Switch model                                               
-                     Switch agent                                               
+                     Commands                         ctrl+p                    
+                     List sessions                  ctrl+x l                    
+                     Switch model                   ctrl+x m                    
+                     Switch agent                        tab                    
                                                                                 
                                                                                 
    ┃                                                                         ┃  
    ┃ >                                                                       ┃  
    ┃                                                                         ┃  
-   local-provider-1 local-model-1                                               
+   Mock Provider 1 Mock Model 1                                                 
                                                                                 
                                                                                 
                                                                                 
                                                                                 
- opencode vlocal  /tmp                                         tab  MOCK AGENT 
+ opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
 "
 `;
 
@@ -38,46 +38,46 @@ exports[`Home should resize correctly 1`] = `
            ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
                                              local          
                                                             
-           Commands                                         
-           List sessions                                    
-           Switch model                                     
-           Switch agent                                     
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
                                                             
                                                             
   ┃                                                      ┃  
   ┃ >                                                    ┃  
   ┃                                                      ┃  
-  local-provider-1 local-model-1                            
+  Mock Provider 1 Mock Model 1                              
                                                             
- opencode vlocal  /tmp                     tab  MOCK AGENT 
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
 "
 `;
 
 exports[`Home Model dialog should open model dialog 1`] = `
-"                                                  
-                                                  
-                                                  
-                                                  
-                                       ▄          
-      █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█     
-      █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀     
-      ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀     
-                                        local     
-                                                  
-      Commands                                    
-      List sessions                               
-      Switch model                                
-      Switch agent                                
-                                                  
-                                                  
-  ┃                                            ┃  
-  ┃ >                                          ┃  
-  ┃                                            ┃  
-  local-provider-1 local-model-1                  
-                                                  
-                                                  
-                                                  
-                                                  
- opencode vlocal  /tmp           tab  MOCK AGENT 
+"                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                      ▄                         
+                     █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█                    
+                                                                                
+             Select model                                        esc            
+                                                                                
+             Enter search term                                                  
+                                                                                
+             Recent                                                             
+             Mock Model 1 Mock Provider 1                                       
+                                                                                
+             Mock Provider 1                                                    
+             Mock Model 2                                                       
+   ┃         Mock Model 2                                                    ┃  
+   ┃ >                                                                       ┃  
+   ┃                                                                         ┃  
+   mock-provider-1 mock-model-1                                                 
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ opencode vlocal  /tmp                                         tab  MOCK AGENT 
 "
 `;

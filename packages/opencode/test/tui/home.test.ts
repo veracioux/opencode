@@ -1,8 +1,8 @@
-await setUpProviderMocks()
+await setUpProviderMocking()
 
 import { test, expect, describe, beforeAll, beforeEach, mock, afterEach, xdescribe } from "bun:test"
 import os from "os"
-import { mockProviders, setUpProviderMocks } from "./fixture"
+import { mockProviders, setUpProviderMocking, type MockConfig } from "./fixture"
 import fs from "fs/promises"
 import path from "path"
 import { testRenderTui } from "./fixture_.tsx"
@@ -16,8 +16,20 @@ describe("Home", () => {
   })
 
   beforeEach(async () => {
-    await setUpProviderMocks()
-    await mockProviders()
+    await mockProviders({
+      useTheme: true,
+      useKV: true,
+      useSDK: true,
+      useSync: true,
+      useExit: true,
+      usePromptHistory: true,
+      useLocal: false,
+      useToast: false,
+      useRoute: false,
+      useDialog: false,
+      useCommandDialog: false,
+      useKeybind: false,
+    } satisfies Required<MockConfig>)
     homedir = await fs.mkdtemp(tmpdir + path.sep)
     process.env.HOME = homedir
   })
