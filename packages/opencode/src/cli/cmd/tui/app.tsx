@@ -92,7 +92,7 @@ export function tui(input: {
   model?: string
   agent?: string
   prompt?: string
-  onExit: () => Promise<void>
+  onExit?: () => Promise<void>
 }) {
   // promise to prevent immediate exit
   return new Promise<void>(async (resolve) => {
