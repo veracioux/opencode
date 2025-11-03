@@ -92,64 +92,18 @@ export function tui(input: {
   model?: string
   agent?: string
   prompt?: string
-  onExit?: () => Promise<void>
+  onExit: () => Promise<void>
 }) {
   // promise to prevent immediate exit
   return new Promise<void>(async (resolve) => {
     const mode = await getTerminalBackgroundColor()
-
-    const routeData: Route | undefined = input.sessionID
-      ? {
-          type: "session",
-          sessionID: input.sessionID,
-        }
-      : undefined
-
     const onExit = async () => {
       await input.onExit?.()
       resolve()
     }
 
     render(
-      () => {
-        return (
-          <ErrorBoundary
-            fallback={(error, reset) => (
-              <ErrorComponent error={error} reset={reset} onExit={onExit} />
-            )}
-          >
-            <ExitProvider onExit={onExit}>
-              <KVProvider>
-                <ToastProvider>
-                  <RouteProvider data={routeData}>
-                    <SDKProvider url={input.url}>
-                      <SyncProvider>
-                        <ThemeProvider mode={mode}>
-                          <LocalProvider
-                            initialModel={input.model}
-                            initialAgent={input.agent}
-                            initialPrompt={input.prompt}
-                          >
-                            <KeybindProvider>
-                              <DialogProvider>
-                                <CommandProvider>
-                                  <PromptHistoryProvider>
-                                    <App />
-                                  </PromptHistoryProvider>
-                                </CommandProvider>
-                              </DialogProvider>
-                            </KeybindProvider>
-                          </LocalProvider>
-                        </ThemeProvider>
-                      </SyncProvider>
-                    </SDKProvider>
-                  </RouteProvider>
-                </ToastProvider>
-              </KVProvider>
-            </ExitProvider>
-          </ErrorBoundary>
-        )
-      },
+      () => <Tui {...input} onExit={onExit} mode={mode} />,
       {
         targetFps: 60,
         gatherStats: false,
@@ -158,6 +112,60 @@ export function tui(input: {
       },
     )
   })
+}
+
+export function Tui(props: {
+  url: string
+  sessionID?: string
+  model?: string
+  agent?: string
+  prompt?: string
+  onExit: () => Promise<void>
+  mode: "dark" | "light"
+}) {
+  const routeData: Route | undefined = props.sessionID
+    ? {
+      type: "session",
+      sessionID: props.sessionID,
+    }
+    : undefined
+  return (
+    <ErrorBoundary
+      fallback={(error, reset) => (
+        <ErrorComponent error={error} reset={reset} onExit={props.onExit} />
+      )}
+    >
+      <ExitProvider onExit={props.onExit}>
+        <KVProvider>
+          <ToastProvider>
+            <RouteProvider data={routeData}>
+              <SDKProvider url={props.url}>
+                <SyncProvider>
+                  <ThemeProvider mode={props.mode}>
+                    <LocalProvider
+                      initialModel={props.model}
+                      initialAgent={props.agent}
+                      initialPrompt={props.prompt}
+                    >
+                      <KeybindProvider>
+                        <DialogProvider>
+                          <CommandProvider>
+                            <PromptHistoryProvider>
+                              <App />
+                            </PromptHistoryProvider>
+                          </CommandProvider>
+                        </DialogProvider>
+                      </KeybindProvider>
+                    </LocalProvider>
+                  </ThemeProvider>
+                </SyncProvider>
+              </SDKProvider>
+            </RouteProvider>
+          </ToastProvider>
+        </KVProvider>
+      </ExitProvider>
+    </ErrorBoundary>
+  )
 }
 
 export function App() {

@@ -1,124 +1,113 @@
-import type { CommandOption } from "@/cli/cmd/tui/component/dialog-command"
-import type { PromptInfo } from "@/cli/cmd/tui/component/prompt/history"
-import { resolveTheme, syntaxStyleFromTheme, THEMES } from "@/cli/cmd/tui/context/theme"
+import { type CommandOption } from "@/cli/cmd/tui/component/dialog-command"
 import type { Agent } from "@opencode-ai/sdk"
 import { RGBA } from "@opentui/core"
 import { createEventBus, createGlobalEmitter } from "@solid-primitives/event-bus"
 import { mock } from "bun:test"
+import { type Context } from "solid-js"
 
-type ReturnTypes = Readonly<{
-  useTheme: ReturnType<typeof import("@/cli/cmd/tui/context/theme").useTheme>
-  useRoute: ReturnType<typeof import("@/cli/cmd/tui/context/route").useRoute>
-  useLocal: ReturnType<typeof import("@/cli/cmd/tui/context/local").useLocal>
-  useDialog: ReturnType<typeof import("@/cli/cmd/tui/ui/dialog").useDialog>
-  useKV: ReturnType<typeof import("@/cli/cmd/tui/context/kv").useKV>
-  useCommandDialog: ReturnType<typeof import("@/cli/cmd/tui/component/dialog-command").useCommandDialog>
-  useSDK: ReturnType<typeof import("@/cli/cmd/tui/context/sdk").useSDK>
-  useKeybind: ReturnType<typeof import("@/cli/cmd/tui/context/keybind").useKeybind>
-  useSync: ReturnType<typeof import("@/cli/cmd/tui/context/sync").useSync>
-  useToast: ReturnType<typeof import("@/cli/cmd/tui/ui/toast").useToast>
-  useExit: ReturnType<typeof import("@/cli/cmd/tui/context/exit").useExit>
-  usePromptHistory: ReturnType<typeof import("@/cli/cmd/tui/component/prompt/history").usePromptHistory>
-}>
+const contextToUseFnMap = new Map<Context<any>, () => any>()
+const contextNameToCtxMap = new Map<string, Context<any>>()
 
-const knownUseFns = {
-  useTheme: "@/cli/cmd/tui/context/theme.tsx",
-  useRoute: "@/cli/cmd/tui/context/route.tsx",
-  useLocal: "@/cli/cmd/tui/context/local.tsx",
-  useDialog: "@/cli/cmd/tui/ui/dialog.tsx",
-  useKV: "@/cli/cmd/tui/context/kv.tsx",
-  useCommandDialog: "@/cli/cmd/tui/component/dialog-command.tsx",
-  useSDK: "@/cli/cmd/tui/context/sdk.tsx",
-  useKeybind: "@/cli/cmd/tui/context/keybind.tsx",
-  useSync: "@/cli/cmd/tui/context/sync.tsx",
-  useToast: "@/cli/cmd/tui/ui/toast.tsx",
-  useExit: "@/cli/cmd/tui/context/exit.tsx",
-  usePromptHistory: "@/cli/cmd/tui/component/prompt/history.tsx",
-} satisfies Readonly<Record<keyof ReturnTypes, string>>
+let knownUseFns: Awaited<ReturnType<typeof setUpProviderMocks>>
 
-const mockedUseFnValues = new Map<readonly [string, string], any>()
-
-export async function mockUseFn
-  <TFnName extends keyof typeof knownUseFns, AllowPartial extends boolean = false>
-  (useFnName: TFnName, providedValue: AllowPartial extends true ? Partial<ReturnTypes[TFnName]> : ReturnTypes[TFnName], allowPartial?: AllowPartial) {
-  const modulePath = (knownUseFns as any)[useFnName]
-
-  if (!modulePath)
-    throw new Error(`Unknown module path for the provided use function: ${useFnName}`)
-
-  const funcKey = [modulePath, useFnName] as const
-
-  const returnValue = { ...(mockedUseFnValues.get(funcKey)), ...providedValue } as ReturnTypes[TFnName]
-
-  const mockedFn = mock(() => (returnValue satisfies ReturnTypes[TFnName]))
-  const mockedModule = {
-    [useFnName]: mockedFn,
-  }
-
-  mock.module(modulePath, () => mockedModule)
-
-  delete require.cache[require.resolve(modulePath)]
-
-  mockedUseFnValues.set(funcKey, returnValue)
-
-  return {
-    fn: mockedFn,
-    providedValue: returnValue,
-  }
+export async function setUpProviderMocks() {
+  const { createSimpleContext } = await import("@/cli/cmd/tui/context/helper")
+  const { useContext } = await import("solid-js")
+  mock.module("@/cli/cmd/tui/context/helper.tsx", () => ({
+    createSimpleContext(input: { name: string, init: any }): ReturnType<typeof createSimpleContext> {
+      const { provider, use, ctx } = createSimpleContext(input)
+      const mockedProvider: typeof provider = (props) => {
+        const mockedProviderValue = mockedProviderValues.get(use)
+        return mockedProviderValue ? ctx.Provider({ value: mockedProviderValue, children: props.children }) : provider(props)
+      }
+      contextToUseFnMap.set(ctx, use)
+      contextNameToCtxMap.set(input.name, ctx)
+      return {
+        provider: mockedProvider,
+        use,
+        ctx,
+      } satisfies ReturnType<typeof createSimpleContext>
+    }
+  }))
+  mock.module("solid-js", () => ({
+    useContext(ctx: Context<any>) {
+      const mockedValue = mockedProviderValues.get(contextToUseFnMap.get(ctx) as any)
+      return mockedValue ?? useContext(ctx)
+    },
+  }))
+  const _knownUseFns = {
+    useTheme: await import("@/cli/cmd/tui/context/theme").then(m => m.useTheme),
+    useRoute: await import("@/cli/cmd/tui/context/route").then(m => m.useRoute),
+    useLocal: await import("@/cli/cmd/tui/context/local").then(m => m.useLocal),
+    useDialog: await import("@/cli/cmd/tui/ui/dialog").then(m => m.useDialog),
+    useKV: await import("@/cli/cmd/tui/context/kv").then(m => m.useKV),
+    useCommandDialog: await import("@/cli/cmd/tui/component/dialog-command").then(m => m.useCommandDialog),
+    useSDK: await import("@/cli/cmd/tui/context/sdk").then(m => m.useSDK),
+    useKeybind: await import("@/cli/cmd/tui/context/keybind").then(m => m.useKeybind),
+    useSync: await import("@/cli/cmd/tui/context/sync").then(m => m.useSync),
+    useToast: await import("@/cli/cmd/tui/ui/toast").then(m => m.useToast),
+    useExit: await import("@/cli/cmd/tui/context/exit").then(m => m.useExit),
+    usePromptHistory: await import("@/cli/cmd/tui/component/prompt/history").then(m => m.usePromptHistory),
+  } as const
+  knownUseFns = _knownUseFns
+  return _knownUseFns
 }
 
-const allClosedEvent = createEventBus<void>()
+const mockedProviderValues = new Map<() => any, any>()
 
-export async function setUpDefaultMocks(include: (keyof ReturnTypes)[] = Object.keys(knownUseFns) as (keyof ReturnTypes)[]) {
-  const getters = {
-    useDialog: () => mockUseFn(
-      "useDialog",
-      {
+type MockConfig = {
+  [key in keyof typeof knownUseFns]?:
+  | ReturnType<typeof knownUseFns[key]>
+  | ((draft: ReturnType<typeof knownUseFns[key]> | undefined) => ReturnType<typeof knownUseFns[key]>)
+  | boolean
+}
+
+export async function mockProviders(config?: MockConfig) {
+  const { resolveTheme, THEMES, syntaxStyleFromTheme } = await import("@/cli/cmd/tui/context/theme")
+  const defaultConfig = {
+    useDialog:
+    {
+      clear: mock(),
+      replace: mock(),
+      stack: [] as any[],
+      size: "medium",
+      setSize: mock(),
+      allClosedEvent: createEventBus<void>(),
+    },
+    useLocal: {
+      model: {
+        ready: true,
+        current: () => ({
+          modelID: "local-model-1",
+          providerID: "local-provider-1",
+        }),
+        set: mock(),
+        recent: () => [{
+          providerID: "local-provider-1",
+          modelID: "local-model-1",
+        }],
+        cycle: mock(),
+        parsed: mock(() => ({
+          provider: "local-provider-1",
+          model: "local-model-1",
+        })),
+      },
+      agent: {
+        list: () => [],
+        current: () => ({
+          name: "mock",
+        } as Agent),
+        color: mock(() => RGBA.fromHex("#ff0000")),
+        set: mock(),
+        move: mock(),
+      },
+      setInitialPrompt: {
+        listen: mock(() => () => { }),
+        emit: mock(),
         clear: mock(),
-        replace: mock(),
-        stack: [] as any[],
-        size: "medium",
-        setSize: mock(),
-        allClosedEvent,
       },
-    ),
-    useLocal: () => mockUseFn(
-      "useLocal",
-      {
-        model: {
-          ready: true,
-          current: () => ({
-            modelID: "local-model-1",
-            providerID: "local-provider-1",
-          }),
-          set: mock(),
-          recent: () => [{
-            providerID: "local-provider-1",
-            modelID: "local-model-1",
-          }],
-          cycle: mock(),
-          parsed: mock(() => ({
-            provider: "local-provider-1",
-            model: "local-model-1",
-          })),
-        },
-        agent: {
-          list: () => [],
-          current: () => ({
-            name: "mock",
-          } as Agent),
-          color: mock(() => RGBA.fromHex("#ff0000")),
-          set: mock(),
-          move: mock(),
-        },
-        setInitialPrompt: {
-          listen: mock(() => () => { }),
-          emit: mock(),
-          clear: mock(),
-        },
-      },
-    ),
-    useKV: () => mockUseFn("useKV", {
+    },
+    useKV: {
       ready: true,
       set: mock(),
       get: mock(() => undefined),
@@ -126,102 +115,88 @@ export async function setUpDefaultMocks(include: (keyof ReturnTypes)[] = Object.
         () => undefined,
         (next: any) => { },
       ] as const),
-    }),
-    useCommandDialog: () => mockUseFn(
-      "useCommandDialog",
-      {
-        trigger: mock(),
-        keybinds: mock(),
-        show: mock(() => { }),
-        register: mock(),
-        options: [] as CommandOption[],
-      },
-    ),
-    useRoute: () => mockUseFn(
-      "useRoute",
-      {
-        data: { type: "home" },
-        navigate: mock(),
-      },
-    ),
-    useSDK: () => mockUseFn(
-      "useSDK",
-      {
-        event: createGlobalEmitter(),
-        client: {} as any,
-      },
-    ),
-    useKeybind: () => mockUseFn(
-      "useKeybind",
-      {
-        match: mock((keybind, evt) => false),
-        all: [] as any,
-        parse: mock((evt) => ({})),
-        print: mock((key) => ""),
-        leader: false,
-      },
-    ),
-    useSync: () => mockUseFn(
-      "useSync",
-      {
-        data: {
-          ready: true,
-          provider: [],
-          agent: [],
-          command: [],
-          permission: {},
-          config: {},
-          session: [],
-          todo: {},
-          message: {},
-          part: {},
-          lsp: [],
-          mcp: {},
-          formatter: [],
-        },
-        set: mock((...args: any[]) => { }),
+    },
+    useCommandDialog: {
+      trigger: mock(),
+      keybinds: mock(),
+      show: mock(() => { }),
+      register: mock(),
+      options: [] as CommandOption[],
+    },
+    useRoute:
+    {
+      data: { type: "home" },
+      navigate: mock(),
+    },
+    useSDK: {
+      event: createGlobalEmitter(),
+      client: {} as any,
+    },
+    useKeybind: {
+      match: mock((keybind, evt) => false),
+      all: [] as any,
+      parse: mock((evt) => ({})),
+      print: mock((key) => ""),
+      leader: false,
+    },
+    useSync: {
+      data: {
         ready: true,
-        session: {
-          get: mock(),
-          status: mock((sessionID) => "idle" as const),
-          sync: mock(),
-        },
+        provider: [],
+        agent: [],
+        command: [],
+        permission: {},
+        config: {},
+        session: [],
+        todo: {},
+        message: {},
+        part: {},
+        lsp: [],
+        mcp: {},
+        formatter: [],
       },
-    ),
-    useTheme: () => mockUseFn(
-      "useTheme",
-      {
-        theme: resolveTheme(THEMES.opencode, "dark"),
-        selected: "opencode",
-        syntax: mock(() => syntaxStyleFromTheme(resolveTheme(THEMES.opencode, "dark"))),
-        mode: mock(() => "dark" as const),
-        ready: true,
-        set: mock(),
-        setMode: mock(),
+      set: mock((...args: any[]) => { }),
+      ready: true,
+      session: {
+        get: mock(),
+        status: mock((sessionID) => "idle" as const),
+        sync: mock(),
       },
-    ),
-    useToast: () => mockUseFn(
-      "useToast",
-      {
-        show: mock(),
-        error: mock(),
-        currentToast: null,
-      },
-    ),
-    useExit: () => mockUseFn(
-      "useExit",
-      mock(() => undefined as never),
-    ),
-    usePromptHistory: () => mockUseFn(
-      "usePromptHistory",
-      {
-        move: mock(),
-        append: mock(),
-      },
-    )
-  } satisfies {
-    [key in keyof ReturnTypes]?: () => ReturnType<typeof mockUseFn<key, false>>
-  }
+    },
+    useTheme: {
+      theme: resolveTheme(THEMES.opencode, "dark"),
+      selected: "opencode",
+      syntax: mock(() => syntaxStyleFromTheme(resolveTheme(THEMES.opencode, "dark"))),
+      mode: mock(() => "dark" as const),
+      ready: true,
+      set: mock(),
+      setMode: mock(),
+    },
+    useToast: {
+      show: mock(),
+      error: mock(),
+      currentToast: null,
+    },
+    useExit: mock(() => undefined as never),
+    usePromptHistory: {
+      move: mock(),
+      append: mock(),
+    },
+  } satisfies Record<keyof MockConfig, ReturnType<typeof knownUseFns[keyof typeof knownUseFns]>>
 
-  return Promise.all(include.map((useFnName) => getters[useFnName]()))
+  for (const key of Object.keys(knownUseFns) as (keyof MockConfig)[]) {
+    const value = config?.[key]
+    const useFn = knownUseFns[key]
+    switch (true) {
+      case value === true:
+      case value === undefined:
+        mockedProviderValues.set(useFn, defaultConfig[key])
+        break
+      case typeof value === "function":
+        mockedProviderValues.set(useFn, value(mockedProviderValues.get(useFn)))
+        break
+      default:
+        mockedProviderValues.set(useFn, value)
+    }
+  }
 }
