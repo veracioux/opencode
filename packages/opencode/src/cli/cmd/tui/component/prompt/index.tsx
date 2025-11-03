@@ -9,7 +9,7 @@ import {
   dim,
   fg,
 } from "@opentui/core"
-import { createEffect, createMemo, Match, Switch, type JSX, onMount, batch, createSignal } from "solid-js"
+import { createEffect, createMemo, Match, Switch, type JSX, onMount, batch } from "solid-js"
 import { useLocal } from "@tui/context/local"
 import { useTheme } from "@tui/context/theme"
 import { SplitBorder } from "@tui/component/border"
@@ -49,6 +49,7 @@ export type PromptRef = {
 export function Prompt(props: PromptProps) {
   let input: TextareaRenderable
   let anchor: BoxRenderable
+  let autocomplete: AutocompleteRef
 
   const keybind = useKeybind()
   const local = useLocal()
@@ -60,11 +61,6 @@ export function Prompt(props: PromptProps) {
   const command = useCommandDialog()
   const renderer = useRenderer()
   const { theme, syntax } = useTheme()
-  const [autocomplete, setAutocomplete] = createSignal<AutocompleteRef>()
-
-  const commands = createMemo(() => {
-    return new Set(autocomplete()?.commands.flatMap((cmd) => [cmd.trigger, ...(cmd.aliases ?? [])]) ?? [])
-  })
 
   const textareaKeybindings = createMemo(() => {
     const newlineBindings = keybind.all.input_newline || []
@@ -314,7 +310,7 @@ export function Prompt(props: PromptProps) {
 
   async function submit() {
     if (props.disabled) return
-    if (autocomplete()?.visible) return
+    if (autocomplete.visible) return
     if (!store.prompt.input) return
     const sessionID = props.sessionID
       ? props.sessionID
@@ -346,6 +342,10 @@ export function Prompt(props: PromptProps) {
     // Filter out text parts (pasted content) since they're now expanded inline
     const nonTextParts = store.prompt.parts.filter((part) => part.type !== "text")
 
+    function commandExists(cmd: string) {
+        return new Set(autocomplete?.commands.flatMap((cmd) => [cmd.trigger, ...(cmd.aliases ?? [])]) ?? []).has(cmd)
+    }
+
     if (store.mode === "shell") {
       sdk.client.session.shell({
         path: {
@@ -357,7 +357,7 @@ export function Prompt(props: PromptProps) {
         },
       })
       setStore("mode", "normal")
-    } else if (inputText.startsWith("/") && commands().has(inputText.split(" ")[0])) {
+    } else if (inputText.startsWith("/") && commandExists(inputText.split(" ")[0])) {
       const [command, ...args] = inputText.split(" ")
       sdk.client.session.command({
         path: {
@@ -463,7 +463,7 @@ export function Prompt(props: PromptProps) {
     <>
       <Autocomplete
         sessionID={props.sessionID}
-        ref={setAutocomplete}
+        ref={(r) => (autocomplete = r)}
         anchor={() => anchor}
         input={() => input}
         setPrompt={(cb) => {
@@ -520,7 +520,7 @@ export function Prompt(props: PromptProps) {
               onContentChange={() => {
                 const value = input.plainText
                 setStore("prompt", "input", value)
-                autocomplete()!.onInput(value)
+                autocomplete.onInput(value)
                 syncExtmarksWithPromptParts()
               }}
               keyBindings={textareaKeybindings()}
@@ -569,8 +569,8 @@ export function Prompt(props: PromptProps) {
                     return
                   }
                 }
-                if (store.mode === "normal") autocomplete()!.onKeyDown(e)
-                if (!autocomplete()!.visible) {
+                if (store.mode === "normal") autocomplete.onKeyDown(e)
+                if (!autocomplete.visible) {
                   if (
                     (keybind.match("history_previous", e) && input.cursorOffset === 0) ||
                     (keybind.match("history_next", e) &&
@@ -594,7 +594,7 @@ export function Prompt(props: PromptProps) {
                   if (e.name === "down" && input.visualCursor.visualRow === input.height - 1)
                     input.cursorOffset = input.plainText.length
                 }
-                if (!autocomplete()!.visible) {
+                if (!autocomplete.visible) {
                   if (keybind.match("session_interrupt", e) && props.sessionID) {
                     sdk.client.session.abort({
                       path: {
