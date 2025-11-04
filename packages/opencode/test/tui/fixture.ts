@@ -155,6 +155,7 @@ export async function mockProviders<T extends MockConfig>(
       show: mock(() => {}),
       register: mock(),
       options: [] as CommandOption[],
+      suspended: mock(() => false),
     },
     useRoute: {
       data: { type: "home" },
