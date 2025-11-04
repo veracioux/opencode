@@ -13,9 +13,9 @@ import {
   type Mock,
   xdescribe,
 } from "bun:test"
-import { mockProviders, setUpCommonHooks, setUpProviderMocking, type MockConfig } from "./fixture"
-import { testRenderTui } from "./fixture_.tsx"
-import { mockIdentifiers } from "../fixture/fixture.ts"
+import { mockProviders, setUpCommonHooks, setUpProviderMocking, type MockConfig } from "../fixture"
+import { testRenderTui } from "../fixture_.tsx"
+import { mockIdentifiers } from "../../fixture/fixture.ts"
 
 const ns = setUpCommonHooks()
 

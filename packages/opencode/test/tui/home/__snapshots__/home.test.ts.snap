@@ -82,182 +82,6 @@ exports[`Home prompt should start a new session 1`] = `
 "
 `;
 
-exports[`Home / should open autocomplete 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-  ┃ /new       create a new session                      ┃  
-  ┃ /models    list models                               ┃  
-  ┃ /agents    list agents                               ┃  
-  ┃ /session   list sessions                             ┃  
-  ┃ /status    show status                               ┃  
-  ┃ /theme     toggle theme                              ┃  
-  ┃ /editor    open editor                               ┃  
-  ┃ /help      show help                                 ┃  
-  ┃ /commands  show all commands                         ┃  
-  ┃ /exit      exit the app                              ┃  
-  ┃                                                      ┃  
-  ┃ > /                                                  ┃  
-  ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
-                                                            
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
-exports[`Home Model dialog should open model dialog 1`] = `
-"                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                      ▄                         
-                                                                                
-             Select model                                        esc            
-                                                                                
-             Enter search term                                                  
-                                                                                
-             Mock Provider 1                                                    
-             Mock Model 1                                                       
-             Mock Model 2                                                       
-                                                                                
-             Mock Provider 2                                                    
-             Mock Model 1                                                       
-   ┃         Mock Model 2                                                    ┃  
-   ┃ >                                                                       ┃  
-   ┃                                                                         ┃  
-   Mock Provider 1 Mock Model 1                                                 
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
- opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
-exports[`Home should narrow /ex input to /exit 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-  ┃ /exit      exit the app                              ┃  
-  ┃                                                      ┃  
-  ┃ > /ex                                                ┃  
-  ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
-                                                            
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
-exports[`Home /ex + enter should trigger action 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ >                                                    ┃  
-  ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
-                                                            
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
-exports[`Home Autocomplete / should open autocomplete 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-  ┃ /new       create a new session                      ┃  
-  ┃ /models    list models                               ┃  
-  ┃ /agents    list agents                               ┃  
-  ┃ /session   list sessions                             ┃  
-  ┃ /status    show status                               ┃  
-  ┃ /theme     toggle theme                              ┃  
-  ┃ /editor    open editor                               ┃  
-  ┃ /help      show help                                 ┃  
-  ┃ /commands  show all commands                         ┃  
-  ┃ /exit      exit the app                              ┃  
-  ┃                                                      ┃  
-  ┃ > /                                                  ┃  
-  ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
-                                                            
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
-exports[`Home Autocomplete should narrow /ex input to /exit 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-  ┃ /exit      exit the app                              ┃  
-  ┃                                                      ┃  
-  ┃ > /ex                                                ┃  
-  ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
-                                                            
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
-exports[`Home Autocomplete /ex + enter should trigger action 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ >                                                    ┃  
-  ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
-                                                            
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
 exports[`Home Prompt / should open autocomplete 1`] = `
 "                                                            
                                                             
@@ -351,5 +175,37 @@ exports[`Home Prompt ! should trigger shell mode 1`] = `
   Mock Provider 1 Mock Model 1                              
                                                             
  opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Home Model dialog should open model dialog 1`] = `
+"                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                      ▄                         
+                                                                                
+             Select model                                        esc            
+                                                                                
+             Enter search term                                                  
+                                                                                
+             Mock Provider 1                                                    
+             Mock Model 1                                                       
+             Mock Model 2                                                       
+                                                                                
+             Mock Provider 2                                                    
+             Mock Model 1                                                       
+   ┃         Mock Model 2                                                    ┃  
+   ┃ >                                                                       ┃  
+   ┃                                                                         ┃  
+   Mock Provider 1 Mock Model 1                                                 
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
 "
 `;
