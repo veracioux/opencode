@@ -1,7 +1,13 @@
 await setUpProviderMocking()
 
-import { afterEach, beforeEach, describe, expect, test, } from "bun:test"
-import { mockProviders, setUpCommonHooks, setUpProviderMocking, SIZES, type MockConfig } from "./fixture"
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
+import {
+  mockProviders,
+  setUpCommonHooks,
+  setUpProviderMocking,
+  SIZES,
+  type MockConfig,
+} from "./fixture"
 import { testRenderTui } from "./fixture_.tsx"
 
 const ns = setUpCommonHooks()
@@ -31,41 +37,42 @@ describe("Session", async () => {
         data: {
           type: "session",
           sessionID: "ses_1",
-        }
-      }),
-      useSync: (draft) => ({
-        ...draft,
-        session: {
-          ...draft.session,
-          get() {
-            return {
-              id: "ses_1",
-            }
-          }
         },
-        data: {
-          ...draft.data,
-          message: {
-            "ses_1": [
-              {
-                id: "msg_1",
-                role: "user",
-                sessionID: "ses_1",
-                time: { created: Date.parse("2025-01-01T00:00:00Z") }
+      }),
+      useSync: (draft) =>
+        ({
+          ...draft,
+          session: {
+            ...draft.session,
+            get() {
+              return {
+                id: "ses_1",
               }
-            ]
+            },
           },
-          part: {
-            "msg_1": [
-              {
-                type: "text",
-                messageID: "msg_1",
-                text: "Hello, world!",
-              }
-            ]
-          }
-        }
-      } as any),
+          data: {
+            ...draft.data,
+            message: {
+              ses_1: [
+                {
+                  id: "msg_1",
+                  role: "user",
+                  sessionID: "ses_1",
+                  time: { created: Date.parse("2025-01-01T00:00:00Z") },
+                },
+              ],
+            },
+            part: {
+              msg_1: [
+                {
+                  type: "text",
+                  messageID: "msg_1",
+                  text: "Hello, world!",
+                },
+              ],
+            },
+          },
+        }) as any,
     })
 
     ns.testSetup = await testRenderTui(SIZES.MEDIUM)

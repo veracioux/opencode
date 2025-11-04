@@ -227,14 +227,11 @@ describe("Home", () => {
                 ...draft.client.find,
                 files() {
                   return {
-                    data: [
-                      "/non/existent/file1.txt",
-                      "/non/existent/file2.txt",
-                    ],
+                    data: ["/non/existent/file1.txt", "/non/existent/file2.txt"],
                   } as any
-                }
+                },
               },
-            }
+            },
           }),
           useSync: (draft) => ({
             ...draft,
@@ -249,7 +246,7 @@ describe("Home", () => {
                 {
                   name: "long-command",
                   description: "Long command",
-                }
+                },
               ],
             } as any,
           }),
@@ -297,7 +294,6 @@ describe("Home", () => {
           const frame = ns.testSetup.captureCharFrame()
           expect(frame).toMatchSnapshot()
         })
-
       })
 
       describe("@ mode", () => {
@@ -370,9 +366,9 @@ describe("Home", () => {
         })
 
         // TODO: Ask to make sure this is desired behavior
-        test.todo("space should close", async () => { })
+        test.todo("space should close", async () => {})
 
-        test.todo("should honor input_submit binding", async () => { })
+        test.todo("should honor input_submit binding", async () => {})
       })
     })
   })

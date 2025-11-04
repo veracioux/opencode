@@ -20,11 +20,16 @@ export async function setUpProviderMocking() {
   const { createSimpleContext } = await import("@/cli/cmd/tui/context/helper")
   const { useContext } = await import("solid-js")
   mock.module("@/cli/cmd/tui/context/helper.tsx", () => ({
-    createSimpleContext(input: { name: string, init: any }): ReturnType<typeof createSimpleContext> {
+    createSimpleContext(input: {
+      name: string
+      init: any
+    }): ReturnType<typeof createSimpleContext> {
       const { provider, use, ctx } = createSimpleContext(input)
       const mockedProvider: typeof provider = (props) => {
         const mockedProviderValue = mockedProviderValues.get(use)
-        return mockedProviderValue ? ctx.Provider({ value: mockedProviderValue, children: props.children }) : provider(props)
+        return mockedProviderValue
+          ? ctx.Provider({ value: mockedProviderValue, children: props.children })
+          : provider(props)
       }
       contextToUseFnMap.set(ctx, use)
       nameToContextMap.set(input.name, ctx)
@@ -34,7 +39,7 @@ export async function setUpProviderMocking() {
         use,
         ctx,
       } satisfies ReturnType<typeof createSimpleContext>
-    }
+    },
   }))
   mock.module("solid-js", () => ({
     useContext(ctx: Context<any>) {
@@ -43,18 +48,22 @@ export async function setUpProviderMocking() {
     },
   }))
   const _knownUseFns = {
-    useTheme: await import("@/cli/cmd/tui/context/theme").then(m => m.useTheme),
-    useRoute: await import("@/cli/cmd/tui/context/route").then(m => m.useRoute),
-    useLocal: await import("@/cli/cmd/tui/context/local").then(m => m.useLocal),
-    useDialog: await import("@/cli/cmd/tui/ui/dialog").then(m => m.useDialog),
-    useKV: await import("@/cli/cmd/tui/context/kv").then(m => m.useKV),
-    useCommandDialog: await import("@/cli/cmd/tui/component/dialog-command").then(m => m.useCommandDialog),
-    useSDK: await import("@/cli/cmd/tui/context/sdk").then(m => m.useSDK),
-    useKeybind: await import("@/cli/cmd/tui/context/keybind").then(m => m.useKeybind),
-    useSync: await import("@/cli/cmd/tui/context/sync").then(m => m.useSync),
-    useToast: await import("@/cli/cmd/tui/ui/toast").then(m => m.useToast),
-    useExit: await import("@/cli/cmd/tui/context/exit").then(m => m.useExit),
-    usePromptHistory: await import("@/cli/cmd/tui/component/prompt/history").then(m => m.usePromptHistory),
+    useTheme: await import("@/cli/cmd/tui/context/theme").then((m) => m.useTheme),
+    useRoute: await import("@/cli/cmd/tui/context/route").then((m) => m.useRoute),
+    useLocal: await import("@/cli/cmd/tui/context/local").then((m) => m.useLocal),
+    useDialog: await import("@/cli/cmd/tui/ui/dialog").then((m) => m.useDialog),
+    useKV: await import("@/cli/cmd/tui/context/kv").then((m) => m.useKV),
+    useCommandDialog: await import("@/cli/cmd/tui/component/dialog-command").then(
+      (m) => m.useCommandDialog,
+    ),
+    useSDK: await import("@/cli/cmd/tui/context/sdk").then((m) => m.useSDK),
+    useKeybind: await import("@/cli/cmd/tui/context/keybind").then((m) => m.useKeybind),
+    useSync: await import("@/cli/cmd/tui/context/sync").then((m) => m.useSync),
+    useToast: await import("@/cli/cmd/tui/ui/toast").then((m) => m.useToast),
+    useExit: await import("@/cli/cmd/tui/context/exit").then((m) => m.useExit),
+    usePromptHistory: await import("@/cli/cmd/tui/component/prompt/history").then(
+      (m) => m.usePromptHistory,
+    ),
   } as const
   knownUseFns = _knownUseFns
   return _knownUseFns
@@ -62,35 +71,36 @@ export async function setUpProviderMocking() {
 
 const mockedProviderValues = new Map<() => any, any>()
 
-type ProvidedValue<K extends keyof typeof knownUseFns> = ReturnType<typeof knownUseFns[K]>
+type ProvidedValue<K extends keyof typeof knownUseFns> = ReturnType<(typeof knownUseFns)[K]>
 
 type UseSDKProvidedValue = Omit<ProvidedValue<"useSDK">, "client"> & {
-  client: OpencodeClientPlain,
+  client: OpencodeClientPlain
 }
 
 export type MockConfig = {
   [key in keyof typeof knownUseFns]?:
-  | boolean
-  | (key extends "useSDK"
-    ? UseSDKProvidedValue | ((draft: UseSDKProvidedValue) => UseSDKProvidedValue)
-    : ProvidedValue<key> | ((draft: ProvidedValue<key>) => ProvidedValue<key>))
+    | boolean
+    | (key extends "useSDK"
+        ? UseSDKProvidedValue | ((draft: UseSDKProvidedValue) => UseSDKProvidedValue)
+        : ProvidedValue<key> | ((draft: ProvidedValue<key>) => ProvidedValue<key>))
 }
 
-export async function mockProviders<T extends MockConfig>(config?: T): Promise<
+export async function mockProviders<T extends MockConfig>(
+  config?: T,
+): Promise<
   Required<{
-    [key in keyof MockConfig]: Awaited<ReturnType<typeof knownUseFns[key]>>
+    [key in keyof MockConfig]: Awaited<ReturnType<(typeof knownUseFns)[key]>>
   }> & {
     [key in keyof T]: T[key] extends (...args: any[]) => any
-    ? ReturnType<T[key]>
-    : T[key] extends boolean
-    ? never
-    : T[key]
+      ? ReturnType<T[key]>
+      : T[key] extends boolean
+        ? never
+        : T[key]
   }
 > {
   const { resolveTheme, THEMES, syntaxStyleFromTheme } = await import("@/cli/cmd/tui/context/theme")
   const defaultConfig = {
-    useDialog:
-    {
+    useDialog: {
       clear: mock(),
       replace: mock(),
       stack: [] as any[],
@@ -105,10 +115,12 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
           providerID: "mock-provider-1",
         }),
         set: mock(),
-        recent: () => [{
-          providerID: "mock-provider-1",
-          modelID: "mock-model-1",
-        }],
+        recent: () => [
+          {
+            providerID: "mock-provider-1",
+            modelID: "mock-model-1",
+          },
+        ],
         cycle: mock(),
         parsed: mock(() => ({
           provider: "mock-provider-1",
@@ -117,15 +129,16 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
       },
       agent: {
         list: () => [],
-        current: () => ({
-          name: "mock",
-        } as Agent),
+        current: () =>
+          ({
+            name: "mock",
+          }) as Agent,
         color: mock(() => RGBA.fromHex("#ff0000")),
         set: mock(),
         move: mock(),
       },
       setInitialPrompt: {
-        listen: mock(() => () => { }),
+        listen: mock(() => () => {}),
         emit: mock(),
         clear: mock(),
       },
@@ -134,20 +147,16 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
       ready: true,
       set: mock(),
       get: mock(() => undefined),
-      signal: mock(() => [
-        () => undefined,
-        (next: any) => { },
-      ] as const),
+      signal: mock(() => [() => undefined, (next: any) => {}] as const),
     },
     useCommandDialog: {
       trigger: mock(),
       keybinds: mock(),
-      show: mock(() => { }),
+      show: mock(() => {}),
       register: mock(),
       options: [] as CommandOption[],
     },
-    useRoute:
-    {
+    useRoute: {
       data: { type: "home" },
       navigate: mock(),
     },
@@ -176,9 +185,9 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
                     modelID: "mock-model-1",
                   },
                 } as Agent,
-              ]
+              ],
             }
-          }
+          },
         },
         config: {
           async get() {
@@ -202,17 +211,17 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
                       } as Model,
                     },
                   } as Partial<Provider>,
-                ]
-              }
+                ],
+              },
             } as any
-          }
-        } as any
+          },
+        } as any,
       } as any,
     },
     useKeybind: {
       match: mock((keybind, evt) => false),
       all: [] as any,
-      parse: mock((evt) => ({} as any)),
+      parse: mock((evt) => ({}) as any),
       print: mock((key) => ""),
       leader: false,
     },
@@ -245,7 +254,7 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
               } as Model,
             },
             env: [],
-          }
+          },
         ],
         agent: [
           {
@@ -268,7 +277,7 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
               providerID: "mock-provider-2",
               modelID: "mock-model-2",
             },
-          } as Agent
+          } as Agent,
         ],
         command: [],
         permission: {},
@@ -283,7 +292,7 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
         mcp: {},
         formatter: [],
       },
-      set: mock((...args: any[]) => { }),
+      set: mock((...args: any[]) => {}),
       ready: true,
       session: {
         get: mock(),
@@ -310,7 +319,7 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
       move: mock(),
       append: mock(),
     },
-  } satisfies Record<keyof MockConfig, ReturnType<typeof knownUseFns[keyof typeof knownUseFns]>>
+  } satisfies Record<keyof MockConfig, ReturnType<(typeof knownUseFns)[keyof typeof knownUseFns]>>
 
   for (const key of Object.keys(knownUseFns) as (keyof MockConfig)[]) {
     const value = config?.[key]
@@ -332,9 +341,11 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
     }
   }
 
-  return Object.fromEntries(Object.keys(knownUseFns).map((key) => {
-    return [key, mockedProviderValues.get(knownUseFns[key as keyof MockConfig])]
-  })) as any
+  return Object.fromEntries(
+    Object.keys(knownUseFns).map((key) => {
+      return [key, mockedProviderValues.get(knownUseFns[key as keyof MockConfig])]
+    }),
+  ) as any
 }
 
 export type OpencodeClientPlain = {
@@ -346,9 +357,9 @@ export type OpencodeClientPlain = {
 export function setUpCommonHooks() {
   let tmpdir: string
   let homedir: string
-  const ns = { 
-    testSetup: undefined as (Awaited<ReturnType<typeof testRenderTui>> | undefined)
-   }
+  const ns = {
+    testSetup: undefined as Awaited<ReturnType<typeof testRenderTui>> | undefined,
+  }
 
   beforeAll(async () => {
     tmpdir = os.tmpdir()
@@ -364,7 +375,7 @@ export function setUpCommonHooks() {
     await fs.rm(homedir, { recursive: true })
   })
   afterEach(async () => {
-    // Without this delay, some tests cause 
+    // Without this delay, some tests cause
     // error: EditBuffer is destroyed
     await new Promise((r) => setTimeout(r, 0))
     if (ns.testSetup) ns.testSetup.renderer.destroy()
