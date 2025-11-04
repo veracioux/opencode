@@ -1,30 +1,30 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
 exports[`Session should render correctly 1`] = `
-"                                                                                          
-  ┃ #                                                                                  ┃  
-  ┃ /share to create a shareable link                                                  ┃  
-                                                                                          
-  ┃                                                                                       
-  ┃  Hello, world!                                                                        
-  ┃  You (4:00:00 PM)                                                                     
-  ┃                                                                                       
-                                                                                          
-                                                                                          
-                                                                                          
-                                                                                          
-                                                                                          
-                                                                                          
-                                                                                          
-                                                                                          
-                                                                                          
-                                                                                          
-                                                                                          
-  ┃                                                                                    ┃  
-  ┃ >                                                                                  ┃  
-  ┃                                                                                    ┃  
-  Mock Provider 1 Mock Model 1                                           ctrl+p commands  
-                                                                                          
- opencode vlocal  /tmp                                           tab  MOCK-AGENT-1 AGENT 
+"                                                                                
+  ┃ #                                                                        ┃  
+  ┃ /share to create a shareable link                                        ┃  
+                                                                                
+  ┃                                                                             
+  ┃  Hello, world!                                                              
+  ┃  You (4:00:00 PM)                                                           
+  ┃                                                                             
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+  ┃                                                                          ┃  
+  ┃ >                                                                        ┃  
+  ┃                                                                          ┃  
+  Mock Provider 1 Mock Model 1                                 ctrl+p commands  
+                                                                                
+ opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
 "
 `;

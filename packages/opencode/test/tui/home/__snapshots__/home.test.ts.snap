@@ -257,7 +257,10 @@ exports[`Home Model dialog should open model dialog 1`] = `
                                                                                 
                                                                                 
                                                                                 
-                                                      ▄                         
+                                                                                
+                                                                                
+                                                                                
+                                                                                
                                                                                 
              Select model                                        esc            
                                                                                 
@@ -269,7 +272,10 @@ exports[`Home Model dialog should open model dialog 1`] = `
                                                                                 
              Mock Provider 2                                                    
              Mock Model 1                                                       
-   ┃         Mock Model 2                                                    ┃  
+             Mock Model 2                                                       
+                                                                                
+                                                                                
+   ┃                                                                         ┃  
    ┃ >                                                                       ┃  
    ┃                                                                         ┃  
    Mock Provider 1 Mock Model 1                                                 
@@ -278,6 +284,132 @@ exports[`Home Model dialog should open model dialog 1`] = `
                                                                                 
                                                                                 
                                                                                 
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
  opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Home Agent cycling tab should switch agent, with wrap-around 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > blah blah                                          ┃  
+  ┃                                                      ┃  
+  Mock Provider 2 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-2 AGENT 
+"
+`;
+
+exports[`Home Agent cycling tab should switch agent, with wrap-around 2`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > blah blah                                          ┃  
+  ┃                                                      ┃  
+  Mock Provider 2 Mock Model 2                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-3 AGENT 
+"
+`;
+
+exports[`Home Agent cycling tab should switch agent, with wrap-around 3`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > blah blah                                          ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Home Agent cycling backtab should switch agent in reverse, with wrap-around 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > blah blah                                          ┃  
+  ┃                                                      ┃  
+  Mock Provider 2 Mock Model 2                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-3 AGENT 
+"
+`;
+
+exports[`Home Agent cycling backtab should switch agent in reverse, with wrap-around 2`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > blah blah                                          ┃  
+  ┃                                                      ┃  
+  Mock Provider 2 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-2 AGENT 
 "
 `;

@@ -254,6 +254,20 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
               providerID: "mock-provider-1",
               modelID: "mock-model-1",
             },
+          } as Agent,
+          {
+            name: "mock-agent-2",
+            model: {
+              providerID: "mock-provider-2",
+              modelID: "mock-model-1",
+            },
+          } as Agent,
+          {
+            name: "mock-agent-3",
+            model: {
+              providerID: "mock-provider-2",
+              modelID: "mock-model-2",
+            },
           } as Agent
         ],
         command: [],
@@ -358,3 +372,13 @@ export function setUpCommonHooks() {
 
   return ns
 }
+
+/**
+ * Common terminal sizes for testing
+ */
+export const SIZES = {
+  NORMAL: { width: 100, height: 30 },
+  MEDIUM: { width: 80, height: 25 },
+  SMALL: { width: 60, height: 20 },
+  TALL: { height: 40 },
+} as const

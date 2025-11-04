@@ -13,7 +13,7 @@ import {
   type Mock,
   xdescribe,
 } from "bun:test"
-import { mockProviders, setUpCommonHooks, setUpProviderMocking, type MockConfig } from "../fixture"
+import { mockProviders, setUpCommonHooks, setUpProviderMocking, SIZES, type MockConfig } from "../fixture"
 import { testRenderTui } from "../fixture_.tsx"
 import { mockIdentifiers } from "../../fixture/fixture.ts"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
@@ -39,22 +39,16 @@ describe("Home", () => {
   })
 
   test("should render correctly", async () => {
-    ns.testSetup = await testRenderTui({
-      width: 80,
-      height: 25,
-    })
+    ns.testSetup = await testRenderTui(SIZES.MEDIUM)
     await ns.testSetup.renderOnce()
     const frame = ns.testSetup.captureCharFrame()
     expect(frame).toMatchSnapshot()
   })
 
   test("should resize correctly", async () => {
-    ns.testSetup = await testRenderTui({
-      width: 100,
-      height: 30,
-    })
+    ns.testSetup = await testRenderTui(SIZES.NORMAL)
     await ns.testSetup.renderOnce()
-    ns.testSetup.resize(60, 20)
+    ns.testSetup.resize(SIZES.SMALL.width, SIZES.SMALL.height)
     await ns.testSetup.renderOnce()
     const frame = ns.testSetup.captureCharFrame()
     expect(frame).toMatchSnapshot()
@@ -77,10 +71,7 @@ describe("Home", () => {
     })
     await mockIdentifiers()
 
-    ns.testSetup = await testRenderTui({
-      width: 80,
-      height: 25,
-    })
+    ns.testSetup = await testRenderTui(SIZES.MEDIUM)
     await ns.testSetup.renderOnce()
     await ns.testSetup.mockInput.typeText("Hello, world!")
     await ns.testSetup.mockInput.pressEnter()
@@ -122,12 +113,9 @@ describe("Home", () => {
         useSDK: (draft) => ({
           ...draft,
           event: createGlobalEmitter(),
-        })
+        }),
       })
-      ns.testSetup = await testRenderTui({
-        width: 60,
-        height: 20,
-      })
+      ns.testSetup = await testRenderTui(SIZES.SMALL)
       mocks.useSDK.event.emit("tui.toast.show", {
         type: "tui.toast.show",
         properties: {
@@ -147,12 +135,9 @@ describe("Home", () => {
         useSDK: (draft) => ({
           ...draft,
           event: createGlobalEmitter(),
-        })
+        }),
       })
-      ns.testSetup = await testRenderTui({
-        width: 60,
-        height: 20,
-      })
+      ns.testSetup = await testRenderTui(SIZES.SMALL)
       mocks.useSDK.event.emit("tui.toast.show", {
         type: "tui.toast.show",
         properties: {
@@ -173,12 +158,9 @@ describe("Home", () => {
         useSDK: (draft) => ({
           ...draft,
           event: createGlobalEmitter(),
-        })
+        }),
       })
-      ns.testSetup = await testRenderTui({
-        width: 60,
-        height: 20,
-      })
+      ns.testSetup = await testRenderTui(SIZES.SMALL)
       mocks.useSDK.event.emit("tui.toast.show", {
         type: "tui.toast.show",
         properties: {
@@ -199,10 +181,7 @@ describe("Home", () => {
 
   describe("Prompt", () => {
     test("/ should open autocomplete", async () => {
-      ns.testSetup = await testRenderTui({
-        width: 60,
-        height: 20,
-      })
+      ns.testSetup = await testRenderTui(SIZES.SMALL)
       await ns.testSetup.renderOnce()
       await ns.testSetup.mockInput.typeText("/")
       await ns.testSetup.renderOnce()
@@ -211,10 +190,7 @@ describe("Home", () => {
     })
 
     test("should narrow /ex input to /exit", async () => {
-      ns.testSetup = await testRenderTui({
-        width: 60,
-        height: 20,
-      })
+      ns.testSetup = await testRenderTui(SIZES.SMALL)
       await ns.testSetup.renderOnce()
       await ns.testSetup.mockInput.typeText("/ex")
       await ns.testSetup.renderOnce()
@@ -224,10 +200,7 @@ describe("Home", () => {
 
     test("/ex + enter should trigger action", async () => {
       const mocks = await mockProviders({})
-      ns.testSetup = await testRenderTui({
-        width: 60,
-        height: 20,
-      })
+      ns.testSetup = await testRenderTui(SIZES.SMALL)
       await ns.testSetup.renderOnce()
       await ns.testSetup.mockInput.typeText("/ex")
       await ns.testSetup.mockInput.pressEnter()
@@ -239,10 +212,7 @@ describe("Home", () => {
     })
 
     test("! should trigger shell mode", async () => {
-      ns.testSetup = await testRenderTui({
-        width: 60,
-        height: 20,
-      })
+      ns.testSetup = await testRenderTui(SIZES.SMALL)
       await ns.testSetup.renderOnce()
       await ns.testSetup.mockInput.typeText("! echo test")
       await ns.testSetup.renderOnce()
@@ -253,15 +223,53 @@ describe("Home", () => {
 
   describe("Model dialog", () => {
     test("should open model dialog", async () => {
-      ns.testSetup = await testRenderTui({
-        width: 80,
-        height: 28,
-      })
+      ns.testSetup = await testRenderTui({ ...SIZES.MEDIUM, ...SIZES.TALL })
       ns.testSetup.mockInput.pressKey("x", { ctrl: true })
       ns.testSetup.mockInput.pressKey("m")
       await ns.testSetup.renderOnce()
       const frame = ns.testSetup.captureCharFrame()
       expect(frame).toMatchSnapshot()
+    })
+  })
+
+  describe("Agent cycling", () => {
+    test("tab should switch agent, with wrap-around", async () => {
+      ns.testSetup = await testRenderTui(SIZES.SMALL)
+      await ns.testSetup.renderOnce()
+      await ns.testSetup.mockInput.typeText("blah blah") // have some initial input
+      await ns.testSetup.mockInput.pressTab()
+      await ns.testSetup.renderOnce()
+      expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
+
+      await ns.testSetup.mockInput.pressTab()
+      await ns.testSetup.renderOnce()
+      expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
+
+      await ns.testSetup.mockInput.pressTab()
+      await ns.testSetup.renderOnce()
+      expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
+
+      await ns.testSetup.renderOnce()
+    })
+    test("backtab should switch agent in reverse, with wrap-around", async () => {
+      // const mocks = await mockProviders()
+      ns.testSetup = await testRenderTui(SIZES.SMALL)
+      await ns.testSetup.renderOnce()
+      await ns.testSetup.mockInput.typeText("blah blah") // have some initial input
+      // FIXME: opentui bug: following doesn't work
+      // await ns.testSetup.mockInput.pressTab({ shift: true })
+      // Workaround:
+      function pressBacktab() {
+        return ns.testSetup!.mockInput.pressKey("\x1b[Z")
+      }
+
+      await pressBacktab()
+      await ns.testSetup.renderOnce()
+      expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
+
+      await pressBacktab()
+      await ns.testSetup.renderOnce()
+      expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
     })
   })
 })

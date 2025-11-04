@@ -1,7 +1,7 @@
 await setUpProviderMocking()
 
 import { afterEach, beforeEach, describe, expect, test, } from "bun:test"
-import { mockProviders, setUpCommonHooks, setUpProviderMocking, type MockConfig } from "./fixture"
+import { mockProviders, setUpCommonHooks, setUpProviderMocking, SIZES, type MockConfig } from "./fixture"
 import { testRenderTui } from "./fixture_.tsx"
 
 const ns = setUpCommonHooks()
@@ -68,14 +68,11 @@ describe("Session", async () => {
       } as any),
     })
 
-    ns.testSetup = await testRenderTui({
-      width: 90,
-      height: 25,
-    })
+    ns.testSetup = await testRenderTui(SIZES.MEDIUM)
 
     await ns.testSetup.renderOnce()
 
-    await new Promise((r) => setTimeout(r, 1000))
+    await new Promise((r) => setTimeout(r, 100))
 
     await ns.testSetup.renderOnce()
 
