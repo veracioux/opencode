@@ -1,0 +1,144 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`Dialog ctrl-x m should open model dialog 1`] = `
+"                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                      ▄                         
+                     █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█                    
+                                                                                
+             Select model                                        esc            
+                                                                                
+             Enter search term                                                  
+                                                                                
+             Mock Provider 1                                                    
+             Mock Model 1                                                       
+             Mock Model 2                                                       
+                                                                                
+             Mock Provider 2                                                    
+   ┃         Mock Model 1                                                    ┃  
+   ┃ >                                                                       ┃  
+   ┃                                                                         ┃  
+   Mock Provider 1 Mock Model 1                                                 
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Dialog ctrl-x p should open command dialog 1`] = `
+"                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                            ▄               
+                                                            
+    Commands                                          esc   
+                                                            
+    Enter search term                                       
+                                                            
+    Session                                                 
+    Open editor                                 ctrl+x e    
+    Switch session                              ctrl+x l    
+    New session                                 ctrl+x n    
+                                                            
+    Agent                                                   
+    Switch model                                ctrl+x m    
+    Model cycle                                       f2    
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Dialog ctrl-x l should open session list dialog 1`] = `
+"                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                      ▄                         
+                     █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█                    
+                                                                                
+    Sessions                                                              esc   
+                                                                                
+    Enter search term                                                           
+                                                                                
+                                                                                
+    ctrl+d delete ctrl+r rename                                                 
+                                                                                
+                                                                                
+                                                                                
+   ┃                                                                         ┃  
+   ┃ >                                                                       ┃  
+   ┃                                                                         ┃  
+   Mock Provider 1 Mock Model 1                                                 
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Dialog ctrl-x a should open agent list dialog 1`] = `
+"                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                      ▄                         
+                     █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█                    
+                                                                                
+             Select agent                                        esc            
+                                                                                
+             Enter search term                                                  
+                                                                                
+             mock-agent-1                                                       
+             mock-agent-2                                                       
+             mock-agent-3                                                       
+                                                                                
+                                                                                
+   ┃                                                                         ┃  
+   ┃ >                                                                       ┃  
+   ┃                                                                         ┃  
+   Mock Provider 1 Mock Model 1                                                 
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Dialog esc should close dialog 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
