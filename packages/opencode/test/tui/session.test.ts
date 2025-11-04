@@ -77,8 +77,6 @@ describe("Session", async () => {
 
     utils.testSetup = await testRenderTui(SIZES.MEDIUM)
 
-    await utils.testSetup.renderOnce()
-    await utils.sleep(100)
     await utils.renderOnceExpectMatchSnapshot()
   })
 })
