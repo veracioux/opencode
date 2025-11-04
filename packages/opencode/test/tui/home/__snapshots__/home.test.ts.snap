@@ -231,16 +231,16 @@ exports[`Home Prompt Autocomplete / mode / should open autocomplete 1`] = `
                                                             
                                             ▄               
            █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-  ┃ /e         An example command                        ┃  
-  ┃ /new       create a new session                      ┃  
-  ┃ /models    list models                               ┃  
-  ┃ /agents    list agents                               ┃  
-  ┃ /session   list sessions                             ┃  
-  ┃ /status    show status                               ┃  
-  ┃ /theme     toggle theme                              ┃  
-  ┃ /editor    open editor                               ┃  
-  ┃ /help      show help                                 ┃  
-  ┃ /commands  show all commands                         ┃  
+  ┃ /e             Short command                         ┃  
+  ┃ /long-command  Long command                          ┃  
+  ┃ /new           create a new session                  ┃  
+  ┃ /models        list models                           ┃  
+  ┃ /agents        list agents                           ┃  
+  ┃ /session       list sessions                         ┃  
+  ┃ /status        show status                           ┃  
+  ┃ /theme         toggle theme                          ┃  
+  ┃ /editor        open editor                           ┃  
+  ┃ /help          show help                             ┃  
   ┃                                                      ┃  
   ┃ > /                                                  ┃  
   ┃                                                      ┃  
@@ -263,8 +263,8 @@ exports[`Home Prompt Autocomplete / mode should narrow /ex input to /exit 1`] = 
            List sessions                  ctrl+x l          
            Switch model                   ctrl+x m          
            Switch agent                        tab          
-  ┃ /exit      exit the app                              ┃  
-  ┃ /e         An example command                        ┃  
+                                                            
+  ┃ /exit          exit the app                          ┃  
   ┃                                                      ┃  
   ┃ > /ex                                                ┃  
   ┃                                                      ┃  

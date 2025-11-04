@@ -244,8 +244,12 @@ describe("Home", () => {
                 ...draft.data.command,
                 {
                   name: "e",
-                  description: "An example command",
+                  description: "Short command",
                 },
+                {
+                  name: "long-command",
+                  description: "Long command",
+                }
               ],
             } as any,
           }),
