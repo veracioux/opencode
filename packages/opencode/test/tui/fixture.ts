@@ -364,6 +364,9 @@ export function setUpCommonHooksAndUtils() {
       const frame = this.testSetup!.captureCharFrame()
       expect(frame).toMatchSnapshot()
     },
+    sleep(ms: number) {
+      return new Promise((r) => setTimeout(r, ms))
+    }
   }
 
   beforeAll(async () => {

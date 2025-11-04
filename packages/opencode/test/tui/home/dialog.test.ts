@@ -83,7 +83,7 @@ describe("Dialog", () => {
     utils.testSetup.mockInput.pressKey("x", { ctrl: true })
     utils.testSetup.mockInput.pressKey("l")
     utils.testSetup.mockInput.pressEscape()
-    await new Promise((r) => setTimeout(r, 50))
+    await utils.sleep(50)
     await utils.renderOnceExpectMatchSnapshot()
   })
 
@@ -93,7 +93,7 @@ describe("Dialog", () => {
       await utils.testSetup.mockInput.typeText("/model")
       await utils.testSetup.mockInput.pressEnter()
       await utils.testSetup.renderOnce()
-      await new Promise((r) => setTimeout(r, 50))
+      await utils.sleep(50)
       utils.testSetup.mockInput.pressArrow("down")
       await utils.renderOnceExpectMatchSnapshot()
       utils.testSetup.mockInput.pressArrow("down")

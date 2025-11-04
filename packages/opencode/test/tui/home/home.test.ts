@@ -101,7 +101,7 @@ describe("Home", () => {
         id: "ses_1",
       },
     })
-    await new Promise((r) => setTimeout(r, 300)) // wait for tui to update
+    await utils.sleep(300)
     await utils.renderOnceExpectMatchSnapshot()
   })
 
@@ -165,7 +165,7 @@ describe("Home", () => {
         },
       })
 
-      await new Promise((r) => setTimeout(r, 150))
+      await utils.sleep(150)
 
       await utils.renderOnceExpectMatchSnapshot()
     })
@@ -182,7 +182,7 @@ describe("Home", () => {
         utils.testSetup = await testRenderTui(SIZES.SMALL)
         await utils.testSetup.mockInput.typeText("!test")
         await utils.testSetup.mockInput.pressEscape()
-        await new Promise((r) => setTimeout(r, 50))
+        await utils.sleep(50)
         await utils.renderOnceExpectMatchSnapshot()
       })
       test("backspace should revert to normal mode", async () => {
@@ -190,7 +190,7 @@ describe("Home", () => {
         await utils.testSetup.mockInput.typeText("!a")
         await utils.testSetup.mockInput.pressBackspace()
         await utils.testSetup.mockInput.pressBackspace()
-        await new Promise((r) => setTimeout(r, 50))
+        await utils.sleep(50)
         await utils.renderOnceExpectMatchSnapshot()
       })
     })
@@ -243,7 +243,7 @@ describe("Home", () => {
         test("should not open in the middle of text", async () => {
           utils.testSetup = await testRenderTui(SIZES.SMALL)
           await utils.testSetup.mockInput.typeText("blah /")
-          await new Promise((r) => setTimeout(r, 100))
+          await utils.sleep(100)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
@@ -309,7 +309,7 @@ describe("Home", () => {
           utils.testSetup = await testRenderTui(SIZES.SMALL)
           await utils.testSetup.mockInput.typeText("@nonexfile1")
           await utils.testSetup.mockInput.pressEnter()
-          await new Promise((r) => setTimeout(r, 50))
+          await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
@@ -317,7 +317,7 @@ describe("Home", () => {
           utils.testSetup = await testRenderTui(SIZES.SMALL)
           await utils.testSetup.mockInput.typeText("@nonexfile1")
           await utils.testSetup.mockInput.pressTab()
-          await new Promise((r) => setTimeout(r, 50))
+          await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
@@ -326,7 +326,7 @@ describe("Home", () => {
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("@nonexfile1")
           await utils.testSetup.mockInput.pressEscape()
-          await new Promise((r) => setTimeout(r, 50))
+          await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
@@ -335,7 +335,7 @@ describe("Home", () => {
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("blah @nonexfile1")
           await Promise.all(Array(11).fill(null).map(utils.testSetup.mockInput.pressBackspace))
-          await new Promise((r) => setTimeout(r, 50))
+          await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
