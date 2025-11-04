@@ -3,7 +3,7 @@ import { Config } from "@/config/config"
 import type { Agent, Model, OpencodeClient, Provider } from "@opencode-ai/sdk"
 import { RGBA } from "@opentui/core"
 import { createEventBus, createGlobalEmitter } from "@solid-primitives/event-bus"
-import { afterEach, beforeAll, beforeEach, mock, setSystemTime } from "bun:test"
+import { afterEach, beforeAll, beforeEach, expect, mock, setSystemTime } from "bun:test"
 import { type Context } from "solid-js"
 import os from "os"
 import fs from "fs/promises"
@@ -354,11 +354,16 @@ export type OpencodeClientPlain = {
   }
 }
 
-export function setUpCommonHooks() {
+export function setUpCommonHooksAndUtils() {
   let tmpdir: string
   let homedir: string
-  const ns = {
+  const utils = {
     testSetup: undefined as Awaited<ReturnType<typeof testRenderTui>> | undefined,
+    renderOnceExpectMatchSnapshot: async function () {
+      await this.testSetup!.renderOnce()
+      const frame = this.testSetup!.captureCharFrame()
+      expect(frame).toMatchSnapshot()
+    },
   }
 
   beforeAll(async () => {
@@ -378,10 +383,10 @@ export function setUpCommonHooks() {
     // Without this delay, some tests cause
     // error: EditBuffer is destroyed
     await new Promise((r) => setTimeout(r, 0))
-    if (ns.testSetup) ns.testSetup.renderer.destroy()
+    if (utils.testSetup) utils.testSetup.renderer.destroy()
   })
 
-  return ns
+  return utils
 }
 
 /**

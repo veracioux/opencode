@@ -15,7 +15,7 @@ import {
 } from "bun:test"
 import {
   mockProviders,
-  setUpCommonHooks,
+  setUpCommonHooksAndUtils,
   setUpProviderMocking,
   SIZES,
   type MockConfig,
@@ -24,7 +24,7 @@ import { testRenderTui } from "../fixture_.tsx"
 import { mockIdentifiers } from "../../fixture/fixture.ts"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
 
-const ns = setUpCommonHooks()
+const utils = setUpCommonHooksAndUtils()
 
 describe("Home", () => {
   beforeEach(async () => {
@@ -45,19 +45,15 @@ describe("Home", () => {
   })
 
   test("should render correctly", async () => {
-    ns.testSetup = await testRenderTui(SIZES.MEDIUM)
-    await ns.testSetup.renderOnce()
-    const frame = ns.testSetup.captureCharFrame()
-    expect(frame).toMatchSnapshot()
+    utils.testSetup = await testRenderTui(SIZES.MEDIUM)
+    await utils.renderOnceExpectMatchSnapshot()
   })
 
   test("should resize correctly", async () => {
-    ns.testSetup = await testRenderTui(SIZES.NORMAL)
-    await ns.testSetup.renderOnce()
-    ns.testSetup.resize(SIZES.SMALL.width, SIZES.SMALL.height)
-    await ns.testSetup.renderOnce()
-    const frame = ns.testSetup.captureCharFrame()
-    expect(frame).toMatchSnapshot()
+    utils.testSetup = await testRenderTui(SIZES.NORMAL)
+    await utils.testSetup.renderOnce()
+    utils.testSetup.resize(SIZES.SMALL.width, SIZES.SMALL.height)
+    await utils.renderOnceExpectMatchSnapshot()
   })
 
   // FIXME: Set up better mocks so it actually displays a message
@@ -77,10 +73,10 @@ describe("Home", () => {
     })
     await mockIdentifiers()
 
-    ns.testSetup = await testRenderTui(SIZES.MEDIUM)
-    await ns.testSetup.mockInput.typeText("Hello, world!")
-    await ns.testSetup.mockInput.pressEnter()
-    await ns.testSetup.renderOnce()
+    utils.testSetup = await testRenderTui(SIZES.MEDIUM)
+    await utils.testSetup.mockInput.typeText("Hello, world!")
+    await utils.testSetup.mockInput.pressEnter()
+    await utils.testSetup.renderOnce()
 
     expect(mocks.useSDK.client.session.create).toHaveBeenCalledWith({})
     expect(mocks.useSDK.client.session.prompt).toHaveBeenCalledWith({
@@ -106,10 +102,7 @@ describe("Home", () => {
       },
     })
     await new Promise((r) => setTimeout(r, 300)) // wait for tui to update
-    await ns.testSetup.renderOnce()
-
-    const frame = ns.testSetup.captureCharFrame()
-    expect(frame).toMatchSnapshot()
+    await utils.renderOnceExpectMatchSnapshot()
   })
 
   describe("Toast", () => {
@@ -120,7 +113,7 @@ describe("Home", () => {
           event: createGlobalEmitter(),
         }),
       })
-      ns.testSetup = await testRenderTui(SIZES.SMALL)
+      utils.testSetup = await testRenderTui(SIZES.SMALL)
       mocks.useSDK.event.emit("tui.toast.show", {
         type: "tui.toast.show",
         properties: {
@@ -130,9 +123,7 @@ describe("Home", () => {
         },
       })
 
-      await ns.testSetup.renderOnce()
-      const frame = ns.testSetup.captureCharFrame()
-      expect(frame).toMatchSnapshot()
+      await utils.renderOnceExpectMatchSnapshot()
     })
 
     test("should render correctly with title", async () => {
@@ -142,7 +133,7 @@ describe("Home", () => {
           event: createGlobalEmitter(),
         }),
       })
-      ns.testSetup = await testRenderTui(SIZES.SMALL)
+      utils.testSetup = await testRenderTui(SIZES.SMALL)
       mocks.useSDK.event.emit("tui.toast.show", {
         type: "tui.toast.show",
         properties: {
@@ -153,9 +144,7 @@ describe("Home", () => {
         },
       })
 
-      await ns.testSetup.renderOnce()
-      const frame = ns.testSetup.captureCharFrame()
-      expect(frame).toMatchSnapshot()
+      await utils.renderOnceExpectMatchSnapshot()
     })
 
     test("should clear after timeout", async () => {
@@ -165,7 +154,7 @@ describe("Home", () => {
           event: createGlobalEmitter(),
         }),
       })
-      ns.testSetup = await testRenderTui(SIZES.SMALL)
+      utils.testSetup = await testRenderTui(SIZES.SMALL)
       mocks.useSDK.event.emit("tui.toast.show", {
         type: "tui.toast.show",
         properties: {
@@ -178,40 +167,31 @@ describe("Home", () => {
 
       await new Promise((r) => setTimeout(r, 150))
 
-      await ns.testSetup.renderOnce()
-      const frame = ns.testSetup.captureCharFrame()
-      expect(frame).toMatchSnapshot()
+      await utils.renderOnceExpectMatchSnapshot()
     })
   })
 
   describe("Prompt", () => {
     describe("! mode", () => {
       test("! should open shell mode", async () => {
-        ns.testSetup = await testRenderTui(SIZES.SMALL)
-        await ns.testSetup.mockInput.typeText("!")
-        await ns.testSetup.renderOnce()
-        await new Promise((r) => setTimeout(r, 50))
-        const frame = ns.testSetup.captureCharFrame()
-        expect(frame).toMatchSnapshot()
+        utils.testSetup = await testRenderTui(SIZES.SMALL)
+        await utils.testSetup.mockInput.typeText("!")
+        await utils.renderOnceExpectMatchSnapshot()
       })
       test("esc should revert to normal mode", async () => {
-        ns.testSetup = await testRenderTui(SIZES.SMALL)
-        await ns.testSetup.mockInput.typeText("!test")
-        await ns.testSetup.renderOnce()
-        await ns.testSetup.mockInput.pressEscape()
+        utils.testSetup = await testRenderTui(SIZES.SMALL)
+        await utils.testSetup.mockInput.typeText("!test")
+        await utils.testSetup.mockInput.pressEscape()
         await new Promise((r) => setTimeout(r, 50))
-        const frame = ns.testSetup.captureCharFrame()
-        expect(frame).toMatchSnapshot()
+        await utils.renderOnceExpectMatchSnapshot()
       })
       test("backspace should revert to normal mode", async () => {
-        ns.testSetup = await testRenderTui(SIZES.SMALL)
-        await ns.testSetup.mockInput.typeText("!a")
-        await ns.testSetup.mockInput.pressBackspace()
-        await ns.testSetup.mockInput.pressBackspace()
+        utils.testSetup = await testRenderTui(SIZES.SMALL)
+        await utils.testSetup.mockInput.typeText("!a")
+        await utils.testSetup.mockInput.pressBackspace()
+        await utils.testSetup.mockInput.pressBackspace()
         await new Promise((r) => setTimeout(r, 50))
-        await ns.testSetup.renderOnce()
-        const frame = ns.testSetup.captureCharFrame()
-        expect(frame).toMatchSnapshot()
+        await utils.renderOnceExpectMatchSnapshot()
       })
     })
 
@@ -254,134 +234,109 @@ describe("Home", () => {
 
       describe("/ mode", () => {
         test("/ should open autocomplete", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.renderOnce()
-          await ns.testSetup.mockInput.typeText("/")
-          await ns.testSetup.renderOnce()
-          const frame = ns.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.renderOnce()
+          await utils.testSetup.mockInput.typeText("/")
+          await utils.renderOnceExpectMatchSnapshot()
         })
 
         test("should not open in the middle of text", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.mockInput.typeText("blah /")
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.mockInput.typeText("blah /")
           await new Promise((r) => setTimeout(r, 100))
-          await ns.testSetup.renderOnce()
-          const frame = ns.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
+          await utils.renderOnceExpectMatchSnapshot()
         })
 
         test("should narrow /ex input to /exit", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.renderOnce()
-          await ns.testSetup.mockInput.typeText("/ex")
-          await ns.testSetup.renderOnce()
-          const frame = ns.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.renderOnce()
+          await utils.testSetup.mockInput.typeText("/ex")
+          await utils.renderOnceExpectMatchSnapshot()
         })
 
         test("enter should trigger action", async () => {
           const mocks = await mockProviders()
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.renderOnce()
-          await ns.testSetup.mockInput.typeText("/ex")
-          await ns.testSetup.mockInput.pressEnter()
-          await ns.testSetup.renderOnce()
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.renderOnce()
+          await utils.testSetup.mockInput.typeText("/ex")
+          await utils.testSetup.mockInput.pressEnter()
+          await utils.renderOnceExpectMatchSnapshot()
           expect(mocks.useExit).toHaveBeenCalled()
-
-          const frame = ns.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
         })
 
         test("enter on custom command should expect args", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.renderOnce()
-          await ns.testSetup.mockInput.typeText("/long-c")
-          await ns.testSetup.mockInput.pressEnter()
-          await ns.testSetup.renderOnce()
-
-          const frame = ns.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.renderOnce()
+          await utils.testSetup.mockInput.typeText("/long-c")
+          await utils.testSetup.mockInput.pressEnter()
+          await utils.renderOnceExpectMatchSnapshot()
         })
 
         // Behavior to be implemented, PR is open
         test.todo("/ exact matches should be prioritized", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.renderOnce()
-          await ns.testSetup.mockInput.typeText("/e")
-          await ns.testSetup.renderOnce()
-          const frame = ns.testSetup.captureCharFrame()
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.renderOnce()
+          await utils.testSetup.mockInput.typeText("/e")
+          await utils.testSetup.renderOnce()
+          const frame = utils.testSetup.captureCharFrame()
           expect(frame).toMatchSnapshot()
         })
       })
 
       describe("@ mode", () => {
         test("@ should open autocomplete", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.renderOnce()
-          await ns.testSetup.mockInput.typeText("@")
-          await ns.testSetup.renderOnce()
-          const frame = ns.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.renderOnce()
+          await utils.testSetup.mockInput.typeText("@")
+          await utils.renderOnceExpectMatchSnapshot()
         })
 
         test("should match items correctly", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.renderOnce()
-          await ns.testSetup.mockInput.typeText("@nonexfile1")
-          await ns.testSetup.renderOnce()
-          const frame = ns.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.renderOnce()
+          await utils.testSetup.mockInput.typeText("@nonexfile1")
+          await utils.renderOnceExpectMatchSnapshot()
         })
 
         test("should trigger in the middle of text", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.renderOnce()
-          await ns.testSetup.mockInput.typeText("blah @nonexfile1")
-          await ns.testSetup.renderOnce()
-          expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.renderOnce()
+          await utils.testSetup.mockInput.typeText("blah @nonexfile1")
+          await utils.renderOnceExpectMatchSnapshot()
         })
 
         test("enter should confirm choice", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.mockInput.typeText("@nonexfile1")
-          await ns.testSetup.mockInput.pressEnter()
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.mockInput.typeText("@nonexfile1")
+          await utils.testSetup.mockInput.pressEnter()
           await new Promise((r) => setTimeout(r, 50))
-          await ns.testSetup.renderOnce()
-          const frame = ns.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
+          await utils.renderOnceExpectMatchSnapshot()
         })
 
         test("tab should confirm choice", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.mockInput.typeText("@nonexfile1")
-          await ns.testSetup.mockInput.pressTab()
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.mockInput.typeText("@nonexfile1")
+          await utils.testSetup.mockInput.pressTab()
           await new Promise((r) => setTimeout(r, 50))
-          await ns.testSetup.renderOnce()
-          const frame = ns.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
+          await utils.renderOnceExpectMatchSnapshot()
         })
 
         test("esc should close", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.renderOnce()
-          await ns.testSetup.mockInput.typeText("@nonexfile1")
-          await ns.testSetup.mockInput.pressEscape()
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.renderOnce()
+          await utils.testSetup.mockInput.typeText("@nonexfile1")
+          await utils.testSetup.mockInput.pressEscape()
           await new Promise((r) => setTimeout(r, 50))
-          await ns.testSetup.renderOnce()
-          const frame = ns.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
+          await utils.renderOnceExpectMatchSnapshot()
         })
 
         test("clearing input should close", async () => {
-          ns.testSetup = await testRenderTui(SIZES.SMALL)
-          await ns.testSetup.renderOnce()
-          await ns.testSetup.mockInput.typeText("blah @nonexfile1")
-          await Promise.all(Array(11).fill(null).map(ns.testSetup.mockInput.pressBackspace))
+          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          await utils.testSetup.renderOnce()
+          await utils.testSetup.mockInput.typeText("blah @nonexfile1")
+          await Promise.all(Array(11).fill(null).map(utils.testSetup.mockInput.pressBackspace))
           await new Promise((r) => setTimeout(r, 50))
-          await ns.testSetup.renderOnce()
-          const frame = ns.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
+          await utils.renderOnceExpectMatchSnapshot()
         })
 
         // TODO: Ask to make sure this is desired behavior
@@ -394,53 +349,44 @@ describe("Home", () => {
 
   describe("Model dialog", () => {
     test("should open model dialog", async () => {
-      ns.testSetup = await testRenderTui({ ...SIZES.MEDIUM, ...SIZES.TALL })
-      ns.testSetup.mockInput.pressKey("x", { ctrl: true })
-      ns.testSetup.mockInput.pressKey("m")
-      await ns.testSetup.renderOnce()
-      const frame = ns.testSetup.captureCharFrame()
-      expect(frame).toMatchSnapshot()
+      utils.testSetup = await testRenderTui({ ...SIZES.MEDIUM, ...SIZES.TALL })
+      utils.testSetup.mockInput.pressKey("x", { ctrl: true })
+      utils.testSetup.mockInput.pressKey("m")
+      await utils.renderOnceExpectMatchSnapshot()
     })
   })
 
   describe("Agent cycling", () => {
     test("tab should switch agent, with wrap-around", async () => {
-      ns.testSetup = await testRenderTui(SIZES.SMALL)
-      await ns.testSetup.renderOnce()
-      await ns.testSetup.mockInput.typeText("blah blah") // have some initial input
-      await ns.testSetup.mockInput.pressTab()
-      await ns.testSetup.renderOnce()
-      expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
+      utils.testSetup = await testRenderTui(SIZES.SMALL)
+      await utils.testSetup.renderOnce()
+      await utils.testSetup.mockInput.typeText("blah blah") // have some initial input
+      await utils.testSetup.mockInput.pressTab()
+      await utils.renderOnceExpectMatchSnapshot()
 
-      await ns.testSetup.mockInput.pressTab()
-      await ns.testSetup.renderOnce()
-      expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
+      await utils.testSetup.mockInput.pressTab()
+      await utils.renderOnceExpectMatchSnapshot()
 
-      await ns.testSetup.mockInput.pressTab()
-      await ns.testSetup.renderOnce()
-      expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
-
-      await ns.testSetup.renderOnce()
+      await utils.testSetup.mockInput.pressTab()
+      await utils.renderOnceExpectMatchSnapshot()
     })
     test("backtab should switch agent in reverse, with wrap-around", async () => {
       // const mocks = await mockProviders()
-      ns.testSetup = await testRenderTui(SIZES.SMALL)
-      await ns.testSetup.renderOnce()
-      await ns.testSetup.mockInput.typeText("blah blah") // have some initial input
+      utils.testSetup = await testRenderTui(SIZES.SMALL)
+      await utils.testSetup.renderOnce()
+      await utils.testSetup.mockInput.typeText("blah blah") // have some initial input
       // FIXME: opentui bug: following doesn't work
       // await ns.testSetup.mockInput.pressTab({ shift: true })
       // Workaround:
       function pressBacktab() {
-        return ns.testSetup!.mockInput.pressKey("\x1b[Z")
+        return utils.testSetup!.mockInput.pressKey("\x1b[Z")
       }
 
       await pressBacktab()
-      await ns.testSetup.renderOnce()
-      expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
+      await utils.renderOnceExpectMatchSnapshot()
 
       await pressBacktab()
-      await ns.testSetup.renderOnce()
-      expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
+      await utils.renderOnceExpectMatchSnapshot()
     })
   })
 })

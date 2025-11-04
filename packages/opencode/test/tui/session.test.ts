@@ -3,14 +3,14 @@ await setUpProviderMocking()
 import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import {
   mockProviders,
-  setUpCommonHooks,
+  setUpCommonHooksAndUtils,
   setUpProviderMocking,
   SIZES,
   type MockConfig,
 } from "./fixture"
 import { testRenderTui } from "./fixture_.tsx"
 
-const ns = setUpCommonHooks()
+const utils = setUpCommonHooksAndUtils()
 
 describe("Session", async () => {
   beforeEach(async () => {
@@ -75,16 +75,12 @@ describe("Session", async () => {
         }) as any,
     })
 
-    ns.testSetup = await testRenderTui(SIZES.MEDIUM)
+    utils.testSetup = await testRenderTui(SIZES.MEDIUM)
 
-    await ns.testSetup.renderOnce()
+    await utils.testSetup.renderOnce()
 
     await new Promise((r) => setTimeout(r, 100))
 
-    await ns.testSetup.renderOnce()
-
-    const frame = ns.testSetup.captureCharFrame()
-
-    expect(frame).toMatchSnapshot()
+    await utils.renderOnceExpectMatchSnapshot()
   })
 })
