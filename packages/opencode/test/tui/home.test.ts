@@ -155,6 +155,18 @@ describe("Home", () => {
       const frame = ns.testSetup.captureCharFrame()
       expect(frame).toMatchSnapshot()
     })
+
+    test("! should trigger shell mode", async () => {
+      ns.testSetup = await testRenderTui({
+        width: 60,
+        height: 20,
+      })
+      await ns.testSetup.renderOnce()
+      await ns.testSetup.mockInput.typeText("! echo test")
+      await ns.testSetup.renderOnce()
+      const frame = ns.testSetup.captureCharFrame()
+      expect(frame).toMatchSnapshot()
+    })
   })
 
   describe("Model dialog", () => {
