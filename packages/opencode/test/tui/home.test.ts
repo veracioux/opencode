@@ -115,44 +115,46 @@ describe("Home", () => {
     expect(frame).toMatchSnapshot()
   })
 
-  test("/ should open autocomplete", async () => {
-    ns.testSetup = await testRenderTui({
-      width: 60,
-      height: 20,
+  describe("Prompt", () => {
+    test("/ should open autocomplete", async () => {
+      ns.testSetup = await testRenderTui({
+        width: 60,
+        height: 20,
+      })
+      await ns.testSetup.renderOnce()
+      await ns.testSetup.mockInput.typeText("/")
+      await ns.testSetup.renderOnce()
+      const frame = ns.testSetup.captureCharFrame()
+      expect(frame).toMatchSnapshot()
     })
-    await ns.testSetup.renderOnce()
-    await ns.testSetup.mockInput.typeText("/")
-    await ns.testSetup.renderOnce()
-    const frame = ns.testSetup.captureCharFrame()
-    expect(frame).toMatchSnapshot()
-  })
 
-  test("should narrow /ex input to /exit", async () => {
-    ns.testSetup = await testRenderTui({
-      width: 60,
-      height: 20,
+    test("should narrow /ex input to /exit", async () => {
+      ns.testSetup = await testRenderTui({
+        width: 60,
+        height: 20,
+      })
+      await ns.testSetup.renderOnce()
+      await ns.testSetup.mockInput.typeText("/ex")
+      await ns.testSetup.renderOnce()
+      const frame = ns.testSetup.captureCharFrame()
+      expect(frame).toMatchSnapshot()
     })
-    await ns.testSetup.renderOnce()
-    await ns.testSetup.mockInput.typeText("/ex")
-    await ns.testSetup.renderOnce()
-    const frame = ns.testSetup.captureCharFrame()
-    expect(frame).toMatchSnapshot()
-  })
 
-  test("/ex + enter should trigger action", async () => {
-    const mocks = await mockProviders({})
-    ns.testSetup = await testRenderTui({
-      width: 60,
-      height: 20,
+    test("/ex + enter should trigger action", async () => {
+      const mocks = await mockProviders({})
+      ns.testSetup = await testRenderTui({
+        width: 60,
+        height: 20,
+      })
+      await ns.testSetup.renderOnce()
+      await ns.testSetup.mockInput.typeText("/ex")
+      await ns.testSetup.mockInput.pressEnter()
+      await ns.testSetup.renderOnce()
+      expect(mocks.useExit).toHaveBeenCalled()
+
+      const frame = ns.testSetup.captureCharFrame()
+      expect(frame).toMatchSnapshot()
     })
-    await ns.testSetup.renderOnce()
-    await ns.testSetup.mockInput.typeText("/ex")
-    await ns.testSetup.mockInput.pressEnter()
-    await ns.testSetup.renderOnce()
-    expect(mocks.useExit).toHaveBeenCalled()
-
-    const frame = ns.testSetup.captureCharFrame()
-    expect(frame).toMatchSnapshot()
   })
 
   describe("Model dialog", () => {
