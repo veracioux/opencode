@@ -3,7 +3,6 @@ import { realpathSync } from "fs"
 import os from "os"
 import path from "path"
 import { mock } from "bun:test"
-import { Identifier } from "@/id/id"
 
 type TmpDirOptions<T> = {
   git?: boolean
@@ -31,6 +30,9 @@ export async function tmpdir<T>(options?: TmpDirOptions<T>) {
   return result
 }
 
+/**
+ * Mocks the Identifier.ascending method to return predictable identifiers for testing.
+ */
 export async function mockIdentifiers() {
   const { Identifier } = await import("@/id/id")
   const lastIndexPerPrefix: Record<string, number> = {}

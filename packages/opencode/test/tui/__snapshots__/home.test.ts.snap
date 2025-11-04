@@ -113,32 +113,3 @@ exports[`Home Model dialog should open model dialog 1`] = `
  opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
 "
 `;
-
-exports[`Home prompt should start a new session: asdf 1`] = `
-"                                                                                
-  HELLo  ┃ #                                                                 ┃  
-         ┃ /share to create a shareable link                                 ┃  
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-         ┃                                                                   ┃  
-         ┃ >                                                                 ┃  
-         ┃                                                                   ┃  
-         Mock Provider 1 Mock Model 1                          ctrl+p commands  
-                                                                                
- opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
-"
-`;

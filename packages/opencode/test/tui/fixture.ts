@@ -1,10 +1,14 @@
 import { type CommandOption } from "@/cli/cmd/tui/component/dialog-command"
 import { Config } from "@/config/config"
-import type { Agent, Model } from "@opencode-ai/sdk"
+import type { Agent, Model, OpencodeClient, Provider } from "@opencode-ai/sdk"
 import { RGBA } from "@opentui/core"
 import { createEventBus, createGlobalEmitter } from "@solid-primitives/event-bus"
-import { beforeEach, mock } from "bun:test"
+import { afterEach, beforeAll, beforeEach, mock, setSystemTime } from "bun:test"
 import { type Context } from "solid-js"
+import os from "os"
+import fs from "fs/promises"
+import path from "path"
+import type { testRenderTui } from "./fixture_"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
 const nameToContextMap = new Map<string, Context<unknown>>()
@@ -58,11 +62,18 @@ export async function setUpProviderMocking() {
 
 const mockedProviderValues = new Map<() => any, any>()
 
+type ProvidedValue<K extends keyof typeof knownUseFns> = ReturnType<typeof knownUseFns[K]>
+
+type UseSDKProvidedValue = Omit<ProvidedValue<"useSDK">, "client"> & {
+  client: OpencodeClientPlain,
+}
+
 export type MockConfig = {
   [key in keyof typeof knownUseFns]?:
-  | ReturnType<typeof knownUseFns[key]>
-  | ((draft: ReturnType<typeof knownUseFns[key]>) => ReturnType<typeof knownUseFns[key]>)
   | boolean
+  | (key extends "useSDK"
+    ? UseSDKProvidedValue | ((draft: UseSDKProvidedValue) => UseSDKProvidedValue)
+    : ProvidedValue<key> | ((draft: ProvidedValue<key>) => ProvidedValue<key>))
 }
 
 export async function mockProviders<T extends MockConfig>(config?: T): Promise<
@@ -142,7 +153,61 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
     },
     useSDK: {
       event: createGlobalEmitter(),
-      client: {} as any,
+      client: {
+        app: {
+          async agents() {
+            return {
+              data: [
+                {
+                  name: "mock-agent-1",
+                  description: "Mock Agent 1 description",
+                  mode: "primary",
+                  model: {
+                    providerID: "mock-provider-1",
+                    modelID: "mock-model-1",
+                  },
+                } as Agent,
+                {
+                  name: "mock-agent-2",
+                  description: "Mock Agent 2 description",
+                  mode: "subagent",
+                  model: {
+                    providerID: "mock-provider-1",
+                    modelID: "mock-model-1",
+                  },
+                } as Agent,
+              ]
+            }
+          }
+        },
+        config: {
+          async get() {
+            return {
+              keybinds: Config.Keybinds.parse({}),
+            }
+          },
+          providers: async () => {
+            return {
+              data: {
+                providers: [
+                  {
+                    name: "Mock Provider 1",
+                    id: "mock-provider-1",
+                    models: {
+                      "mock-model-1": {
+                        name: "Mock Model 1",
+                      } as Model,
+                      "mock-model-2": {
+                        name: "Mock Model 2",
+                      } as Model,
+                    },
+                  } as Partial<Provider>,
+                ]
+              }
+            } as any
+          }
+        } as any
+      } as any,
     },
     useKeybind: {
       match: mock((keybind, evt) => false),
@@ -209,7 +274,7 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
       session: {
         get: mock(),
         status: mock((sessionID) => "idle" as const),
-        sync: mock(),
+        sync: mock(() => Promise.resolve()),
       },
     },
     useTheme: {
@@ -258,8 +323,38 @@ export async function mockProviders<T extends MockConfig>(config?: T): Promise<
   })) as any
 }
 
-export type RecursivePartial<T> = {
-  [P in keyof T]?: T[P] extends object
-  ? RecursivePartial<T[P]>
-  : T[P];
-};
+export type OpencodeClientPlain = {
+  [key in keyof OpencodeClient]: {
+    [K in keyof OpencodeClient[key]]: OpencodeClient[key][K]
+  }
+}
+
+export function setUpCommonHooks() {
+  let tmpdir: string
+  let homedir: string
+  const ns = { 
+    testSetup: undefined as (Awaited<ReturnType<typeof testRenderTui>> | undefined)
+   }
+
+  beforeAll(async () => {
+    tmpdir = os.tmpdir()
+    process.chdir(tmpdir)
+  })
+  beforeEach(async () => {
+    homedir = await fs.mkdtemp(tmpdir + path.sep)
+    process.env.HOME = homedir
+    process.env.TZ = "America/Los_Angeles"
+  })
+  afterEach(async () => {
+    mock.restore()
+    await fs.rm(homedir, { recursive: true })
+  })
+  afterEach(async () => {
+    // Without this delay, some tests cause 
+    // error: EditBuffer is destroyed
+    await new Promise((r) => setTimeout(r, 0))
+    if (ns.testSetup) ns.testSetup.renderer.destroy()
+  })
+
+  return ns
+}
