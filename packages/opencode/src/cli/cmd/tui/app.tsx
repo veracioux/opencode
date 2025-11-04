@@ -199,7 +199,7 @@ export function App() {
   // Make sure session is valid, otherwise redirect to home
   createEffect(async () => {
     if (route.data.type === "session") {
-      const data = route.data as SessionRoute
+      const data = route.data
       await sync.session.sync(data.sessionID).catch(() => {
         toast.show({
           message: `Session not found: ${data.sessionID}`,
