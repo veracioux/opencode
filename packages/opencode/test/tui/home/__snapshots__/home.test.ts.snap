@@ -250,6 +250,30 @@ exports[`Home Prompt Autocomplete / mode / should open autocomplete 1`] = `
 "
 `;
 
+exports[`Home Prompt Autocomplete / mode should not open in the middle of text 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > blah /                                             ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
 exports[`Home Prompt Autocomplete / mode should narrow /ex input to /exit 1`] = `
 "                                                            
                                                             
@@ -291,6 +315,30 @@ exports[`Home Prompt Autocomplete / mode enter should trigger action 1`] = `
                                                             
   ┃                                                      ┃  
   ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Home Prompt Autocomplete / mode enter on custom command should expect args 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > /long-command                                      ┃  
   ┃                                                      ┃  
   Mock Provider 1 Mock Model 1                              
                                                             
@@ -627,53 +675,5 @@ exports[`Home Agent cycling backtab should switch agent in reverse, with wrap-ar
   Mock Provider 2 Mock Model 1                              
                                                             
  opencode vlocal  /tmp             tab  MOCK-AGENT-2 AGENT 
-"
-`;
-
-exports[`Home Prompt Autocomplete / mode enter on custom command should expect args 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ > /long-command                                      ┃  
-  ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
-                                                            
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
-exports[`Home Prompt Autocomplete / mode should not open in the middle of text 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ > blah /                                             ┃  
-  ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
-                                                            
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
 "
 `;
