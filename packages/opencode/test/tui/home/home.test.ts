@@ -347,11 +347,22 @@ describe("Home", () => {
           expect(frame).toMatchSnapshot()
         })
 
-        test("esc should confirm choice", async () => {
+        test("esc should close", async () => {
           ns.testSetup = await testRenderTui(SIZES.SMALL)
           await ns.testSetup.renderOnce()
           await ns.testSetup.mockInput.typeText("@nonexfile1")
           await ns.testSetup.mockInput.pressEscape()
+          await new Promise((r) => setTimeout(r, 50))
+          await ns.testSetup.renderOnce()
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
+
+        test("clearing input should close", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.renderOnce()
+          await ns.testSetup.mockInput.typeText("blah @nonexfile1")
+          await Promise.all(Array(11).fill(null).map(ns.testSetup.mockInput.pressBackspace))
           await new Promise((r) => setTimeout(r, 50))
           await ns.testSetup.renderOnce()
           const frame = ns.testSetup.captureCharFrame()

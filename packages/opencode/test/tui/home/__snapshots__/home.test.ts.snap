@@ -418,7 +418,7 @@ exports[`Home Prompt Autocomplete @ mode tab should confirm choice 1`] = `
 "
 `;
 
-exports[`Home Prompt Autocomplete @ mode esc should confirm choice 1`] = `
+exports[`Home Prompt Autocomplete @ mode esc should close 1`] = `
 "                                                            
                                                             
                                             ▄               
@@ -435,6 +435,30 @@ exports[`Home Prompt Autocomplete @ mode esc should confirm choice 1`] = `
                                                             
   ┃                                                      ┃  
   ┃ > @nonexfile1                                        ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Home Prompt Autocomplete @ mode clearing input should close 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > blah                                               ┃  
   ┃                                                      ┃  
   Mock Provider 1 Mock Model 1                              
                                                             
