@@ -53,7 +53,7 @@ describe("Dialog", () => {
           recent: [
             {
               providerID: "mock-provider-2",
-              modelID: "mock-model-2",
+              modelID: "mock-model-3",
             },
           ]
         }
@@ -86,7 +86,7 @@ describe("Dialog", () => {
     })
 
     test("search should narrow candidates", async () => {
-      utils.testSetup = await testRenderTui(SIZES.MEDIUM, { height: 30 })
+      utils.testSetup = await testRenderTui(SIZES.SMALL)
       await openDialogAndSleep()
       await utils.testSetup.renderOnce()
       await utils.testSetup.mockInput.typeText("mockmodel2")

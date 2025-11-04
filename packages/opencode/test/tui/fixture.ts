@@ -287,13 +287,13 @@ export async function mockProviders<T extends MockConfig>(
             id: "mock-provider-2",
             name: "Mock Provider 2",
             models: {
-              "mock-model-1": {
-                name: "Mock Model 1",
-                id: "mock-model-1",
+              "mock-model-3": {
+                name: "Mock Model 3",
+                id: "mock-model-3",
               } as Model,
-              "mock-model-2": {
-                name: "Mock Model 2",
-                id: "mock-model-2",
+              "mock-model-4": {
+                name: "Mock Model 4",
+                id: "mock-model-4",
               } as Model,
             },
             env: [],
@@ -318,7 +318,7 @@ export async function mockProviders<T extends MockConfig>(
             name: "mock-agent-3",
             model: {
               providerID: "mock-provider-2",
-              modelID: "mock-model-2",
+              modelID: "mock-model-3",
             },
           } as Agent,
         ],
