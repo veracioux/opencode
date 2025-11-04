@@ -54,7 +54,7 @@ describe("Dialog", () => {
   })
 
   test("ctrl-x p should open command dialog", async () => {
-    ns.testSetup = await testRenderTui({ ...SIZES.SMALL, height: 28  })
+    ns.testSetup = await testRenderTui({ ...SIZES.SMALL, height: 28 })
     ns.testSetup.mockInput.pressKey("p", { ctrl: true })
     await ns.testSetup.renderOnce()
     const frame = ns.testSetup.captureCharFrame()
@@ -97,5 +97,29 @@ describe("Dialog", () => {
     await ns.testSetup.renderOnce()
     const frame = ns.testSetup.captureCharFrame()
     expect(frame).toMatchSnapshot()
+  })
+
+  describe("Common behavior", () => {
+    test("item navigation should work", async () => {
+      ns.testSetup = await testRenderTui(SIZES.SMALL)
+      await ns.testSetup.mockInput.typeText("/model")
+      await ns.testSetup.mockInput.pressEnter()
+      await ns.testSetup.renderOnce()
+      await new Promise((r) => setTimeout(r, 50))
+      ns.testSetup.mockInput.pressArrow("down")
+      await ns.testSetup.renderOnce()
+      const frame1 = ns.testSetup.captureCharFrame()
+      expect(frame1).toMatchSnapshot()
+      ns.testSetup.mockInput.pressArrow("down")
+      await ns.testSetup.renderOnce()
+      const frame2 = ns.testSetup.captureCharFrame()
+      expect(frame2).toMatchSnapshot()
+      ns.testSetup.mockInput.pressArrow("up")
+      ns.testSetup.mockInput.pressArrow("up")
+      ns.testSetup.mockInput.pressArrow("up")
+      await ns.testSetup.renderOnce()
+      const frame3 = ns.testSetup.captureCharFrame()
+      expect(frame3).toMatchSnapshot()
+    })
   })
 })

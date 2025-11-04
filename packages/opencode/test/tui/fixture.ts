@@ -117,7 +117,7 @@ export async function mockProviders<T extends MockConfig>(
         set: mock(),
         recent: () => [
           {
-            providerID: "mock-provider-1",
+            providerID: "mock-provider-2",
             modelID: "mock-model-1",
           },
         ],

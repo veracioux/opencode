@@ -142,3 +142,75 @@ exports[`Dialog esc should close dialog 1`] = `
  opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
 "
 `;
+
+exports[`Dialog Common behavior item navigation should work 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+                                                            
+    Select model                                      esc   
+                                                            
+    Enter search term                                       
+                                                            
+    Mock Provider 1                                         
+    Mock Model 1                                            
+    Mock Model 2                                            
+                                                            
+                                                            
+                                                            
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Dialog Common behavior item navigation should work 2`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+                                                            
+    Select model                                      esc   
+                                                            
+    Enter search term                                       
+                                                            
+    Mock Model 2                                            
+                                                            
+    Mock Provider 2                                         
+    Mock Model 1                                            
+                                                            
+                                                            
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Dialog Common behavior item navigation should work 3`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+                                                            
+    Select model                                      esc   
+                                                            
+    Enter search term                                       
+                                                            
+                                                            
+    Mock Provider 2                                         
+    Mock Model 1                                            
+    Mock Model 2                                            
+                                                            
+                                                            
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
