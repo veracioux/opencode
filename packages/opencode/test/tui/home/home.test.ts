@@ -186,47 +186,37 @@ describe("Home", () => {
   })
 
   describe("Prompt", () => {
-    test("! should trigger shell mode", async () => {
-      ns.testSetup = await testRenderTui(SIZES.SMALL)
-      await ns.testSetup.renderOnce()
-      await ns.testSetup.mockInput.typeText("! echo test")
-      await ns.testSetup.renderOnce()
-      const frame = ns.testSetup.captureCharFrame()
-      expect(frame).toMatchSnapshot()
+    describe("! mode", () => {
+      test("! should open shell mode", async () => {
+        ns.testSetup = await testRenderTui(SIZES.SMALL)
+        await ns.testSetup.mockInput.typeText("!")
+        await ns.testSetup.renderOnce()
+        await new Promise((r) => setTimeout(r, 50))
+        const frame = ns.testSetup.captureCharFrame()
+        expect(frame).toMatchSnapshot()
+      })
+      test("esc should revert to normal mode", async () => {
+        ns.testSetup = await testRenderTui(SIZES.SMALL)
+        await ns.testSetup.mockInput.typeText("!test")
+        await ns.testSetup.renderOnce()
+        await ns.testSetup.mockInput.pressEscape()
+        await new Promise((r) => setTimeout(r, 50))
+        const frame = ns.testSetup.captureCharFrame()
+        expect(frame).toMatchSnapshot()
+      })
+      test("backspace should revert to normal mode", async () => {
+        ns.testSetup = await testRenderTui(SIZES.SMALL)
+        await ns.testSetup.mockInput.typeText("!a")
+        await ns.testSetup.mockInput.pressBackspace()
+        await ns.testSetup.mockInput.pressBackspace()
+        await new Promise((r) => setTimeout(r, 50))
+        await ns.testSetup.renderOnce()
+        const frame = ns.testSetup.captureCharFrame()
+        expect(frame).toMatchSnapshot()
+      })
     })
 
-    test("/ should open autocomplete", async () => {
-      ns.testSetup = await testRenderTui(SIZES.SMALL)
-      await ns.testSetup.renderOnce()
-      await ns.testSetup.mockInput.typeText("/")
-      await ns.testSetup.renderOnce()
-      const frame = ns.testSetup.captureCharFrame()
-      expect(frame).toMatchSnapshot()
-    })
-
-    test("should narrow /ex input to /exit", async () => {
-      ns.testSetup = await testRenderTui(SIZES.SMALL)
-      await ns.testSetup.renderOnce()
-      await ns.testSetup.mockInput.typeText("/ex")
-      await ns.testSetup.renderOnce()
-      const frame = ns.testSetup.captureCharFrame()
-      expect(frame).toMatchSnapshot()
-    })
-
-    test("/ex + enter should trigger action", async () => {
-      const mocks = await mockProviders({})
-      ns.testSetup = await testRenderTui(SIZES.SMALL)
-      await ns.testSetup.renderOnce()
-      await ns.testSetup.mockInput.typeText("/ex")
-      await ns.testSetup.mockInput.pressEnter()
-      await ns.testSetup.renderOnce()
-      expect(mocks.useExit).toHaveBeenCalled()
-
-      const frame = ns.testSetup.captureCharFrame()
-      expect(frame).toMatchSnapshot()
-    })
-
-    describe("@ autocomplete", () => {
+    describe("Autocomplete", () => {
       beforeEach(async () => {
         await mockProviders({
           useSDK: (draft) => ({
@@ -245,74 +235,130 @@ describe("Home", () => {
                 }
               },
             }
-          })
+          }),
+          useSync: (draft) => ({
+            ...draft,
+            data: {
+              ...draft.data,
+              command: [
+                ...draft.data.command,
+                {
+                  name: "e",
+                  description: "An example command",
+                },
+              ],
+            } as any,
+          }),
         })
       })
 
-      test("should open autocomplete", async () => {
-        ns.testSetup = await testRenderTui(SIZES.SMALL)
-        await ns.testSetup.renderOnce()
-        await ns.testSetup.mockInput.typeText("@")
-        await ns.testSetup.renderOnce()
-        const frame = ns.testSetup.captureCharFrame()
-        expect(frame).toMatchSnapshot()
+      describe("/ mode", () => {
+        test("/ should open autocomplete", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.renderOnce()
+          await ns.testSetup.mockInput.typeText("/")
+          await ns.testSetup.renderOnce()
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
+
+        test("should narrow /ex input to /exit", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.renderOnce()
+          await ns.testSetup.mockInput.typeText("/ex")
+          await ns.testSetup.renderOnce()
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
+
+        test("enter should trigger action", async () => {
+          const mocks = await mockProviders({})
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.renderOnce()
+          await ns.testSetup.mockInput.typeText("/ex")
+          await ns.testSetup.mockInput.pressEnter()
+          await ns.testSetup.renderOnce()
+          expect(mocks.useExit).toHaveBeenCalled()
+
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
+
+        // Behavior to be implemented, PR is open
+        test.todo("/ exact matches should be prioritized", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.renderOnce()
+          await ns.testSetup.mockInput.typeText("/e")
+          await ns.testSetup.renderOnce()
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
+
       })
 
-      test("should match items correctly", async () => {
-        ns.testSetup = await testRenderTui(SIZES.SMALL)
-        await ns.testSetup.renderOnce()
-        await ns.testSetup.mockInput.typeText("@nonexfile1")
-        await ns.testSetup.renderOnce()
-        const frame = ns.testSetup.captureCharFrame()
-        expect(frame).toMatchSnapshot()
-      })
+      describe("@ mode", () => {
+        test("@ should open autocomplete", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.renderOnce()
+          await ns.testSetup.mockInput.typeText("@")
+          await ns.testSetup.renderOnce()
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
 
-      test("should submit on enter", async () => {
-        ns.testSetup = await testRenderTui(SIZES.SMALL)
-        await ns.testSetup.renderOnce()
-        await ns.testSetup.mockInput.typeText("@nonexfile1")
-        await ns.testSetup.mockInput.pressEnter()
-        await ns.testSetup.renderOnce()
-        const frame = ns.testSetup.captureCharFrame()
-        expect(frame).toMatchSnapshot()
-      })
+        test("should match items correctly", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.renderOnce()
+          await ns.testSetup.mockInput.typeText("@nonexfile1")
+          await ns.testSetup.renderOnce()
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
 
-      test("should close on esc", async () => {
-        ns.testSetup = await testRenderTui(SIZES.SMALL)
-        await ns.testSetup.renderOnce()
-        await ns.testSetup.mockInput.typeText("@nonexfile1")
-        await ns.testSetup.mockInput.pressEscape()
-        await new Promise((r) => setTimeout(r, 50))
-        await ns.testSetup.renderOnce()
-        const frame = ns.testSetup.captureCharFrame()
-        expect(frame).toMatchSnapshot()
-      })
-    })
+        test("should trigger in the middle of text", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.renderOnce()
+          await ns.testSetup.mockInput.typeText("blah @nonexfile1")
+          await ns.testSetup.renderOnce()
+          expect(ns.testSetup.captureCharFrame()).toMatchSnapshot()
+        })
 
-    // Behavior to be implemented, PR is open
-    test.todo("/ exact matches should be prioritized", async () => {
-      await mockProviders({
-        useSync: (draft) => ({
-          ...draft,
-          data: {
-            ...draft.data,
-            command: [
-              ...draft.data.command,
-              {
-                name: "e",
-                description: "An example command",
-              },
-            ],
-          } as any,
-        }),
-      })
+        test("enter should confirm choice", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.mockInput.typeText("@nonexfile1")
+          await ns.testSetup.mockInput.pressEnter()
+          await new Promise((r) => setTimeout(r, 50))
+          await ns.testSetup.renderOnce()
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
 
-      ns.testSetup = await testRenderTui(SIZES.SMALL)
-      await ns.testSetup.renderOnce()
-      await ns.testSetup.mockInput.typeText("/e")
-      await ns.testSetup.renderOnce()
-      const frame = ns.testSetup.captureCharFrame()
-      expect(frame).toMatchSnapshot()
+        test("tab should confirm choice", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.mockInput.typeText("@nonexfile1")
+          await ns.testSetup.mockInput.pressTab()
+          await new Promise((r) => setTimeout(r, 50))
+          await ns.testSetup.renderOnce()
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
+
+        test("esc should confirm choice", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.renderOnce()
+          await ns.testSetup.mockInput.typeText("@nonexfile1")
+          await ns.testSetup.mockInput.pressEscape()
+          await new Promise((r) => setTimeout(r, 50))
+          await ns.testSetup.renderOnce()
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
+
+        // TODO: Ask to make sure this is desired behavior
+        test.todo("space should close", async () => { })
+
+        test.todo("should honor input_submit binding", async () => { })
+      })
     })
   })
 
