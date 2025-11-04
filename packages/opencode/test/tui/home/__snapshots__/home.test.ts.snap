@@ -82,6 +82,78 @@ exports[`Home prompt should start a new session 1`] = `
 "
 `;
 
+exports[`Home Toast should render correctly 1`] = `
+"                                                            
+                                                            
+                             ┃                           ┃  
+           █▀▀█ █▀▀█ █▀▀█ █▀▀┃  This is a toast message  ┃  
+           █░░█ █░░█ █▀▀▀ █░░┃                           ┃  
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Home Toast should render correctly with title 1`] = `
+"                                                            
+                                                            
+                             ┃                           ┃  
+           █▀▀█ █▀▀█ █▀▀█ █▀▀┃  Toast Title              ┃  
+           █░░█ █░░█ █▀▀▀ █░░┃                           ┃  
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ┃  This is a toast message  ┃  
+                             ┃                           ┃  
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Home Toast should clear after timeout 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
 exports[`Home Prompt / should open autocomplete 1`] = `
 "                                                            
                                                             

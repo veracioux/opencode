@@ -16,6 +16,7 @@ import {
 import { mockProviders, setUpCommonHooks, setUpProviderMocking, type MockConfig } from "../fixture"
 import { testRenderTui } from "../fixture_.tsx"
 import { mockIdentifiers } from "../../fixture/fixture.ts"
+import { createGlobalEmitter } from "@solid-primitives/event-bus"
 
 const ns = setUpCommonHooks()
 
@@ -113,6 +114,87 @@ describe("Home", () => {
 
     const frame = ns.testSetup.captureCharFrame()
     expect(frame).toMatchSnapshot()
+  })
+
+  describe("Toast", () => {
+    test("should render correctly", async () => {
+      const mocks = await mockProviders({
+        useSDK: (draft) => ({
+          ...draft,
+          event: createGlobalEmitter(),
+        })
+      })
+      ns.testSetup = await testRenderTui({
+        width: 60,
+        height: 20,
+      })
+      mocks.useSDK.event.emit("tui.toast.show", {
+        type: "tui.toast.show",
+        properties: {
+          variant: "info",
+          message: "This is a toast message",
+          duration: 100,
+        },
+      })
+
+      await ns.testSetup.renderOnce()
+      const frame = ns.testSetup.captureCharFrame()
+      expect(frame).toMatchSnapshot()
+    })
+
+    test("should render correctly with title", async () => {
+      const mocks = await mockProviders({
+        useSDK: (draft) => ({
+          ...draft,
+          event: createGlobalEmitter(),
+        })
+      })
+      ns.testSetup = await testRenderTui({
+        width: 60,
+        height: 20,
+      })
+      mocks.useSDK.event.emit("tui.toast.show", {
+        type: "tui.toast.show",
+        properties: {
+          variant: "info",
+          message: "This is a toast message",
+          title: "Toast Title",
+          duration: 100,
+        },
+      })
+
+      await ns.testSetup.renderOnce()
+      const frame = ns.testSetup.captureCharFrame()
+      expect(frame).toMatchSnapshot()
+    })
+
+    test("should clear after timeout", async () => {
+      const mocks = await mockProviders({
+        useSDK: (draft) => ({
+          ...draft,
+          event: createGlobalEmitter(),
+        })
+      })
+      ns.testSetup = await testRenderTui({
+        width: 60,
+        height: 20,
+      })
+      mocks.useSDK.event.emit("tui.toast.show", {
+        type: "tui.toast.show",
+        properties: {
+          variant: "error",
+          message: "This is a toast message",
+          title: "Toast Title",
+          duration: 100,
+        },
+      })
+
+      await new Promise((r) => setTimeout(r, 150))
+
+      await ns.testSetup.renderOnce()
+      const frame = ns.testSetup.captureCharFrame()
+      expect(frame).toMatchSnapshot()
+    })
   })
 
   describe("Prompt", () => {
