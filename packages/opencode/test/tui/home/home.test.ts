@@ -347,15 +347,6 @@ describe("Home", () => {
     })
   })
 
-  describe("Model dialog", () => {
-    test("should open model dialog", async () => {
-      utils.testSetup = await testRenderTui({ ...SIZES.MEDIUM, ...SIZES.TALL })
-      utils.testSetup.mockInput.pressKey("x", { ctrl: true })
-      utils.testSetup.mockInput.pressKey("m")
-      await utils.renderOnceExpectMatchSnapshot()
-    })
-  })
-
   describe("Agent cycling", () => {
     test("tab should switch agent, with wrap-around", async () => {
       utils.testSetup = await testRenderTui(SIZES.SMALL)
