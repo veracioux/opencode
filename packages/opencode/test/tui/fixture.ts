@@ -93,7 +93,7 @@ export async function mockProviders<T extends MockConfig>(
   }> & {
     [key in keyof T]: T[key] extends (...args: any[]) => any
       ? ReturnType<T[key]>
-      : T[key] extends boolean
+      : T[key] extends false
         ? never
         : T[key]
   }
@@ -236,9 +236,11 @@ export async function mockProviders<T extends MockConfig>(
             models: {
               "mock-model-1": {
                 name: "Mock Model 1",
+                id: "mock-model-1",
               } as Model,
               "mock-model-2": {
                 name: "Mock Model 2",
+                id: "mock-model-2",
               } as Model,
             },
             env: [],
@@ -249,9 +251,11 @@ export async function mockProviders<T extends MockConfig>(
             models: {
               "mock-model-1": {
                 name: "Mock Model 1",
+                id: "mock-model-1",
               } as Model,
               "mock-model-2": {
                 name: "Mock Model 2",
+                id: "mock-model-2",
               } as Model,
             },
             env: [],

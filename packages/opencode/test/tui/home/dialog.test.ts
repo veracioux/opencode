@@ -43,27 +43,66 @@ describe("Dialog", () => {
   })
 
   describe("Model dialog", () => {
+    async function openDialogAndSleep() {
+      utils.testSetup!.mockInput.pressKey("x", { ctrl: true })
+      utils.testSetup!.mockInput.pressKey("m")
+      await utils.sleep(50)
+    }
+
     test("ctrl-x m should open model dialog", async () => {
-      utils.testSetup = await testRenderTui(SIZES.MEDIUM)
-      utils.testSetup.mockInput.pressKey("x", { ctrl: true })
-      utils.testSetup.mockInput.pressKey("m")
+      utils.testSetup = await testRenderTui(SIZES.MEDIUM, { height: 30 })
+      await openDialogAndSleep()
       await utils.renderOnceExpectMatchSnapshot()
     })
 
     test("item navigation should work", async () => {
       utils.testSetup = await testRenderTui(SIZES.SMALL)
-      await utils.testSetup.mockInput.typeText("/model")
-      await utils.testSetup.mockInput.pressEnter()
-      await utils.testSetup.renderOnce()
-      await utils.sleep(50)
-      utils.testSetup.mockInput.pressArrow("down")
+      await openDialogAndSleep()
+      utils.testSetup!.mockInput.pressArrow("down")
       await utils.renderOnceExpectMatchSnapshot()
-      utils.testSetup.mockInput.pressArrow("down")
+      utils.testSetup!.mockInput.pressArrow("down")
       await utils.renderOnceExpectMatchSnapshot()
-      utils.testSetup.mockInput.pressArrow("up")
-      utils.testSetup.mockInput.pressArrow("up")
-      utils.testSetup.mockInput.pressArrow("up")
+      utils.testSetup!.mockInput.pressArrow("up")
+      utils.testSetup!.mockInput.pressArrow("up")
+      utils.testSetup!.mockInput.pressArrow("up")
       await utils.renderOnceExpectMatchSnapshot()
+    })
+
+    test("search should narrow candidates", async () => {
+      utils.testSetup = await testRenderTui(SIZES.MEDIUM, { height: 30 })
+      await openDialogAndSleep()
+      await utils.testSetup!.renderOnce()
+      await utils.testSetup!.mockInput.typeText("mockmodel2")
+      await utils.renderOnceExpectMatchSnapshot()
+    })
+
+    test("enter should select first model", async () => {
+      utils.testSetup = await testRenderTui(SIZES.MEDIUM, { height: 30 })
+      await openDialogAndSleep()
+      await utils.testSetup!.renderOnce()
+      await utils.testSetup!.mockInput.typeText("mockmodel2")
+      await utils.testSetup!.mockInput.pressEnter()
+      await utils.renderOnceExpectMatchSnapshot()
+    })
+
+    test("enter with input should set selected model", async () => {
+      utils.testSetup = await testRenderTui(SIZES.MEDIUM, { height: 30 })
+      await openDialogAndSleep()
+      await utils.testSetup!.renderOnce()
+      await utils.testSetup!.mockInput.typeText("mockmodel2")
+      await utils.testSetup!.mockInput.pressEnter()
+      await utils.renderOnceExpectMatchSnapshot()
+    })
+
+    test("enter should not submit prompt", async () => {
+      const mocks = await mockProviders({ useRoute: true })
+      utils.testSetup = await testRenderTui(SIZES.SMALL)
+      await utils.testSetup!.mockInput.typeText("Hello")
+      await openDialogAndSleep()
+      await utils.testSetup!.mockInput.pressEnter()
+      await utils.renderOnceExpectMatchSnapshot()
+      await utils.sleep(200)
+      expect(mocks.useRoute.navigate).not.toHaveBeenCalled()
     })
   })
 
