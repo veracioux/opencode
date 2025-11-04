@@ -16,9 +16,9 @@ exports[`Dialog Model dialog ctrl-x m should open model dialog 1`] = `
                                                                                 
              Recent                                                             
              Mock Model 2 Mock Provider 2                                       
-             Mock Model 1 Mock Provider 1                                       
                                                                                 
              Mock Provider 1                                                    
+             Mock Model 1                                                       
              Mock Model 2                                                       
    ┃                                                                         ┃  
    ┃ >       Mock Provider 2                                                 ┃  
@@ -45,10 +45,10 @@ exports[`Dialog Model dialog item navigation should work 1`] = `
                                                             
     Enter search term                                       
                                                             
-    Recent                                                  
     Mock Model 2 Mock Provider 2                            
-    Mock Model 1 Mock Provider 1                            
                                                             
+    Mock Provider 1                                         
+    Mock Model 1                                            
                                                             
                                                             
   ┃                                                      ┃  
@@ -69,9 +69,9 @@ exports[`Dialog Model dialog item navigation should work 2`] = `
                                                             
     Enter search term                                       
                                                             
-    Mock Model 1 Mock Provider 1                            
                                                             
     Mock Provider 1                                         
+    Mock Model 1                                            
     Mock Model 2                                            
                                                             
                                                             
@@ -140,46 +140,60 @@ exports[`Dialog Model dialog search should narrow candidates 1`] = `
 "
 `;
 
-exports[`Dialog Model dialog enter should set selected model 1`] = `
-"                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                      ▄                         
-                     █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█                    
-                     █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀                    
-                     ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀                    
-                                                       local                    
-                                                                                
-                     Commands                         ctrl+p                    
-                     List sessions                  ctrl+x l                    
-                     Switch model                   ctrl+x m                    
-                     Switch agent                        tab                    
-                                                                                
-                                                                                
-   ┃                                                                         ┃  
-   ┃ >                                                                       ┃  
-   ┃                                                                         ┃  
-   Mock Provider 2 Mock Model 2                                                 
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
- opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
+exports[`Dialog Model dialog enter should select first model 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  Mock Provider 2 Mock Model 2                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Dialog Model dialog enter with input should set selected model 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  Mock Provider 2 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
 "
 `;
 
 exports[`Dialog Model dialog enter should not submit prompt 1`] = `
 "                                                            
                                                             
-        ┃                                                ┃  
-        ┃  Model mock-provider-2/undefined is not valid  ┃  
-        ┃                                                ┃  
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
            ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
                                              local          
                                                             
@@ -192,7 +206,7 @@ exports[`Dialog Model dialog enter should not submit prompt 1`] = `
   ┃                                                      ┃  
   ┃ > Hello                                              ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  Mock Provider 2 Mock Model 2                              
                                                             
  opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
 "
@@ -333,73 +347,5 @@ exports[`Dialog esc should close dialog 1`] = `
   Mock Provider 1 Mock Model 1                              
                                                             
  opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
-exports[`Dialog Model dialog enter should select first model 1`] = `
-"                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                      ▄                         
-                     █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█                    
-                     █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀                    
-                     ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀                    
-                                                       local                    
-                                                                                
-                     Commands                         ctrl+p                    
-                     List sessions                  ctrl+x l                    
-                     Switch model                   ctrl+x m                    
-                     Switch agent                        tab                    
-                                                                                
-                                                                                
-   ┃                                                                         ┃  
-   ┃ >                                                                       ┃  
-   ┃                                                                         ┃  
-   Mock Provider 2 Mock Model 2                                                 
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
- opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
-exports[`Dialog Model dialog enter with input should set selected model 1`] = `
-"                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                      ▄                         
-                     █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█                    
-                     █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀                    
-                     ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀                    
-                                                       local                    
-                                                                                
-                     Commands                         ctrl+p                    
-                     List sessions                  ctrl+x l                    
-                     Switch model                   ctrl+x m                    
-                     Switch agent                        tab                    
-                                                                                
-                                                                                
-   ┃                                                                         ┃  
-   ┃ >                                                                       ┃  
-   ┃                                                                         ┃  
-   Mock Provider 2 Mock Model 2                                                 
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
- opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
 "
 `;

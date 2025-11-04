@@ -2,13 +2,14 @@ import { type CommandOption } from "@/cli/cmd/tui/component/dialog-command"
 import { Config } from "@/config/config"
 import type { Agent, Model, OpencodeClient, Provider } from "@opencode-ai/sdk"
 import { RGBA } from "@opentui/core"
-import { createEventBus, createGlobalEmitter } from "@solid-primitives/event-bus"
-import { afterEach, beforeAll, beforeEach, expect, mock, setSystemTime } from "bun:test"
+import { createGlobalEmitter } from "@solid-primitives/event-bus"
+import { afterEach, beforeAll, beforeEach, expect, mock } from "bun:test"
 import { type Context } from "solid-js"
 import os from "os"
-import fs from "fs/promises"
+import fsPromises from "fs/promises"
+import fs from "fs"
 import path from "path"
-import type { testRenderTui } from "./fixture_"
+import { type testRenderTui } from "./fixture_"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
 const nameToContextMap = new Map<string, Context<unknown>>()
@@ -19,6 +20,47 @@ let knownUseFns: Awaited<ReturnType<typeof setUpProviderMocking>>
 export async function setUpProviderMocking() {
   const { createSimpleContext } = await import("@/cli/cmd/tui/context/helper")
   const { useContext } = await import("solid-js")
+  const global = await import("@/global")
+
+  function ensureXdgDir(name: string) {
+    let home = process.env.HOME
+    if (!home?.startsWith("/tmp"))
+      home = fs.mkdtempSync(path.join(os.tmpdir(), "opencode-test-"))
+    const dir = path.join(home, name)
+    fs.mkdirSync(dir, { recursive: true })
+    return dir
+  }
+  mock.module("@/global", () => ({
+    ...global,
+    Global: {
+      ...global.Global,
+      Path: {
+        ...global.Global.Path,
+        get state() {
+          return ensureXdgDir("state")
+        },
+        get config() {
+          return ensureXdgDir("config")
+        },
+        get cache() {
+          return ensureXdgDir("cache")
+        },
+        get home() {
+          return ensureXdgDir("")
+        },
+        get data() {
+          return ensureXdgDir("data")
+        },
+        get bin() {
+          return ensureXdgDir("bin")
+        },
+        get log() {
+          return ensureXdgDir("log")
+        },
+      } satisfies typeof global.Global.Path,
+    }
+  }))
+
   mock.module("@/cli/cmd/tui/context/helper.tsx", () => ({
     createSimpleContext(input: {
       name: string
@@ -42,6 +84,7 @@ export async function setUpProviderMocking() {
     },
   }))
   mock.module("solid-js", () => ({
+    // ErrorBoundary: StubErrorBoundary,
     useContext(ctx: Context<any>) {
       const mockedValue = mockedProviderValues.get(contextToUseFnMap.get(ctx) as any)
       return mockedValue ?? useContext(ctx)
@@ -115,12 +158,7 @@ export async function mockProviders<T extends MockConfig>(
           providerID: "mock-provider-1",
         }),
         set: mock(),
-        recent: () => [
-          {
-            providerID: "mock-provider-2",
-            modelID: "mock-model-1",
-          },
-        ],
+        recent: () => [],
         cycle: mock(),
         parsed: mock(() => ({
           provider: "mock-provider-1",
@@ -361,9 +399,9 @@ export type OpencodeClientPlain = {
 
 export function setUpCommonHooksAndUtils() {
   let tmpdir: string
-  let homedir: string
   const utils = {
-    testSetup: undefined as Awaited<ReturnType<typeof testRenderTui>> | undefined,
+    testSetup: null as unknown as Awaited<ReturnType<typeof testRenderTui>>,
+    homedir: null as unknown as string,
     renderOnceExpectMatchSnapshot: async function () {
       await this.testSetup!.renderOnce()
       const frame = this.testSetup!.captureCharFrame()
@@ -371,7 +409,7 @@ export function setUpCommonHooksAndUtils() {
     },
     sleep(ms: number) {
       return new Promise((r) => setTimeout(r, ms))
-    }
+    },
   }
 
   beforeAll(async () => {
@@ -379,13 +417,13 @@ export function setUpCommonHooksAndUtils() {
     process.chdir(tmpdir)
   })
   beforeEach(async () => {
-    homedir = await fs.mkdtemp(tmpdir + path.sep)
-    process.env.HOME = homedir
+    utils.homedir = await fsPromises.mkdtemp(tmpdir + path.sep)
+    process.env.HOME = utils.homedir
     process.env.TZ = "America/Los_Angeles"
   })
   afterEach(async () => {
     mock.restore()
-    await fs.rm(homedir, { recursive: true })
+    await fsPromises.rm(utils.homedir, { recursive: true })
   })
   afterEach(async () => {
     // Without this delay, some tests cause
