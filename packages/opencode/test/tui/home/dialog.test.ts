@@ -71,6 +71,14 @@ describe("Dialog", () => {
     await utils.renderOnceExpectMatchSnapshot()
   })
 
+  test("/theme should open theme list dialog", async () => {
+    utils.testSetup = await testRenderTui(SIZES.SMALL)
+    await utils.testSetup.mockInput.typeText("/theme")
+    await utils.testSetup.mockInput.pressEnter()
+    await utils.sleep(50)
+    await utils.renderOnceExpectMatchSnapshot()
+  })
+
   test("ctrl-x a should open agent list dialog", async () => {
     utils.testSetup = await testRenderTui(SIZES.MEDIUM)
     utils.testSetup.mockInput.pressKey("x", { ctrl: true })

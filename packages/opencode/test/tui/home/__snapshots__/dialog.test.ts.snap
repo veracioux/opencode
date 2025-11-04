@@ -90,6 +90,30 @@ exports[`Dialog ctrl-x l should open session list dialog 1`] = `
 "
 `;
 
+exports[`Dialog /theme should open theme list dialog 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+                                                            
+    Themes                                            esc   
+                                                            
+    Enter search term                                       
+                                                            
+    aura                                                    
+    ayu                                                     
+    catppuccin                                              
+    cobalt2                                                 
+                                                            
+                                                            
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
 exports[`Dialog ctrl-x a should open agent list dialog 1`] = `
 "                                                                                
                                                                                 
