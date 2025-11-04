@@ -1,6 +1,18 @@
 await setUpProviderMocking()
 
-import { test, expect, describe, beforeAll, beforeEach, mock, afterEach, xtest, spyOn, type Mock, xdescribe } from "bun:test"
+import {
+  test,
+  expect,
+  describe,
+  beforeAll,
+  beforeEach,
+  mock,
+  afterEach,
+  xtest,
+  spyOn,
+  type Mock,
+  xdescribe,
+} from "bun:test"
 import { mockProviders, setUpCommonHooks, setUpProviderMocking, type MockConfig } from "./fixture"
 import { testRenderTui } from "./fixture_.tsx"
 import { mockIdentifiers } from "../fixture/fixture.ts"
@@ -74,30 +86,42 @@ describe("Home", () => {
 
     expect(mocks.useSDK.client.session.create).toHaveBeenCalledWith({})
     expect(mocks.useSDK.client.session.prompt).toHaveBeenCalledWith({
-      "body": {
-        "agent": "mock-agent-1",
-        "messageID": "message_1",
-        "model": {
-          "modelID": "mock-model-1",
-          "providerID": "mock-provider-1",
+      body: {
+        agent: "mock-agent-1",
+        messageID: "message_1",
+        model: {
+          modelID: "mock-model-1",
+          providerID: "mock-provider-1",
         },
-        "modelID": "mock-model-1",
-        "parts": [
+        modelID: "mock-model-1",
+        parts: [
           {
-            "id": "part_1",
-            "text": "Hello, world!",
-            "type": "text",
+            id: "part_1",
+            text: "Hello, world!",
+            type: "text",
           },
         ],
-        "providerID": "mock-provider-1",
+        providerID: "mock-provider-1",
       },
-      "path": {
-        "id": "ses_1",
+      path: {
+        id: "ses_1",
       },
     })
     await new Promise((r) => setTimeout(r, 300)) // wait for tui to update
     await ns.testSetup.renderOnce()
 
+    const frame = ns.testSetup.captureCharFrame()
+    expect(frame).toMatchSnapshot()
+  })
+
+  test("/ should open autocomplete", async () => {
+    ns.testSetup = await testRenderTui({
+      width: 60,
+      height: 20,
+    })
+    await ns.testSetup.renderOnce()
+    await ns.testSetup.mockInput.typeText("/")
+    await ns.testSetup.renderOnce()
     const frame = ns.testSetup.captureCharFrame()
     expect(frame).toMatchSnapshot()
   })

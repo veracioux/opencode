@@ -82,6 +82,30 @@ exports[`Home prompt should start a new session 1`] = `
 "
 `;
 
+exports[`Home / should open autocomplete 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+  ┃ /new       create a new session                      ┃  
+  ┃ /models    list models                               ┃  
+  ┃ /agents    list agents                               ┃  
+  ┃ /session   list sessions                             ┃  
+  ┃ /status    show status                               ┃  
+  ┃ /theme     toggle theme                              ┃  
+  ┃ /editor    open editor                               ┃  
+  ┃ /help      show help                                 ┃  
+  ┃ /commands  show all commands                         ┃  
+  ┃ /exit      exit the app                              ┃  
+  ┃                                                      ┃  
+  ┃ > /                                                  ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
 exports[`Home Model dialog should open model dialog 1`] = `
 "                                                                                
                                                                                 
