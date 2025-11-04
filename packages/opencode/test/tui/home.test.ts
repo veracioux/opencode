@@ -59,6 +59,7 @@ describe("Home", () => {
     expect(frame).toMatchSnapshot()
   })
 
+  // FIXME: Set up better mocks so it actually displays a message
   test("prompt should start a new session", async () => {
     const mocks = await mockProviders({
       useSDK: (draft) => ({
