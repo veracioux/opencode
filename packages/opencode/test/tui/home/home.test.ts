@@ -78,7 +78,6 @@ describe("Home", () => {
     await mockIdentifiers()
 
     ns.testSetup = await testRenderTui(SIZES.MEDIUM)
-    await ns.testSetup.renderOnce()
     await ns.testSetup.mockInput.typeText("Hello, world!")
     await ns.testSetup.mockInput.pressEnter()
     await ns.testSetup.renderOnce()
@@ -263,6 +262,15 @@ describe("Home", () => {
           expect(frame).toMatchSnapshot()
         })
 
+        test("should not open in the middle of text", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.mockInput.typeText("blah /")
+          await new Promise((r) => setTimeout(r, 100))
+          await ns.testSetup.renderOnce()
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
+
         test("should narrow /ex input to /exit", async () => {
           ns.testSetup = await testRenderTui(SIZES.SMALL)
           await ns.testSetup.renderOnce()
@@ -273,13 +281,24 @@ describe("Home", () => {
         })
 
         test("enter should trigger action", async () => {
-          const mocks = await mockProviders({})
+          const mocks = await mockProviders()
           ns.testSetup = await testRenderTui(SIZES.SMALL)
           await ns.testSetup.renderOnce()
           await ns.testSetup.mockInput.typeText("/ex")
           await ns.testSetup.mockInput.pressEnter()
           await ns.testSetup.renderOnce()
           expect(mocks.useExit).toHaveBeenCalled()
+
+          const frame = ns.testSetup.captureCharFrame()
+          expect(frame).toMatchSnapshot()
+        })
+
+        test("enter on custom command should expect args", async () => {
+          ns.testSetup = await testRenderTui(SIZES.SMALL)
+          await ns.testSetup.renderOnce()
+          await ns.testSetup.mockInput.typeText("/long-c")
+          await ns.testSetup.mockInput.pressEnter()
+          await ns.testSetup.renderOnce()
 
           const frame = ns.testSetup.captureCharFrame()
           expect(frame).toMatchSnapshot()
