@@ -154,6 +154,30 @@ exports[`Home Toast should clear after timeout 1`] = `
 "
 `;
 
+exports[`Home Prompt ! should trigger shell mode 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ !  echo test                                         ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
 exports[`Home Prompt / should open autocomplete 1`] = `
 "                                                            
                                                             
@@ -226,7 +250,79 @@ exports[`Home Prompt /ex + enter should trigger action 1`] = `
 "
 `;
 
-exports[`Home Prompt ! should trigger shell mode 1`] = `
+exports[`Home Prompt @ autocomplete should open autocomplete 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+  ┃ @mock-agent-1                                        ┃  
+  ┃ @mock-agent-2                                        ┃  
+  ┃ @mock-agent-3                                        ┃  
+  ┃ /non/existent/file1.txt                              ┃  
+  ┃ /non/existent/file2.txt                              ┃  
+  ┃                                                      ┃  
+  ┃ > @                                                  ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Home Prompt @ autocomplete should match items correctly 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+  ┃ /non/existent/file1.txt                              ┃  
+  ┃                                                      ┃  
+  ┃ > @nonexfile1                                        ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Home Prompt @ autocomplete should submit on enter 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+  ┃ /non/existent/file1.txt                              ┃  
+  ┃                                                      ┃  
+  ┃ > @nonexfile1                                        ┃  
+  ┃                                                      ┃  
+  Mock Provider 1 Mock Model 1                              
+                                                            
+ opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+"
+`;
+
+exports[`Home Prompt @ autocomplete should close on esc 1`] = `
 "                                                            
                                                             
                                             ▄               
@@ -242,7 +338,7 @@ exports[`Home Prompt ! should trigger shell mode 1`] = `
                                                             
                                                             
   ┃                                                      ┃  
-  ┃ !  echo test                                         ┃  
+  ┃ > @nonexfile1                                        ┃  
   ┃                                                      ┃  
   Mock Provider 1 Mock Model 1                              
                                                             

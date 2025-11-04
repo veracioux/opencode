@@ -13,7 +13,13 @@ import {
   type Mock,
   xdescribe,
 } from "bun:test"
-import { mockProviders, setUpCommonHooks, setUpProviderMocking, SIZES, type MockConfig } from "../fixture"
+import {
+  mockProviders,
+  setUpCommonHooks,
+  setUpProviderMocking,
+  SIZES,
+  type MockConfig,
+} from "../fixture"
 import { testRenderTui } from "../fixture_.tsx"
 import { mockIdentifiers } from "../../fixture/fixture.ts"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
@@ -180,6 +186,15 @@ describe("Home", () => {
   })
 
   describe("Prompt", () => {
+    test("! should trigger shell mode", async () => {
+      ns.testSetup = await testRenderTui(SIZES.SMALL)
+      await ns.testSetup.renderOnce()
+      await ns.testSetup.mockInput.typeText("! echo test")
+      await ns.testSetup.renderOnce()
+      const frame = ns.testSetup.captureCharFrame()
+      expect(frame).toMatchSnapshot()
+    })
+
     test("/ should open autocomplete", async () => {
       ns.testSetup = await testRenderTui(SIZES.SMALL)
       await ns.testSetup.renderOnce()
@@ -211,10 +226,90 @@ describe("Home", () => {
       expect(frame).toMatchSnapshot()
     })
 
-    test("! should trigger shell mode", async () => {
+    describe("@ autocomplete", () => {
+      beforeEach(async () => {
+        await mockProviders({
+          useSDK: (draft) => ({
+            ...draft,
+            client: {
+              ...draft.client,
+              find: {
+                ...draft.client.find,
+                files() {
+                  return {
+                    data: [
+                      "/non/existent/file1.txt",
+                      "/non/existent/file2.txt",
+                    ],
+                  } as any
+                }
+              },
+            }
+          })
+        })
+      })
+
+      test("should open autocomplete", async () => {
+        ns.testSetup = await testRenderTui(SIZES.SMALL)
+        await ns.testSetup.renderOnce()
+        await ns.testSetup.mockInput.typeText("@")
+        await ns.testSetup.renderOnce()
+        const frame = ns.testSetup.captureCharFrame()
+        expect(frame).toMatchSnapshot()
+      })
+
+      test("should match items correctly", async () => {
+        ns.testSetup = await testRenderTui(SIZES.SMALL)
+        await ns.testSetup.renderOnce()
+        await ns.testSetup.mockInput.typeText("@nonexfile1")
+        await ns.testSetup.renderOnce()
+        const frame = ns.testSetup.captureCharFrame()
+        expect(frame).toMatchSnapshot()
+      })
+
+      test("should submit on enter", async () => {
+        ns.testSetup = await testRenderTui(SIZES.SMALL)
+        await ns.testSetup.renderOnce()
+        await ns.testSetup.mockInput.typeText("@nonexfile1")
+        await ns.testSetup.mockInput.pressEnter()
+        await ns.testSetup.renderOnce()
+        const frame = ns.testSetup.captureCharFrame()
+        expect(frame).toMatchSnapshot()
+      })
+
+      test("should close on esc", async () => {
+        ns.testSetup = await testRenderTui(SIZES.SMALL)
+        await ns.testSetup.renderOnce()
+        await ns.testSetup.mockInput.typeText("@nonexfile1")
+        await ns.testSetup.mockInput.pressEscape()
+        await new Promise((r) => setTimeout(r, 50))
+        await ns.testSetup.renderOnce()
+        const frame = ns.testSetup.captureCharFrame()
+        expect(frame).toMatchSnapshot()
+      })
+    })
+
+    // Behavior to be implemented, PR is open
+    test.todo("/ exact matches should be prioritized", async () => {
+      await mockProviders({
+        useSync: (draft) => ({
+          ...draft,
+          data: {
+            ...draft.data,
+            command: [
+              ...draft.data.command,
+              {
+                name: "e",
+                description: "An example command",
+              },
+            ],
+          } as any,
+        }),
+      })
+
       ns.testSetup = await testRenderTui(SIZES.SMALL)
       await ns.testSetup.renderOnce()
-      await ns.testSetup.mockInput.typeText("! echo test")
+      await ns.testSetup.mockInput.typeText("/e")
       await ns.testSetup.renderOnce()
       const frame = ns.testSetup.captureCharFrame()
       expect(frame).toMatchSnapshot()
