@@ -21,8 +21,6 @@ import {
   type MockConfig,
 } from "../fixture"
 import { testRenderTui } from "../fixture_.tsx"
-import { mockIdentifiers } from "../../fixture/fixture.ts"
-import { createGlobalEmitter } from "@solid-primitives/event-bus"
 
 const utils = setUpCommonHooksAndUtils()
 
@@ -44,11 +42,29 @@ describe("Dialog", () => {
     } satisfies Required<MockConfig>)
   })
 
-  test("ctrl-x m should open model dialog", async () => {
-    utils.testSetup = await testRenderTui(SIZES.MEDIUM)
-    utils.testSetup.mockInput.pressKey("x", { ctrl: true })
-    utils.testSetup.mockInput.pressKey("m")
-    await utils.renderOnceExpectMatchSnapshot()
+  describe("Model dialog", () => {
+    test("ctrl-x m should open model dialog", async () => {
+      utils.testSetup = await testRenderTui(SIZES.MEDIUM)
+      utils.testSetup.mockInput.pressKey("x", { ctrl: true })
+      utils.testSetup.mockInput.pressKey("m")
+      await utils.renderOnceExpectMatchSnapshot()
+    })
+
+    test("item navigation should work", async () => {
+      utils.testSetup = await testRenderTui(SIZES.SMALL)
+      await utils.testSetup.mockInput.typeText("/model")
+      await utils.testSetup.mockInput.pressEnter()
+      await utils.testSetup.renderOnce()
+      await utils.sleep(50)
+      utils.testSetup.mockInput.pressArrow("down")
+      await utils.renderOnceExpectMatchSnapshot()
+      utils.testSetup.mockInput.pressArrow("down")
+      await utils.renderOnceExpectMatchSnapshot()
+      utils.testSetup.mockInput.pressArrow("up")
+      utils.testSetup.mockInput.pressArrow("up")
+      utils.testSetup.mockInput.pressArrow("up")
+      await utils.renderOnceExpectMatchSnapshot()
+    })
   })
 
   test("ctrl-x p should open command dialog", async () => {
@@ -93,23 +109,5 @@ describe("Dialog", () => {
     utils.testSetup.mockInput.pressEscape()
     await utils.sleep(50)
     await utils.renderOnceExpectMatchSnapshot()
-  })
-
-  describe("Common behavior", () => {
-    test("item navigation should work", async () => {
-      utils.testSetup = await testRenderTui(SIZES.SMALL)
-      await utils.testSetup.mockInput.typeText("/model")
-      await utils.testSetup.mockInput.pressEnter()
-      await utils.testSetup.renderOnce()
-      await utils.sleep(50)
-      utils.testSetup.mockInput.pressArrow("down")
-      await utils.renderOnceExpectMatchSnapshot()
-      utils.testSetup.mockInput.pressArrow("down")
-      await utils.renderOnceExpectMatchSnapshot()
-      utils.testSetup.mockInput.pressArrow("up")
-      utils.testSetup.mockInput.pressArrow("up")
-      utils.testSetup.mockInput.pressArrow("up")
-      await utils.renderOnceExpectMatchSnapshot()
-    })
   })
 })
