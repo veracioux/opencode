@@ -310,8 +310,8 @@ export async function mockProviders<T extends MockConfig>(
           {
             name: "mock-agent-2",
             model: {
-              providerID: "mock-provider-2",
-              modelID: "mock-model-1",
+              providerID: "mock-provider-1",
+              modelID: "mock-model-2",
             },
           } as Agent,
           {
