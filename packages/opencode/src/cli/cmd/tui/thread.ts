@@ -61,7 +61,7 @@ export const TuiThreadCommand = cmd({
     const prompt = await (async () => {
       const piped = !process.stdin.isTTY ? await Bun.stdin.text() : undefined
       if (!args.prompt) return piped
-      return piped ? piped + "\n" + args.prompt : args.prompt
+      return piped ? args.prompt + "\n" + piped : args.prompt
     })()
 
     let stdin: NodeJS.ReadStream
