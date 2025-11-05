@@ -90,7 +90,7 @@ export function Code(props: Props) {
     let ticking = false
     const onScroll = () => {
       if (!container) return
-      if (ctx.file.active()?.path !== local.path) return
+      // if (ctx.file.active()?.path !== local.path) return
       if (ticking) return
       ticking = true
       requestAnimationFrame(() => {
@@ -99,20 +99,20 @@ export function Code(props: Props) {
       })
     }
 
-    const onSelectionChange = () => {
+    const onSelectionChange = async () => {
       if (!container) return
       if (isProgrammaticSelection) return
-      if (ctx.file.active()?.path !== local.path) return
+      // if (ctx.file.active()?.path !== local.path) return
       const d = getSelectionInContainer(container)
       if (!d) return
-      const p = ctx.file.node(local.path)?.selection
+      const p = (await ctx.file.node(local.path))?.selection
       if (p && p.startLine === d.sl && p.endLine === d.el && p.startChar === d.sch && p.endChar === d.ech) return
       ctx.file.select(local.path, { startLine: d.sl, startChar: d.sch, endLine: d.el, endChar: d.ech })
     }
 
     const MOD = typeof navigator === "object" && /(Mac|iPod|iPhone|iPad)/.test(navigator.platform) ? "Meta" : "Control"
     const onKeyDown = (e: KeyboardEvent) => {
-      if (ctx.file.active()?.path !== local.path) return
+      // if (ctx.file.active()?.path !== local.path) return
       const ae = document.activeElement as HTMLElement | undefined
       const tag = (ae?.tagName || "").toLowerCase()
       const inputFocused = !!ae && (tag === "input" || tag === "textarea" || ae.isContentEditable)
@@ -144,21 +144,21 @@ export function Code(props: Props) {
   })
 
   // Restore scroll position from store when content is ready
-  createEffect(() => {
+  createEffect(async () => {
     const content = html()
     if (!container || !content) return
-    const top = ctx.file.node(local.path)?.scrollTop
+    const top = (await ctx.file.node(local.path))?.scrollTop
     if (top !== undefined && container.scrollTop !== top) container.scrollTop = top
   })
 
   // Sync selection from store -> DOM
-  createEffect(() => {
+  createEffect(async () => {
     const content = html()
     if (!container || !content) return
-    if (ctx.file.active()?.path !== local.path) return
+    // if (ctx.file.active()?.path !== local.path) return
     const codeEl = container.querySelector("code") as HTMLElement | undefined
     if (!codeEl) return
-    const target = ctx.file.node(local.path)?.selection
+    const target = (await ctx.file.node(local.path))?.selection
     const current = getSelectionInContainer(container)
     const sel = window.getSelection()
     if (!sel) return

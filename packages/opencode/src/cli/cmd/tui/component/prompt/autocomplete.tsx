@@ -49,12 +49,23 @@ export function Autocomplete(props: {
   })
   const filter = createMemo(() => {
     if (!store.visible) return
-    return props.value.substring(store.index + 1).split(" ")[0]
+    // Track props.value to make memo reactive to text changes
+    props.value // <- there surely is a better way to do this, like making .input() reactive
+
+    const val = props.input().getTextRange(store.index + 1, props.input().cursorOffset + 1)
+
+    // If the filter contains a space, hide the autocomplete
+    if (val.includes(" ")) {
+      hide()
+      return undefined
+    }
+
+    return val
   })
 
   function insertPart(text: string, part: PromptInfo["parts"][number]) {
     const input = props.input()
-    const currentCursorOffset = input.visualCursor.offset
+    const currentCursorOffset = input.cursorOffset
 
     const charAfterCursor = props.value.at(currentCursorOffset)
     const needsSpace = charAfterCursor !== " "
@@ -70,7 +81,7 @@ export function Autocomplete(props: {
 
     const virtualText = "@" + text
     const extmarkStart = store.index
-    const extmarkEnd = extmarkStart + virtualText.length
+    const extmarkEnd = extmarkStart + Bun.stringWidth(virtualText)
 
     const styleId =
       part.type === "file"
@@ -153,7 +164,6 @@ export function Autocomplete(props: {
   )
 
   const agents = createMemo(() => {
-    if (store.index !== 0) return []
     const agents = sync.data.agent
     return agents
       .filter((agent) => !agent.builtIn && agent.mode !== "primary")
@@ -199,7 +209,10 @@ export function Autocomplete(props: {
         {
           display: "/undo",
           description: "undo the last message",
-          onSelect: () => command.trigger("session.undo"),
+          onSelect: () => {
+            hide()
+            command.trigger("session.undo")
+          },
         },
         {
           display: "/redo",
@@ -229,6 +242,21 @@ export function Autocomplete(props: {
           description: "rename session",
           onSelect: () => command.trigger("session.rename"),
         },
+        {
+          display: "/copy",
+          description: "copy session transcript to clipboard",
+          onSelect: () => command.trigger("session.copy"),
+        },
+        {
+          display: "/export",
+          description: "export session transcript to file",
+          onSelect: () => command.trigger("session.export"),
+        },
+        {
+          display: "/timeline",
+          description: "jump to message",
+          onSelect: () => command.trigger("session.timeline"),
+        },
       )
     }
     results.push(
@@ -256,6 +284,7 @@ export function Autocomplete(props: {
       },
       {
         display: "/status",
+        aliases: ["/mcp"],
         description: "show status",
         onSelect: () => command.trigger("opencode.status"),
       },
@@ -303,7 +332,7 @@ export function Autocomplete(props: {
     const currentFilter = filter()
     if (!currentFilter) return mixed.slice(0, 10)
     const result = fuzzysort.go(currentFilter, mixed, {
-      keys: ["display", "description", (obj) => obj.aliases?.join(" ") ?? ""],
+      keys: [(obj) => obj.display.trimEnd(), "description", (obj) => obj.aliases?.join(" ") ?? ""],
       limit: 10,
     })
     return result.map((arr) => arr.obj)
@@ -334,7 +363,7 @@ export function Autocomplete(props: {
     command.keybinds(false)
     setStore({
       visible: mode,
-      index: props.input().visualCursor.offset,
+      index: props.input().cursorOffset,
       position: {
         x: props.anchor().x,
         y: props.anchor().y,
@@ -358,33 +387,65 @@ export function Autocomplete(props: {
       get visible() {
         return store.visible
       },
-      onInput(value: string) {
-        if (store.visible && value.length <= store.index) hide()
+      onInput() {
+        if (store.visible) {
+          if (props.input().cursorOffset <= store.index) {
+            hide()
+            return
+          }
+          // Check if a space was typed after the trigger character
+          const currentText = props
+            .input()
+            .getTextRange(store.index + 1, props.input().cursorOffset + 1)
+          if (currentText.includes(" ")) {
+            hide()
+          }
+        }
       },
       onKeyDown(e: KeyEvent) {
         if (store.visible) {
-          if (e.name === "up") move(-1)
-          if (e.name === "down") move(1)
-          if (e.name === "escape") hide()
-          if (e.name === "return" || e.name === "tab") select()
-          if (["up", "down", "return", "tab", "escape"].includes(e.name)) e.preventDefault()
+          const name = e.name?.toLowerCase()
+          const ctrlOnly = e.ctrl && !e.meta && !e.shift
+          const isNavUp = name === "up" || (ctrlOnly && name === "p")
+          const isNavDown = name === "down" || (ctrlOnly && name === "n")
+
+          if (isNavUp) {
+            move(-1)
+            e.preventDefault()
+            return
+          }
+          if (isNavDown) {
+            move(1)
+            e.preventDefault()
+            return
+          }
+          if (name === "escape") {
+            hide()
+            e.preventDefault()
+            return
+          }
+          if (name === "return" || name === "tab") {
+            select()
+            e.preventDefault()
+            return
+          }
         }
         if (!store.visible) {
           if (e.name === "@") {
-            const cursorOffset = props.input().visualCursor.offset
+            const cursorOffset = props.input().cursorOffset
             const charBeforeCursor =
-              cursorOffset === 0 ? undefined : props.value.at(cursorOffset - 1)
-            if (
-              charBeforeCursor === " " ||
-              charBeforeCursor === "\n" ||
-              charBeforeCursor === undefined
-            ) {
-              show("@")
-            }
+              cursorOffset === 0
+                ? undefined
+                : props.input().getTextRange(cursorOffset - 1, cursorOffset)
+            const canTrigger =
+              charBeforeCursor === undefined ||
+              charBeforeCursor === "" ||
+              /\s/.test(charBeforeCursor)
+            if (canTrigger) show("@")
           }
 
           if (e.name === "/") {
-            if (props.input().visualCursor.offset === 0) show("/")
+            if (props.input().cursorOffset === 0) show("/")
           }
         }
       },
