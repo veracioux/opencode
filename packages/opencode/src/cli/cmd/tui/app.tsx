@@ -2,7 +2,7 @@ import { render, useKeyboard, useRenderer, useTerminalDimensions } from "@opentu
 import { Clipboard } from "@tui/util/clipboard"
 import { TextAttributes } from "@opentui/core"
 import { RouteProvider, useRoute, type Route } from "@tui/context/route"
-import { Switch, Match, createEffect, untrack, ErrorBoundary, createSignal } from "solid-js"
+import { Switch, Match, createEffect, untrack, ErrorBoundary, createSignal, batch, onMount } from "solid-js"
 import { Installation } from "@/installation"
 import { Global } from "@/global"
 import { DialogProvider, useDialog } from "@tui/ui/dialog"
@@ -24,10 +24,11 @@ import { PromptHistoryProvider } from "./component/prompt/history"
 import { DialogAlert } from "./ui/dialog-alert"
 import { ToastProvider, useToast } from "./ui/toast"
 import { ExitProvider, useExit } from "./context/exit"
-import type { SessionRoute } from "./context/route"
 import { Session as SessionApi } from "@/session"
 import { TuiEvent } from "./event"
 import { KVProvider, useKV } from "./context/kv"
+import { Identifier } from "@/id/id"
+import { iife } from "@/util/iife"
 
 async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
   // can't set raw mode if not a TTY
@@ -131,13 +132,12 @@ export function tui(input: {
                           <LocalProvider
                             initialModel={input.model}
                             initialAgent={input.agent}
-                            initialPrompt={input.prompt}
                           >
                             <KeybindProvider>
                               <DialogProvider>
                                 <CommandProvider>
                                   <PromptHistoryProvider>
-                                    <App />
+                                    <App initialPrompt={input.prompt} />
                                   </PromptHistoryProvider>
                                 </CommandProvider>
                               </DialogProvider>
@@ -163,7 +163,7 @@ export function tui(input: {
   })
 }
 
-function App() {
+function App(props: { initialPrompt?: string }) {
   const route = useRoute()
   const dimensions = useTerminalDimensions()
   const renderer = useRenderer()
@@ -175,9 +175,9 @@ function App() {
   const { event } = useSDK()
   const sync = useSync()
   const toast = useToast()
-  const [sessionExists, setSessionExists] = createSignal(false)
   const { theme, mode, setMode } = useTheme()
   const exit = useExit()
+  const sdk = useSDK()
 
   useKeyboard(async (evt) => {
     if (!Installation.isLocal()) return
@@ -192,18 +192,64 @@ function App() {
     }
   })
 
+  const [sessionExists, setSessionExists] = createSignal<boolean | undefined>(undefined)
+
   // Make sure session is valid, otherwise redirect to home
   createEffect(async () => {
+    let sessionExists = false
     if (route.data.type === "session") {
-      const data = route.data as SessionRoute
-      await sync.session.sync(data.sessionID).catch(() => {
-        toast.show({
-          message: `Session not found: ${data.sessionID}`,
-          variant: "error",
+      const data = route.data
+      await sync.session.sync(data.sessionID)
+        .then(() => {
+          sessionExists = true
         })
-        return route.navigate({ type: "home" })
+        .catch(() => {
+          toast.show({
+            message: `Session not found: ${data.sessionID}`,
+            variant: "error",
+          })
+          return route.navigate({ type: "home" })
+        })
+    }
+    setSessionExists(sessionExists)
+  })
+
+  // Ensure session exists for the initial prompt, if provided
+  createEffect(async () => {
+    if (props.initialPrompt && sessionExists() === false) {
+      const res = await sdk.client.session.create({ throwOnError: true })
+        .catch(() => toast.show({ message: `Failed to create session`, variant: "error" }))
+      if (res)
+        route.navigate({
+          type: "session",
+          sessionID: res.data.id,
+        })
+    }
+  })
+
+  // Send initial prompt if provided, once session is ready
+  createEffect(async () => {
+    if (props.initialPrompt && route.data.type === "session" && sessionExists()) {
+      await sdk.client.session.prompt({
+        path: {
+          id: route.data.sessionID,
+        },
+        body: {
+          ...local.model.current(),
+          messageID: Identifier.ascending("message"),
+          agent: local.agent.current().name,
+          model: local.model.current(),
+          parts: [
+            {
+              id: Identifier.ascending("part"),
+              type: "text",
+              text: props.initialPrompt,
+            },
+          ],
+        },
+        throwOnError: true,
       })
-      setSessionExists(true)
+        .catch(() => toast.show({ message: `Failed to send prompt`, variant: "error" }))
     }
   })
 

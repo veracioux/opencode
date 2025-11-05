@@ -13,7 +13,7 @@ import { Provider } from "@/provider/provider"
 
 export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
   name: "Local",
-  init: (props: { initialModel?: string; initialAgent?: string; initialPrompt?: string }) => {
+  init: (props: { initialModel?: string; initialAgent?: string }) => {
     const sync = useSync()
     const toast = useToast()
 
@@ -253,16 +253,9 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
 
     const setInitialPrompt = createEventBus<string>()
 
-    onMount(() => {
-      if (props.initialPrompt) setInitialPrompt.emit(props.initialPrompt)
-    })
-
     const result = {
       model,
       agent,
-      get setInitialPrompt() {
-        return setInitialPrompt
-      },
     }
     return result
   },
