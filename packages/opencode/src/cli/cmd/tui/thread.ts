@@ -7,6 +7,8 @@ import { Session } from "@/session"
 import { bootstrap } from "@/cli/bootstrap"
 import path from "path"
 import { UI } from "@/cli/ui"
+import fs from "fs/promises"
+import tty from "tty"
 
 declare global {
   const OPENCODE_WORKER_PATH: string
@@ -61,6 +63,16 @@ export const TuiThreadCommand = cmd({
       if (!args.prompt) return piped
       return piped ? piped + "\n" + args.prompt : args.prompt
     })()
+
+    let stdin: NodeJS.ReadStream
+    try {
+      stdin = process.stdin.isTTY
+        ? process.stdin
+        : new tty.ReadStream((await fs.open("/dev/tty", "r")).fd)
+    } catch (err) {
+      console.error("Failed to open /dev/tty for input. Prompt piping from stdin might not be supported on your platform.")
+      process.exit(1)
+    }
 
     // Resolve relative paths against PWD to preserve behavior when using --cwd flag
     const baseCwd = process.env.PWD ?? process.cwd()
@@ -120,6 +132,7 @@ export const TuiThreadCommand = cmd({
         hostname: args.hostname,
       })
       await tui({
+        stdin,
         url: server.url,
         sessionID,
         model: args.model,

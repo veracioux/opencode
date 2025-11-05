@@ -90,6 +90,7 @@ async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
 }
 
 export function tui(input: {
+  stdin: NodeJS.ReadStream,
   url: string
   sessionID?: string
   model?: string
@@ -158,6 +159,7 @@ export function tui(input: {
         gatherStats: false,
         exitOnCtrlC: false,
         useKittyKeyboard: true,
+        stdin: input.stdin,
       },
     )
   })
