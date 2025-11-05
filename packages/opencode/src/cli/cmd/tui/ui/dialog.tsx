@@ -1,8 +1,9 @@
-import { useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
+import { useRenderer, useTerminalDimensions } from "@opentui/solid"
 import { batch, createContext, Show, useContext, type JSX, type ParentProps } from "solid-js"
 import { useTheme } from "@tui/context/theme"
 import { Renderable, RGBA } from "@opentui/core"
 import { createStore } from "solid-js/store"
+import { useKeybind } from "../context/keybind"
 
 export function Dialog(
   props: ParentProps<{
@@ -43,6 +44,8 @@ export function Dialog(
 }
 
 function init() {
+  const keybind = useKeybind()
+
   const [store, setStore] = createStore({
     stack: [] as {
       element: JSX.Element
@@ -51,14 +54,15 @@ function init() {
     size: "medium" as "medium" | "large",
   })
 
-  useKeyboard((evt) => {
-    if (evt.name === "escape" && store.stack.length > 0) {
+  keybind.keybinds.dialog.close.setHandler(() => {
+    if (store.stack.length > 0) {
       const current = store.stack.at(-1)!
       current.onClose?.()
       setStore("stack", store.stack.slice(0, -1))
-      evt.preventDefault()
       refocus()
+      return true
     }
+    return false
   })
 
   const renderer = useRenderer()

@@ -4,10 +4,10 @@ import { useRoute } from "@tui/context/route"
 import { useSync } from "@tui/context/sync"
 import { createMemo, createSignal, onMount } from "solid-js"
 import { Locale } from "@/util/locale"
-import { Keybind } from "@/util/keybind"
 import { useTheme } from "../context/theme"
 import { useSDK } from "../context/sdk"
 import { DialogSessionRename } from "./dialog-session-rename"
+import { useKeybind } from "../context/keybind"
 
 export function DialogSessionList() {
   const dialog = useDialog()
@@ -15,10 +15,9 @@ export function DialogSessionList() {
   const { theme } = useTheme()
   const route = useRoute()
   const sdk = useSDK()
+  const keybind = useKeybind()
 
   const [toDelete, setToDelete] = createSignal<string>()
-
-  const deleteKeybind = "ctrl+d"
 
   const options = createMemo(() => {
     const today = new Date().toDateString()
@@ -32,7 +31,7 @@ export function DialogSessionList() {
         }
         const isDeleting = toDelete() === x.id
         return {
-          title: isDeleting ? `Press ${deleteKeybind} again to confirm` : x.title,
+          title: isDeleting ? `Press ${keybind.keybinds.dialog.session.delete} again to confirm` : x.title,
           bg: isDeleting ? theme.error : undefined,
           value: x.id,
           category,
@@ -62,7 +61,7 @@ export function DialogSessionList() {
       }}
       keybind={[
         {
-          keybind: Keybind.parse(deleteKeybind)[0],
+          keybind: keybind.keybinds.dialog.session.delete,
           title: "delete",
           onTrigger: async (option) => {
             if (toDelete() === option.value) {
@@ -79,7 +78,7 @@ export function DialogSessionList() {
           },
         },
         {
-          keybind: Keybind.parse("ctrl+r")[0],
+          keybind: keybind.keybinds.dialog.session.rename,
           title: "rename",
           onTrigger: async (option) => {
             dialog.replace(() => <DialogSessionRename session={option.value} />)

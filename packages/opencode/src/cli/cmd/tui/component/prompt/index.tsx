@@ -65,10 +65,8 @@ export function Prompt(props: PromptProps) {
 
   const textareaKeybindings = createMemo(() => {
     const newlineBindings = keybind.all.input_newline || []
-    const submitBindings = keybind.all.input_submit || []
 
     return [
-      { name: "return", action: "submit" },
       { name: "return", meta: true, action: "newline" },
       ...newlineBindings.map((binding) => ({
         name: binding.name,
@@ -76,13 +74,6 @@ export function Prompt(props: PromptProps) {
         meta: binding.meta || undefined,
         shift: binding.shift || undefined,
         action: "newline" as const,
-      })),
-      ...submitBindings.map((binding) => ({
-        name: binding.name,
-        ctrl: binding.ctrl || undefined,
-        meta: binding.meta || undefined,
-        shift: binding.shift || undefined,
-        action: "submit" as const,
       })),
     ]
   })
@@ -540,6 +531,10 @@ export function Prompt(props: PromptProps) {
               keyBindings={textareaKeybindings()}
               onKeyDown={async (e: KeyEvent) => {
                 if (props.disabled) {
+                  e.preventDefault()
+                  return
+                }
+                if (e.name === "return") {
                   e.preventDefault()
                   return
                 }

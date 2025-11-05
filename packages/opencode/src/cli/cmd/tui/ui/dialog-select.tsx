@@ -1,15 +1,15 @@
 import { InputRenderable, RGBA, ScrollBoxRenderable, TextAttributes } from "@opentui/core"
 import { useTheme } from "@tui/context/theme"
 import { entries, filter, flatMap, groupBy, pipe, take } from "remeda"
-import { batch, createEffect, createMemo, For, Show } from "solid-js"
+import { batch, createEffect, createMemo, For, onMount, Show } from "solid-js"
 import { createStore } from "solid-js/store"
-import { useKeyboard, useTerminalDimensions } from "@opentui/solid"
+import { useTerminalDimensions } from "@opentui/solid"
 import * as fuzzysort from "fuzzysort"
 import { isDeepEqual } from "remeda"
 import { useDialog, type DialogContext } from "@tui/ui/dialog"
 import { useKeybind } from "@tui/context/keybind"
-import { Keybind } from "@/util/keybind"
 import { Locale } from "@/util/locale"
+import type { KeybindRegistration } from "../context/keybind_"
 
 export interface DialogSelectProps<T> {
   title: string
@@ -19,7 +19,7 @@ export interface DialogSelectProps<T> {
   onFilter?: (query: string) => void
   onSelect?: (option: DialogSelectOption<T>) => void
   keybind?: {
-    keybind: Keybind.Info
+    keybind: KeybindRegistration
     title: string
     onTrigger: (option: DialogSelectOption<T>) => void
   }[]
@@ -122,28 +122,26 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
   }
 
   const keybind = useKeybind()
-  useKeyboard((evt) => {
-    if (evt.name === "up" || (evt.ctrl && evt.name === "p")) move(-1)
-    if (evt.name === "down" || (evt.ctrl && evt.name === "n")) move(1)
-    if (evt.name === "pageup") move(-10)
-    if (evt.name === "pagedown") move(10)
-    if (evt.name === "return") {
+  onMount(() => {
+    keybind.keybinds.itemSelection.up.setHandler(() => move(-1))
+    keybind.keybinds.itemSelection.down.setHandler(() => move(1))
+    keybind.keybinds.itemSelection.pageup.setHandler(() => move(-10))
+    keybind.keybinds.itemSelection.pagedown.setHandler(() => move(10))
+    keybind.keybinds.itemSelection.return.setHandler(() => {
       const option = selected()
       if (option) {
         // evt.preventDefault()
         if (option.onSelect) option.onSelect(dialog)
         props.onSelect?.(option)
       }
-    }
-
+    })
     for (const item of props.keybind ?? []) {
-      if (Keybind.match(item.keybind, keybind.parse(evt))) {
+      item.keybind.setHandler(() => {
         const s = selected()
         if (s) {
-          evt.preventDefault()
           item.onTrigger(s)
         }
-      }
+      })
     }
   })
 
@@ -175,7 +173,6 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
                 props.onFilter?.(e)
               })
             }}
-            onKeyDown={(e) => {}}
             focusedBackgroundColor={theme.backgroundPanel}
             cursorColor={theme.primary}
             focusedTextColor={theme.textMuted}
@@ -251,7 +248,7 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
           {(item) => (
             <text>
               <span style={{ fg: theme.text, attributes: TextAttributes.BOLD }}>
-                {Keybind.toString(item.keybind)}
+                {item.keybind.combos[0]}
               </span>
               <span style={{ fg: theme.textMuted }}> {item.title}</span>
             </text>

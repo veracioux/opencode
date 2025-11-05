@@ -2,9 +2,9 @@ import { TextAttributes } from "@opentui/core"
 import { useTheme } from "../context/theme"
 import { useDialog, type DialogContext } from "./dialog"
 import { createStore } from "solid-js/store"
-import { For } from "solid-js"
-import { useKeyboard } from "@opentui/solid"
+import { For, onMount } from "solid-js"
 import { Locale } from "@/util/locale"
+import { useKeybind } from "../context/keybind"
 
 export type DialogConfirmProps = {
   title: string
@@ -16,21 +16,22 @@ export type DialogConfirmProps = {
 export function DialogConfirm(props: DialogConfirmProps) {
   const dialog = useDialog()
   const { theme } = useTheme()
+  const keybind = useKeybind()
   const [store, setStore] = createStore({
     active: "confirm" as "confirm" | "cancel",
   })
 
-  useKeyboard((evt) => {
-    if (evt.name === "return") {
+  onMount(() => {
+    keybind.keybinds.dialog.confirm.submit.setHandler(() => {
       if (store.active === "confirm") props.onConfirm?.()
       if (store.active === "cancel") props.onCancel?.()
       dialog.clear()
-    }
-
-    if (evt.name === "left" || evt.name === "right") {
+    })
+    keybind.keybinds.dialog.confirm.cycleFocusedButton.setHandler(() => {
       setStore("active", store.active === "confirm" ? "cancel" : "confirm")
-    }
+    })
   })
+
   return (
     <box paddingLeft={2} paddingRight={2} gap={1}>
       <box flexDirection="row" justifyContent="space-between">

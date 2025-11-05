@@ -5,6 +5,7 @@ import {
   createSignal,
   For,
   Match,
+  onMount,
   Show,
   Switch,
   useContext,
@@ -114,30 +115,24 @@ export function Session() {
   let prompt: PromptRef
   const keybind = useKeybind()
 
-  useKeyboard((evt) => {
-    if (dialog.stack.length > 0) return
-
+  function submitPermission(response: "once" | "always" | "reject") {
     const first = permissions()[0]
-    if (first) {
-      const response = iife(() => {
-        if (evt.name === "return") return "once"
-        if (evt.name === "a") return "always"
-        if (evt.name === "d") return "reject"
-        if (evt.name === "escape") return "reject"
-        return
-      })
-      if (response) {
-        sdk.client.postSessionIdPermissionsPermissionId({
-          path: {
-            permissionID: first.id,
-            id: route.sessionID,
-          },
-          body: {
-            response: response,
-          },
-        })
-      }
-    }
+    if (!first) return
+    sdk.client.postSessionIdPermissionsPermissionId({
+      path: {
+        permissionID: first.id,
+        id: route.sessionID,
+      },
+      body: {
+        response: response,
+      },
+    })
+  }
+
+  onMount(() => {
+    keybind.keybinds.permission.once.setHandler(() => submitPermission("once"))
+    keybind.keybinds.permission.always.setHandler(() => submitPermission("always"))
+    keybind.keybinds.permission.reject.setHandler(() => submitPermission("reject"))
   })
 
   function toBottom() {
@@ -1031,19 +1026,19 @@ function ToolPart(props: { part: ToolPart; message: AssistantMessage }) {
     const style: BoxProps =
       container === "block" || permission
         ? {
-            border: permissionIndex === 0 ? (["left", "right"] as const) : (["left"] as const),
-            paddingTop: 1,
-            paddingBottom: 1,
-            paddingLeft: 2,
-            marginTop: 1,
-            gap: 1,
-            backgroundColor: theme.backgroundPanel,
-            customBorderChars: SplitBorder.customBorderChars,
-            borderColor: permissionIndex === 0 ? theme.warning : theme.background,
-          }
+          border: permissionIndex === 0 ? (["left", "right"] as const) : (["left"] as const),
+          paddingTop: 1,
+          paddingBottom: 1,
+          paddingLeft: 2,
+          marginTop: 1,
+          gap: 1,
+          backgroundColor: theme.backgroundPanel,
+          customBorderChars: SplitBorder.customBorderChars,
+          borderColor: permissionIndex === 0 ? theme.warning : theme.background,
+        }
         : {
-            paddingLeft: 3,
-          }
+          paddingLeft: 3,
+        }
 
     return (
       <box

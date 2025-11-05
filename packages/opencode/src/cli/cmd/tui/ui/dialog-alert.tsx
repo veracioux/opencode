@@ -2,6 +2,8 @@ import { TextAttributes } from "@opentui/core"
 import { useTheme } from "../context/theme"
 import { useDialog, type DialogContext } from "./dialog"
 import { useKeyboard } from "@opentui/solid"
+import { useKeybind } from "../context/keybind"
+import { onMount } from "solid-js"
 
 export type DialogAlertProps = {
   title: string
@@ -12,13 +14,15 @@ export type DialogAlertProps = {
 export function DialogAlert(props: DialogAlertProps) {
   const dialog = useDialog()
   const { theme } = useTheme()
+  const keybind = useKeybind()
 
-  useKeyboard((evt) => {
-    if (evt.name === "return") {
+  onMount(() => {
+    keybind.keybinds.dialog.alert.close.setHandler(() => {
       props.onConfirm?.()
       dialog.clear()
-    }
+    })
   })
+
   return (
     <box paddingLeft={2} paddingRight={2} gap={1}>
       <box flexDirection="row" justifyContent="space-between">

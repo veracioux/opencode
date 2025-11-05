@@ -2,7 +2,7 @@ import { render, useKeyboard, useRenderer, useTerminalDimensions } from "@opentu
 import { Clipboard } from "@tui/util/clipboard"
 import { TextAttributes } from "@opentui/core"
 import { RouteProvider, useRoute, type Route } from "@tui/context/route"
-import { Switch, Match, createEffect, untrack, ErrorBoundary, createSignal } from "solid-js"
+import { Switch, Match, createEffect, untrack, ErrorBoundary, createSignal, onMount } from "solid-js"
 import { Installation } from "@/installation"
 import { Global } from "@/global"
 import { DialogProvider, useDialog } from "@tui/ui/dialog"
@@ -16,7 +16,7 @@ import { DialogHelp } from "./ui/dialog-help"
 import { CommandProvider, useCommandDialog } from "@tui/component/dialog-command"
 import { DialogAgent } from "@tui/component/dialog-agent"
 import { DialogSessionList } from "@tui/component/dialog-session-list"
-import { KeybindProvider } from "@tui/context/keybind"
+import { KeybindProvider, useKeybind } from "@tui/context/keybind"
 import { ThemeProvider, useTheme } from "@tui/context/theme"
 import { Home } from "@tui/routes/home"
 import { Session } from "@tui/routes/session"
@@ -103,9 +103,9 @@ export function tui(input: {
 
     const routeData: Route | undefined = input.sessionID
       ? {
-          type: "session",
-          sessionID: input.sessionID,
-        }
+        type: "session",
+        sessionID: input.sessionID,
+      }
       : undefined
 
     const onExit = async () => {
@@ -178,18 +178,15 @@ function App() {
   const [sessionExists, setSessionExists] = createSignal(false)
   const { theme, mode, setMode } = useTheme()
   const exit = useExit()
+  const keybind = useKeybind()
 
-  useKeyboard(async (evt) => {
-    if (!Installation.isLocal()) return
-    if (evt.meta && evt.name === "t") {
+  onMount(() => {
+    keybind.keybinds.global.console_toggle.setHandler(() => renderer.console.toggle())
+    keybind.keybinds.global.toggle_debug_ovelay.setHandler(async () => {
+      if (!Installation.isLocal()) return false
       renderer.toggleDebugOverlay()
-      return
-    }
-
-    if (evt.meta && evt.name === "d") {
-      renderer.console.toggle()
-      return
-    }
+      return true
+    })
   })
 
   // Make sure session is valid, otherwise redirect to home

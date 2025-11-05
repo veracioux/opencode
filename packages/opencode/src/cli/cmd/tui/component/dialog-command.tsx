@@ -2,6 +2,7 @@ import { useDialog } from "@tui/ui/dialog"
 import { DialogSelect, type DialogSelectOption } from "@tui/ui/dialog-select"
 import {
   createContext,
+  createEffect,
   createMemo,
   createSignal,
   onCleanup,
@@ -9,7 +10,6 @@ import {
   type Accessor,
   type ParentProps,
 } from "solid-js"
-import { useKeyboard } from "@opentui/solid"
 import { useKeybind } from "@tui/context/keybind"
 import type { KeybindsConfig } from "@opencode-ai/sdk"
 
@@ -30,13 +30,13 @@ function init() {
   })
   const suspended = () => suspendCount() > 0
 
-  useKeyboard((evt) => {
+  createEffect(() => {
     if (suspended()) return
     for (const option of options()) {
-      if (option.keybind && keybind.match(option.keybind, evt)) {
-        evt.preventDefault()
-        option.onSelect?.(dialog)
-        return
+      if (option.keybind) {
+        keybind.keybinds.global[option.keybind]?.setHandler(() => {
+          option.onSelect?.(dialog)
+        })
       }
     }
   })
@@ -82,18 +82,18 @@ export function useCommandDialog() {
 export function CommandProvider(props: ParentProps) {
   const value = init()
   const dialog = useDialog()
-  const keybind = useKeybind()
 
-  useKeyboard((evt) => {
-    if (value.suspended()) return
-    if (dialog.stack.length > 0) return
-    if (evt.defaultPrevented) return
-    if (keybind.match("command_list", evt)) {
-      evt.preventDefault()
-      dialog.replace(() => <DialogCommand options={value.options} />)
-      return
+  value.register(() => [
+    {
+      title: "Show commands",
+      disabled: true,
+      value: "command_list",
+      onSelect: () => {
+        dialog.replace(() => <DialogCommand options={value.options} />)
+      },
+      keybind: "command_list",
     }
-  })
+  ])
 
   return <ctx.Provider value={value}>{props.children}</ctx.Provider>
 }

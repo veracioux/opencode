@@ -1,25 +1,26 @@
 import { TextAttributes } from "@opentui/core"
 import { useTheme } from "@tui/context/theme"
 import { useDialog } from "./dialog"
-import { useKeyboard } from "@opentui/solid"
+import { onMount } from "solid-js"
+import { useKeybind } from "../context/keybind"
 
 export function DialogHelp() {
   const dialog = useDialog()
   const { theme } = useTheme()
+  const keybind = useKeybind()
 
-  useKeyboard((evt) => {
-    if (evt.name === "return" || evt.name === "escape") {
-      dialog.clear()
-    }
+  onMount(() => {
+    keybind.keybinds.dialog.help.close.setHandler(() => dialog.clear())
   })
 
   return (
     <box paddingLeft={2} paddingRight={2} gap={1}>
       <box flexDirection="row" justifyContent="space-between">
         <text attributes={TextAttributes.BOLD}>Help</text>
-        <text fg={theme.textMuted}>esc/enter</text>
+        <text fg={theme.textMuted}>{keybind.keybinds.dialog.help.close.print()}</text>
       </box>
       <box paddingBottom={1}>
+        {/* Replace Ctrl+P with expression */}
         <text fg={theme.textMuted}>
           Press Ctrl+P to see all available actions and commands in any context.
         </text>

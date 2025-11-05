@@ -10,7 +10,7 @@ export namespace Keybind {
   }
 
   export function match(a: Info, b: Info): boolean {
-    return isDeepEqual(a, b)
+    return isDeepEqual({ ...a, name: a.name.toLowerCase() }, { ...b, name: b.name.toLowerCase() })
   }
 
   export function toString(info: Info): string {

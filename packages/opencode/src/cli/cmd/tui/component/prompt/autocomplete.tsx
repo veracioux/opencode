@@ -9,6 +9,7 @@ import { useTheme } from "@tui/context/theme"
 import { SplitBorder } from "@tui/component/border"
 import { useCommandDialog } from "@tui/component/dialog-command"
 import type { PromptInfo } from "./history"
+import { useKeybind } from "../../context/keybind"
 
 export type AutocompleteRef = {
   onInput: (value: string) => void
@@ -40,6 +41,7 @@ export function Autocomplete(props: {
   const sync = useSync()
   const command = useCommandDialog()
   const { theme } = useTheme()
+  const keybind = useKeybind()
 
   const [store, setStore] = createStore({
     index: 0,
@@ -360,7 +362,6 @@ export function Autocomplete(props: {
   }
 
   function show(mode: "@" | "/") {
-    command.keybinds(false)
     setStore({
       visible: mode,
       index: props.input().cursorOffset,
@@ -378,9 +379,34 @@ export function Autocomplete(props: {
       const cursor = props.input().logicalCursor
       props.input().deleteRange(0, 0, cursor.row, cursor.col)
     }
-    command.keybinds(true)
     setStore("visible", false)
   }
+  createEffect(() => {
+    if (store.visible) {
+      keybind.keybinds.itemSelection.up.setHandler(() => move(-1))
+      keybind.keybinds.itemSelection.down.setHandler(() => move(1))
+      keybind.keybinds.itemSelection.cancel.setHandler(() => hide())
+      keybind.keybinds.itemSelection.select.setHandler(() => select())
+    } else {
+      keybind.keybinds.autocomplete["@"].setHandler(() => {
+        if (!props.input().focused) return
+        const cursorOffset = props.input().cursorOffset
+        const charBeforeCursor =
+          cursorOffset === 0
+            ? undefined
+            : props.input().getTextRange(cursorOffset - 1, cursorOffset)
+        const canTrigger =
+          charBeforeCursor === undefined ||
+          charBeforeCursor === "" ||
+          /\s/.test(charBeforeCursor)
+        if (canTrigger) show("@")
+      })
+      keybind.keybinds.autocomplete["/"].setHandler(() => {
+        if (!props.input().focused) return
+        if (props.input().cursorOffset === 0) show("/")
+      })
+    }
+  })
 
   onMount(() => {
     props.ref({
@@ -403,51 +429,7 @@ export function Autocomplete(props: {
         }
       },
       onKeyDown(e: KeyEvent) {
-        if (store.visible) {
-          const name = e.name?.toLowerCase()
-          const ctrlOnly = e.ctrl && !e.meta && !e.shift
-          const isNavUp = name === "up" || (ctrlOnly && name === "p")
-          const isNavDown = name === "down" || (ctrlOnly && name === "n")
-
-          if (isNavUp) {
-            move(-1)
-            e.preventDefault()
-            return
-          }
-          if (isNavDown) {
-            move(1)
-            e.preventDefault()
-            return
-          }
-          if (name === "escape") {
-            hide()
-            e.preventDefault()
-            return
-          }
-          if (name === "return" || name === "tab") {
-            select()
-            e.preventDefault()
-            return
-          }
-        }
-        if (!store.visible) {
-          if (e.name === "@") {
-            const cursorOffset = props.input().cursorOffset
-            const charBeforeCursor =
-              cursorOffset === 0
-                ? undefined
-                : props.input().getTextRange(cursorOffset - 1, cursorOffset)
-            const canTrigger =
-              charBeforeCursor === undefined ||
-              charBeforeCursor === "" ||
-              /\s/.test(charBeforeCursor)
-            if (canTrigger) show("@")
-          }
-
-          if (e.name === "/") {
-            if (props.input().cursorOffset === 0) show("/")
-          }
-        }
+        // TODO make optional
       },
     })
   })
