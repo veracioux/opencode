@@ -9,11 +9,11 @@ import {
   dim,
   fg,
 } from "@opentui/core"
-import { createEffect, createMemo, Match, Switch, type JSX, onMount, batch } from "solid-js"
+import { createEffect, createMemo, Match, Switch, type JSX, onMount } from "solid-js"
 import { useLocal } from "@tui/context/local"
 import { useTheme } from "@tui/context/theme"
 import { SplitBorder } from "@tui/component/border"
-import { useSDK } from "@tui/context/sdk"
+import { useSDK, useStatefulSDK } from "@tui/context/sdk"
 import { useRoute } from "@tui/context/route"
 import { useSync } from "@tui/context/sync"
 import { Identifier } from "@/id/id"
@@ -28,6 +28,7 @@ import { useExit } from "../../context/exit"
 import { Clipboard } from "../../util/clipboard"
 import type { FilePart } from "@opencode-ai/sdk"
 import { TuiEvent } from "../../event"
+import { useToast } from "../../ui/toast"
 
 export type PromptProps = {
   sessionID?: string
@@ -54,6 +55,7 @@ export function Prompt(props: PromptProps) {
   const keybind = useKeybind()
   const local = useLocal()
   const sdk = useSDK()
+  const statefulSDK = useStatefulSDK()
   const route = useRoute()
   const sync = useSync()
   const status = createMemo(() => (props.sessionID ? sync.session.status(props.sessionID) : "idle"))
@@ -61,6 +63,7 @@ export function Prompt(props: PromptProps) {
   const command = useCommandDialog()
   const renderer = useRenderer()
   const { theme, syntax } = useTheme()
+  const toast = useToast()
 
   const textareaKeybindings = createMemo(() => {
     const newlineBindings = keybind.all.input_newline || []
@@ -315,9 +318,9 @@ export function Prompt(props: PromptProps) {
     const sessionID = props.sessionID
       ? props.sessionID
       : await (async () => {
-          const sessionID = await sdk.client.session.create({}).then((x) => x.data!.id)
-          return sessionID
-        })()
+        const sessionID = await sdk.client.session.create({}).then((x) => x.data!.id)
+        return sessionID
+      })()
     const messageID = Identifier.ascending("message")
     let inputText = store.prompt.input
 
@@ -368,28 +371,17 @@ export function Prompt(props: PromptProps) {
         },
       })
     } else {
-      sdk.client.session.prompt({
-        path: {
-          id: sessionID,
+      statefulSDK.submitPrompt(sessionID, [
+        {
+          id: Identifier.ascending("part"),
+          type: "text",
+          text: inputText,
         },
-        body: {
-          ...local.model.current(),
-          messageID,
-          agent: local.agent.current().name,
-          model: local.model.current(),
-          parts: [
-            {
-              id: Identifier.ascending("part"),
-              type: "text",
-              text: inputText,
-            },
-            ...nonTextParts.map((x) => ({
-              id: Identifier.ascending("part"),
-              ...x,
-            })),
-          ],
-        },
-      })
+        ...nonTextParts.map((x) => ({
+          id: Identifier.ascending("part"),
+          ...x,
+        })),
+      ]).catch(toast.error)
     }
     history.append(store.prompt)
     input.extmarks.clear()
@@ -629,7 +621,7 @@ export function Prompt(props: PromptProps) {
                       return
                     }
                   }
-                } catch {}
+                } catch { }
 
                 const lineCount = (pastedContent.match(/\n/g)?.length ?? 0) + 1
                 if (lineCount >= 5 && !sync.data.config.experimental?.disable_paste_summary) {

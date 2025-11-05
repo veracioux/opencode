@@ -2,11 +2,11 @@ import { render, useKeyboard, useRenderer, useTerminalDimensions } from "@opentu
 import { Clipboard } from "@tui/util/clipboard"
 import { TextAttributes } from "@opentui/core"
 import { RouteProvider, useRoute, type Route } from "@tui/context/route"
-import { Switch, Match, createEffect, untrack, ErrorBoundary, createSignal, batch, onMount } from "solid-js"
+import { Switch, Match, createEffect, untrack, ErrorBoundary, createSignal } from "solid-js"
 import { Installation } from "@/installation"
 import { Global } from "@/global"
 import { DialogProvider, useDialog } from "@tui/ui/dialog"
-import { SDKProvider, useSDK } from "@tui/context/sdk"
+import { SDKProvider, StatefulSDKProvider, useSDK, useStatefulSDK } from "@tui/context/sdk"
 import { SyncProvider, useSync } from "@tui/context/sync"
 import { LocalProvider, useLocal } from "@tui/context/local"
 import { DialogModel } from "@tui/component/dialog-model"
@@ -28,7 +28,6 @@ import { Session as SessionApi } from "@/session"
 import { TuiEvent } from "./event"
 import { KVProvider, useKV } from "./context/kv"
 import { Identifier } from "@/id/id"
-import { iife } from "@/util/iife"
 
 async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
   // can't set raw mode if not a TTY
@@ -104,9 +103,9 @@ export function tui(input: {
 
     const routeData: Route | undefined = input.sessionID
       ? {
-          type: "session",
-          sessionID: input.sessionID,
-        }
+        type: "session",
+        sessionID: input.sessionID,
+      }
       : undefined
 
     const onExit = async () => {
@@ -133,15 +132,17 @@ export function tui(input: {
                             initialModel={input.model}
                             initialAgent={input.agent}
                           >
-                            <KeybindProvider>
-                              <DialogProvider>
-                                <CommandProvider>
-                                  <PromptHistoryProvider>
-                                    <App initialPrompt={input.prompt} />
-                                  </PromptHistoryProvider>
-                                </CommandProvider>
-                              </DialogProvider>
-                            </KeybindProvider>
+                            <StatefulSDKProvider>
+                              <KeybindProvider>
+                                <DialogProvider>
+                                  <CommandProvider>
+                                    <PromptHistoryProvider>
+                                      <App initialPrompt={input.prompt} />
+                                    </PromptHistoryProvider>
+                                  </CommandProvider>
+                                </DialogProvider>
+                              </KeybindProvider>
+                            </StatefulSDKProvider>
                           </LocalProvider>
                         </ThemeProvider>
                       </SyncProvider>
@@ -178,6 +179,7 @@ function App(props: { initialPrompt?: string }) {
   const { theme, mode, setMode } = useTheme()
   const exit = useExit()
   const sdk = useSDK()
+  const statefulSDK = useStatefulSDK()
 
   useKeyboard(async (evt) => {
     if (!Installation.isLocal()) return
@@ -230,25 +232,13 @@ function App(props: { initialPrompt?: string }) {
   // Send initial prompt if provided, once session is ready
   createEffect(async () => {
     if (props.initialPrompt && route.data.type === "session" && sessionExists()) {
-      await sdk.client.session.prompt({
-        path: {
-          id: route.data.sessionID,
+      await statefulSDK.submitPrompt(route.data.sessionID, [
+        {
+          id: Identifier.ascending("part"),
+          type: "text",
+          text: props.initialPrompt,
         },
-        body: {
-          ...local.model.current(),
-          messageID: Identifier.ascending("message"),
-          agent: local.agent.current().name,
-          model: local.model.current(),
-          parts: [
-            {
-              id: Identifier.ascending("part"),
-              type: "text",
-              text: props.initialPrompt,
-            },
-          ],
-        },
-        throwOnError: true,
-      })
+      ])
         .catch(() => toast.show({ message: `Failed to send prompt`, variant: "error" }))
     }
   })

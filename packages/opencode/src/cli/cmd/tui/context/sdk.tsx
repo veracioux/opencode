@@ -1,7 +1,9 @@
-import { createOpencodeClient, type Event } from "@opencode-ai/sdk"
+import { createOpencodeClient, type AgentPartInput, type Event, type FilePartInput, type Part, type TextPart, type TextPartInput } from "@opencode-ai/sdk"
 import { createSimpleContext } from "./helper"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
 import { onCleanup } from "solid-js"
+import { useLocal } from "@tui/context/local"
+import { Identifier } from "@/id/id"
 
 export const { use: useSDK, provider: SDKProvider } = createSimpleContext({
   name: "SDK",
@@ -33,5 +35,31 @@ export const { use: useSDK, provider: SDKProvider } = createSimpleContext({
     })
 
     return { client: sdk, event: emitter }
+  },
+})
+
+export const { use: useStatefulSDK, provider: StatefulSDKProvider } = createSimpleContext({
+  name: "StatefulSDK",
+  init: () => {
+    const sdk = useSDK()
+    const local = useLocal()
+
+    return {
+      async submitPrompt(sessionID: string, parts: Array<TextPartInput | AgentPartInput | FilePartInput>) {
+        return sdk.client.session.prompt({
+          path: {
+            id: sessionID,
+          },
+          body: {
+            ...local.model.current(),
+            messageID: Identifier.ascending("message"),
+            agent: local.agent.current().name,
+            model: local.model.current(),
+            parts,
+          },
+          throwOnError: true,
+        })
+      }
+    }
   },
 })
