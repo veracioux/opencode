@@ -29,6 +29,7 @@ import { Clipboard } from "../../util/clipboard"
 import type { FilePart } from "@opencode-ai/sdk"
 import { TuiEvent } from "../../event"
 import { useToast } from "../../ui/toast"
+import { iife } from "@/util/iife"
 
 export type PromptProps = {
   sessionID?: string
@@ -356,8 +357,15 @@ export function Prompt(props: PromptProps) {
         },
       })
       setStore("mode", "normal")
-    } else if (inputText.startsWith("/")) {
-      const [command, ...args] = inputText.split(" ")
+    } else if (
+      inputText.startsWith("/") &&
+      iife(() => {
+        const command = inputText.split(" ")[0].slice(1)
+        console.log(command)
+        return sync.data.command.some((x) => x.name === command)
+      })
+    ) {
+      let [command, ...args] = inputText.split(" ")
       sdk.client.session.command({
         path: {
           id: sessionID,
