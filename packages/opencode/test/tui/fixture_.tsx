@@ -4,10 +4,11 @@ import { test } from "bun:test"
 
 export async function testRenderTui(options?: TestRendererOptions & { url?: string }, sizeMixin?: { width?: number; height?: number }) {
   const { Tui } = await import("@/cli/cmd/tui/app")
+  const { url, ...rest } = options ?? {}
   const result = await testRender(
-    () => <Tui url={options?.url ?? "mock"} mode="dark" onExit={Promise.resolve} />,
+    () => <Tui url={url ?? "mock"} mode="dark" onExit={Promise.resolve} />,
     {
-      ...options,
+      ...rest,
       ...(sizeMixin ?? {}),
     },
   )

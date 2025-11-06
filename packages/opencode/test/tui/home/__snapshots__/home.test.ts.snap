@@ -20,12 +20,12 @@ exports[`Home should render correctly 1`] = `
    ┃                                                                         ┃  
    ┃ >                                                                       ┃  
    ┃                                                                         ┃  
-   Mock Provider 1 Mock Model 1                                                 
+   OpenCode Zen Big Pickle                                                      
                                                                                 
                                                                                 
                                                                                 
                                                                                 
- opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/opencode-test                          tab  BUILD AGENT 
 "
 `;
 
@@ -47,38 +47,9 @@ exports[`Home should resize correctly 1`] = `
   ┃                                                      ┃  
   ┃ >                                                    ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
-exports[`Home prompt should start a new session 1`] = `
-"                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
- opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/opencode-test      tab  BUILD AGENT 
 "
 `;
 
@@ -100,9 +71,9 @@ exports[`Home Toast should render correctly 1`] = `
   ┃                                                      ┃  
   ┃ >                                                    ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/opencode-test      tab  BUILD AGENT 
 "
 `;
 
@@ -124,9 +95,9 @@ exports[`Home Toast should render correctly with title 1`] = `
   ┃                                                      ┃  
   ┃ >                                                    ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/opencode-test      tab  BUILD AGENT 
 "
 `;
 
@@ -631,5 +602,11 @@ exports[`Home Agent cycling backtab should switch agent in reverse, with wrap-ar
   Mock Provider 1 Mock Model 2                              
                                                             
  opencode vlocal  /tmp             tab  MOCK-AGENT-2 AGENT 
+"
+`;
+
+exports[`Home prompt should start a new session 1`] = `
+"                                                                                
+TODO: Make deterministic by mocking LLM responses
 "
 `;

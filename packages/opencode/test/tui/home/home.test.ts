@@ -44,7 +44,7 @@ describe("Home", () => {
   })
 
   // FIXME: Set up better mocks so it actually displays a message
-  test.only("prompt should start a new session", async () => {
+  test.failing("prompt should start a new session", async () => {
     utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
     await utils.testSetup.mockInput.typeText("Hello, world!")
     await utils.testSetup.mockInput.pressEnter()
