@@ -402,6 +402,14 @@ export function setUpCommonHooksAndUtils() {
         model: "opencode/big-pickle",
       },
       "models.json": models,
+      "model.json": {
+        recent: [
+          {
+            providerID: "openai",
+            modelID: "gpt-5",
+          },
+        ]
+      },
       agent: [
         {
           name: "docs",
@@ -456,6 +464,7 @@ export async function createStubFiles(files: {
   "auth.json"?: Record<string, unknown>,
   "models.json"?: Record<string, unknown>,
   "opencode.json"?: Config.Info,
+  "model.json"?: Record<string, unknown>,
   /** List of templates for commands, defined as markdown files */
   command?: {
     name: string,
@@ -501,6 +510,10 @@ ${body}
   // global opencode.json
   if (files["opencode.json"])
     await createJSONFile(path.join(Global.Path.config, "opencode.json"), files["opencode.json"])
+
+  // model.json
+  if (files["model.json"])
+    await createJSONFile(path.join(Global.Path.state, "model.json"), files["model.json"])
 
   // command
   for (const def of files.command ?? []) {
