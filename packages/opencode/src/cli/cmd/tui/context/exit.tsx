@@ -6,9 +6,8 @@ export const { use: useExit, provider: ExitProvider } = createSimpleContext({
   init: (input: { onExit?: () => Promise<void> }) => {
     const renderer = useRenderer()
     return async () => {
-      renderer.destroy()
+      await setImmediate(() => renderer.destroy())
       await input.onExit?.()
-      process.exit(0)
     }
   },
 })
