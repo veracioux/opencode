@@ -533,6 +533,7 @@ export type Session = {
   summary?: {
     additions: number
     deletions: number
+    files: number
     diffs?: Array<FileDiff>
   }
   share?: {
@@ -649,7 +650,6 @@ export type AssistantMessage = {
     | MessageOutputLengthError
     | MessageAbortedError
     | ApiError
-  system: Array<string>
   parentID: string
   modelID: string
   providerID: string
@@ -1299,6 +1299,14 @@ export type EventSessionDeleted = {
   }
 }
 
+export type EventSessionDiff = {
+  type: "session.diff"
+  properties: {
+    sessionID: string
+    diff: Array<FileDiff>
+  }
+}
+
 export type EventSessionError = {
   type: "session.error"
   properties: {
@@ -1345,6 +1353,7 @@ export type Event =
   | EventSessionCreated
   | EventSessionUpdated
   | EventSessionDeleted
+  | EventSessionDiff
   | EventSessionError
   | EventTuiPromptAppend
   | EventTuiCommandExecute
@@ -1972,6 +1981,7 @@ export type SessionMessagesData = {
   }
   query?: {
     directory?: string
+    limit?: number
   }
   url: "/session/{id}/message"
 }
