@@ -156,10 +156,7 @@ try {
     })
   }
 
-  await Promise.all([
-    awaitStream(process.stdout),
-    awaitStream(process.stderr),
-  ])
+  await Promise.all([awaitStream(process.stdout), awaitStream(process.stderr)])
 
   setImmediate(() => process.exit())
 }
