@@ -1,7 +1,4 @@
-import { type CommandOption } from "@/cli/cmd/tui/component/dialog-command"
-import { createOpencodeClient, type Agent, type Model, type OpencodeClient, type Provider } from "@opencode-ai/sdk"
-import { RGBA } from "@opentui/core"
-import { createGlobalEmitter } from "@solid-primitives/event-bus"
+import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk"
 import { afterEach, beforeAll, beforeEach, expect, mock } from "bun:test"
 import { type Context } from "solid-js"
 import os from "os"
@@ -14,8 +11,6 @@ import type { Config } from "@/config/config"
 import models from "../fixture/models.json"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
-const nameToContextMap = new Map<string, Context<unknown>>()
-const contextToNameMap = new Map<Context<unknown>, string>()
 
 let knownUseFns: Awaited<ReturnType<typeof setUpProviderMocking>>
 
@@ -30,22 +25,8 @@ export async function setUpProviderMocking() {
     },
   }))
   const _knownUseFns = {
-    useTheme: await import("@/cli/cmd/tui/context/theme").then((m) => m.useTheme),
     useRoute: await import("@/cli/cmd/tui/context/route").then((m) => m.useRoute),
-    useLocal: await import("@/cli/cmd/tui/context/local").then((m) => m.useLocal),
-    useDialog: await import("@/cli/cmd/tui/ui/dialog").then((m) => m.useDialog),
-    useKV: await import("@/cli/cmd/tui/context/kv").then((m) => m.useKV),
-    useCommandDialog: await import("@/cli/cmd/tui/component/dialog-command").then(
-      (m) => m.useCommandDialog,
-    ),
-    useSDK: await import("@/cli/cmd/tui/context/sdk").then((m) => m.useSDK),
-    useKeybind: await import("@/cli/cmd/tui/context/keybind").then((m) => m.useKeybind),
-    useSync: await import("@/cli/cmd/tui/context/sync").then((m) => m.useSync),
-    useToast: await import("@/cli/cmd/tui/ui/toast").then((m) => m.useToast),
     useExit: await import("@/cli/cmd/tui/context/exit").then((m) => m.useExit),
-    usePromptHistory: await import("@/cli/cmd/tui/component/prompt/history").then(
-      (m) => m.usePromptHistory,
-    ),
   } as const
   knownUseFns = _knownUseFns
   return _knownUseFns
@@ -55,16 +36,10 @@ const mockedProviderValues = new Map<() => any, any>()
 
 type ProvidedValue<K extends keyof typeof knownUseFns> = ReturnType<(typeof knownUseFns)[K]>
 
-type UseSDKProvidedValue = Omit<ProvidedValue<"useSDK">, "client"> & {
-  client: OpencodeClientPlain
-}
-
 export type MockConfig = {
   [key in keyof typeof knownUseFns]?:
   | boolean
-  | (key extends "useSDK"
-    ? UseSDKProvidedValue | ((draft: UseSDKProvidedValue) => UseSDKProvidedValue)
-    : ProvidedValue<key> | ((draft: ProvidedValue<key>) => ProvidedValue<key>))
+  | ProvidedValue<key> | ((draft: ProvidedValue<key>) => ProvidedValue<key>)
 }
 
 export async function mockProviders<T extends MockConfig>(
@@ -80,235 +55,20 @@ export async function mockProviders<T extends MockConfig>(
     : T[key]
   }
 > {
-  const { resolveTheme, THEMES, syntaxStyleFromTheme } = await import("@/cli/cmd/tui/context/theme")
   const defaultConfig = {
-    useDialog: {
-      clear: mock(),
-      replace: mock(),
-      stack: [] as any[],
-      size: "medium",
-      setSize: mock(),
-    },
-    useLocal: {
-      model: {
-        ready: true,
-        current: () => ({
-          modelID: "mock-model-1",
-          providerID: "mock-provider-1",
-        }),
-        set: mock(),
-        recent: () => [],
-        cycle: mock(),
-        parsed: mock(() => ({
-          provider: "mock-provider-1",
-          model: "mock-model-1",
-        })),
-      },
-      agent: {
-        list: () => [],
-        current: () =>
-          ({
-            name: "mock",
-          }) as Agent,
-        color: mock(() => RGBA.fromHex("#ff0000")),
-        set: mock(),
-        move: mock(),
-      },
-      setInitialPrompt: {
-        listen: mock(() => () => { }),
-        emit: mock(),
-        clear: mock(),
-      },
-    },
-    useKV: {
-      ready: true,
-      set: mock(),
-      get: mock(() => undefined),
-      signal: mock(() => [() => undefined, (next: any) => { }] as const),
-    },
-    useCommandDialog: {
-      trigger: mock(),
-      keybinds: mock(),
-      show: mock(() => { }),
-      register: mock(),
-      options: [] as CommandOption[],
-      suspended: mock(() => false),
-    },
     useRoute: {
       data: { type: "home" },
       navigate: mock(),
     },
-    useSDK: {
-      event: createGlobalEmitter(),
-      client: {
-        app: {
-          async agents() {
-            return {
-              data: [
-                {
-                  name: "mock-agent-1",
-                  description: "Mock Agent 1 description",
-                  mode: "primary",
-                  model: {
-                    providerID: "mock-provider-1",
-                    modelID: "mock-model-1",
-                  },
-                } as Agent,
-                {
-                  name: "mock-agent-2",
-                  description: "Mock Agent 2 description",
-                  mode: "subagent",
-                  model: {
-                    providerID: "mock-provider-1",
-                    modelID: "mock-model-1",
-                  },
-                } as Agent,
-              ],
-            }
-          },
-        },
-        config: {
-          async get() {
-            return {
-              keybinds: (await import("@/config/config")).Config.Keybinds.parse({}),
-            }
-          },
-          providers: async () => {
-            return {
-              data: {
-                providers: [
-                  {
-                    name: "Mock Provider 1",
-                    id: "mock-provider-1",
-                    models: {
-                      "mock-model-1": {
-                        name: "Mock Model 1",
-                      } as Model,
-                      "mock-model-2": {
-                        name: "Mock Model 2",
-                      } as Model,
-                    },
-                  } as Partial<Provider>,
-                ],
-              },
-            } as any
-          },
-        } as any,
-      } as any,
-    },
-    useKeybind: {
-      match: mock((keybind, evt) => false),
-      all: [] as any,
-      parse: mock((evt) => ({}) as any),
-      print: mock((key) => ""),
-      leader: false,
-    },
-    useSync: {
-      data: {
-        ready: true,
-        provider: [
-          {
-            id: "mock-provider-1",
-            name: "Mock Provider 1",
-            models: {
-              "mock-model-1": {
-                name: "Mock Model 1",
-                id: "mock-model-1",
-              } as Model,
-              "mock-model-2": {
-                name: "Mock Model 2",
-                id: "mock-model-2",
-              } as Model,
-            },
-            env: [],
-          },
-          {
-            id: "mock-provider-2",
-            name: "Mock Provider 2",
-            models: {
-              "mock-model-3": {
-                name: "Mock Model 3",
-                id: "mock-model-3",
-              } as Model,
-              "mock-model-4": {
-                name: "Mock Model 4",
-                id: "mock-model-4",
-              } as Model,
-            },
-            env: [],
-          },
-        ],
-        agent: [
-          {
-            name: "mock-agent-1",
-            model: {
-              providerID: "mock-provider-1",
-              modelID: "mock-model-1",
-            },
-          } as Agent,
-          {
-            name: "mock-agent-2",
-            model: {
-              providerID: "mock-provider-1",
-              modelID: "mock-model-2",
-            },
-          } as Agent,
-          {
-            name: "mock-agent-3",
-            model: {
-              providerID: "mock-provider-2",
-              modelID: "mock-model-3",
-            },
-          } as Agent,
-        ],
-        command: [],
-        permission: {},
-        config: {
-          keybinds: (await import("@/config/config")).Config.Keybinds.parse({}),
-        },
-        session: [],
-        todo: {},
-        message: {},
-        part: {},
-        lsp: [],
-        mcp: {},
-        formatter: [],
-      },
-      set: mock((...args: any[]) => { }),
-      ready: true,
-      session: {
-        get: mock(),
-        status: mock((sessionID) => "idle" as const),
-        sync: mock(() => Promise.resolve()),
-      },
-    },
-    useTheme: {
-      theme: resolveTheme(THEMES.opencode, "dark"),
-      selected: "opencode",
-      syntax: mock(() => syntaxStyleFromTheme(resolveTheme(THEMES.opencode, "dark"))),
-      mode: mock(() => "dark" as const),
-      ready: true,
-      set: mock(),
-      setMode: mock(),
-    },
-    useToast: {
-      show: mock(),
-      error: mock(),
-      currentToast: null,
-    },
     useExit: mock(() => undefined as never),
-    usePromptHistory: {
-      move: mock(),
-      append: mock(),
-    },
-  } satisfies Record<keyof MockConfig, ReturnType<(typeof knownUseFns)[keyof typeof knownUseFns]>>
+  } satisfies Partial<Record<keyof MockConfig, ReturnType<(typeof knownUseFns)[keyof typeof knownUseFns]>>>
 
   for (const key of Object.keys(knownUseFns) as (keyof MockConfig)[]) {
     const value = config?.[key]
     const useFn = knownUseFns[key]
     switch (true) {
       case value === true:
-        mockedProviderValues.set(useFn, defaultConfig[key])
+        mockedProviderValues.set(useFn, defaultConfig[key as keyof typeof defaultConfig])
         break
       case value === undefined:
         break
@@ -328,12 +88,6 @@ export async function mockProviders<T extends MockConfig>(
       return [key, mockedProviderValues.get(knownUseFns[key as keyof MockConfig])]
     }),
   ) as any
-}
-
-export type OpencodeClientPlain = {
-  [key in keyof OpencodeClient]: {
-    [K in keyof OpencodeClient[key]]: OpencodeClient[key][K]
-  }
 }
 
 export function setUpCommonHooksAndUtils() {
