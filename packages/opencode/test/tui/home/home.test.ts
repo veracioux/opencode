@@ -90,7 +90,7 @@ describe("Home", () => {
   describe("Prompt", () => {
     describe("! mode", () => {
       test("! should open shell mode", async () => {
-        utils.testSetup = await testRenderTui(SIZES.SMALL)
+        utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
         await utils.testSetup.mockInput.typeText("!")
         await utils.renderOnceExpectMatchSnapshot()
       })
@@ -102,7 +102,7 @@ describe("Home", () => {
         await utils.renderOnceExpectMatchSnapshot()
       })
       test("backspace should revert to normal mode", async () => {
-        utils.testSetup = await testRenderTui(SIZES.SMALL)
+        utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
         await utils.testSetup.mockInput.typeText("!a")
         await utils.testSetup.mockInput.pressBackspace()
         await utils.testSetup.mockInput.pressBackspace()
