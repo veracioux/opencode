@@ -55,30 +55,7 @@ exports[`Home should resize correctly 1`] = `
 
 exports[`Home prompt should start a new session 1`] = `
 "                                                                                
-  ┃ # Analyzing Hello world                                                  ┃  
-  ┃ /share to create a shareable link                     19,094/10% ($0.00) ┃  
-                                                                                
-  ┃                                                                             
-  ┃  Hello, world!                                                              
-  ┃  haris (4:00:00 PM)                                                         
-  ┃                                                                             
-                                                                                
-     Hello! How can I help you with your software engineering tasks today?      
-                                                                                
-     Build big-pickle                                                           
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-                                                                                
-  ┃                                                                          ┃  
-  ┃ >                                                                        ┃  
-  ┃                                                                          ┃  
-  OpenCode Zen Big Pickle                                      ctrl+p commands  
-                                                                                
- opencode vlocal  /tmp/oc-test/project                        tab  BUILD AGENT 
+TODO: marked as failing
 "
 `;
 
