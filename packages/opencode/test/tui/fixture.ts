@@ -9,6 +9,7 @@ import fs from "fs/promises"
 import path from "path"
 import { type testRenderTui } from "./fixture_"
 import { Global } from "@/global"
+import { YAML } from "bun"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
 const nameToContextMap = new Map<string, Context<unknown>>()
@@ -393,17 +394,48 @@ export function setUpCommonHooksAndUtils() {
 export async function createStubFiles(files: {
   "auth.json"?: Record<string, unknown>,
   "models.json"?: Record<string, unknown>,
+  /** List of templates for commands, defined as markdown files */
+  command?: {
+    name: string,
+    description: string,
+    content: string,
+  }[],
+  misc?: Record<string, string>,
 }) {
   const toDelete: string[] = []
-  async function createFileWithJSON(pth: string, content: any) {
+
+  async function createTextFile(pth: string, content: string) {
     await fs.mkdir(path.dirname(pth), { recursive: true })
-    await fs.writeFile(pth, JSON.stringify(content, null, 2))
+    await fs.writeFile(pth, content)
     toDelete.push(pth)
   }
+  async function createJSONFile(pth: string, content: any) {
+    await createTextFile(pth, JSON.stringify(content, null, 2))
+  }
+  async function createMarkdownFile(pth: string, frontMatter: Record<string, any>, body: string) {
+    const content = `
+---
+${YAML.stringify(frontMatter)}
+---
+${body}
+`.trim()
+    await createTextFile(pth, content)
+  }
+
   if (files["auth.json"])
-    await createFileWithJSON(path.join(Global.Path.data, "auth.json"), files["auth.json"])
+    await createJSONFile(path.join(Global.Path.data, "auth.json"), files["auth.json"])
   if (files["models.json"])
-    await createFileWithJSON(path.join(Global.Path.cache, "models.json"), files["models.json"])
+    await createJSONFile(path.join(Global.Path.cache, "models.json"), files["models.json"])
+
+  for (const def of files.command ?? []) {
+    const { name, content, ...rest } = def
+    const cmdPath = path.join(Global.Path.config, "command", `${def.name}.md`)
+    await createMarkdownFile(cmdPath, rest, def.content)
+  }
+
+  for (const [pth, content] of Object.entries(files.misc ?? {})) {
+    await createTextFile(pth, content)
+  }
 
   return {
     [Symbol.asyncDispose]: async () => {

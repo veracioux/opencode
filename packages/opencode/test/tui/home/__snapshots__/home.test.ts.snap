@@ -208,8 +208,9 @@ exports[`Home Prompt Autocomplete / mode / should open autocomplete 1`] = `
                                                             
                                             ▄               
            █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-  ┃ /e             Short command                         ┃  
   ┃ /long-command  Long command                          ┃  
+  ┃ /e             Short command                         ┃  
+  ┃ /init          create/update AGENTS.md               ┃  
   ┃ /new           create a new session                  ┃  
   ┃ /models        list models                           ┃  
   ┃ /agents        list agents                           ┃  
@@ -217,13 +218,12 @@ exports[`Home Prompt Autocomplete / mode / should open autocomplete 1`] = `
   ┃ /status        show status                           ┃  
   ┃ /theme         toggle theme                          ┃  
   ┃ /editor        open editor                           ┃  
-  ┃ /help          show help                             ┃  
   ┃                                                      ┃  
   ┃ > /                                                  ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/opencode-test      tab  BUILD AGENT 
 "
 `;
 

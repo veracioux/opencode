@@ -16,6 +16,7 @@ import {
   setSystemTime,
 } from "bun:test"
 import {
+  createStubFiles,
   mockProviders,
   setUpCommonHooksAndUtils,
   setUpProviderMocking,
@@ -23,6 +24,7 @@ import {
 } from "../fixture"
 import { testRenderTui } from "../fixture_.tsx"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
+import { command } from "yargs"
 
 describe("Home", () => {
   let s: Awaited<ReturnType<typeof utils.createIsolatedServer>>
@@ -112,47 +114,37 @@ describe("Home", () => {
     })
 
     describe("Autocomplete", () => {
+      let cleanup: Awaited<ReturnType<typeof createStubFiles>>
       beforeEach(async () => {
-        await mockProviders({
-          useSDK: (draft) => ({
-            ...draft,
-            client: {
-              ...draft.client,
-              find: {
-                ...draft.client.find,
-                files() {
-                  return {
-                    data: ["/non/existent/file1.txt", "/non/existent/file2.txt"],
-                  } as any
-                },
-              },
+        cleanup = await createStubFiles({
+          command: [
+            {
+              name: "e",
+              description: "Short command",
+              content: "blah blah",
             },
-          }),
-          useSync: (draft) => ({
-            ...draft,
-            data: {
-              ...draft.data,
-              command: [
-                ...draft.data.command,
-                {
-                  name: "e",
-                  description: "Short command",
-                },
-                {
-                  name: "long-command",
-                  description: "Long command",
-                },
-              ],
-            } as any,
-          }),
+            {
+              name: "long-command",
+              description: "Long command",
+              content: "blah blah",
+            }
+          ],
+          misc: {
+            "./files/1.txt": "Content of file 1",
+            "./files/2.txt": "Content of file 2",
+          }
         })
+      })
+      afterEach(async () => {
+        await cleanup[Symbol.asyncDispose]()
       })
 
       describe("/ mode", () => {
         test("/ should open autocomplete", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("/")
+          await utils.sleep(600)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
@@ -256,9 +248,9 @@ describe("Home", () => {
         })
 
         // TODO: Ask to make sure this is desired behavior
-        test.todo("space should close", async () => {})
+        test.todo("space should close", async () => { })
 
-        test.todo("should honor input_submit binding", async () => {})
+        test.todo("should honor input_submit binding", async () => { })
       })
     })
   })
