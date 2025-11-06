@@ -11,7 +11,7 @@ import { type testRenderTui } from "./fixture_"
 import { Global } from "@/global"
 import { YAML } from "bun"
 import type { Config } from "@/config/config"
-import { iife } from "@/util/iife"
+import models from "../fixture/models.json"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
 const nameToContextMap = new Map<string, Context<unknown>>()
@@ -351,18 +351,9 @@ export function setUpCommonHooksAndUtils() {
       const frame = this.testSetup!.captureCharFrame()
       expect(frame).toMatchSnapshot()
     },
-    sleep: iife(() => {
-      const func = (ms: number) => {
-        return new Promise((r) => setTimeout(r, ms))
-      }
-      return func
-      // return {
-      //   100: () => func(100),
-      //   200: () => func(200),
-      //   AUTOCOMPLETE_SHOW: () => func(200),
-      //   SERVER_BOOT: () => func(2500),
-      // } as const
-    }),
+    sleep(ms: number) {
+      return new Promise((r) => setTimeout(r, ms))
+    },
     async createIsolatedServer() {
       const { Server } = await import("@/server/server")
 
@@ -410,6 +401,7 @@ export function setUpCommonHooksAndUtils() {
       "opencode.json": {
         model: "opencode/big-pickle",
       },
+      "models.json": models,
       agent: [
         {
           name: "docs",
