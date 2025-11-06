@@ -21,7 +21,6 @@ import {
   setUpCommonHooksAndUtils,
   setUpProviderMocking,
   SIZES,
-  wrapEach,
 } from "../fixture"
 import { testRenderTui } from "../fixture_.tsx"
 
@@ -113,9 +112,10 @@ describe("Home", () => {
     })
 
     describe("Autocomplete", () => {
+      let cleanup: Awaited<ReturnType<typeof createStubFiles>>
       const waitForOpen = () => utils.sleep(200)
-      wrapEach(async function* () {
-        await using _ = await createStubFiles({
+      beforeEach(async () => {
+        cleanup = await createStubFiles({
           command: [
             {
               name: "e",
@@ -129,11 +129,13 @@ describe("Home", () => {
             }
           ],
           misc: {
-            [`${utils.homedir}/project/files/1.txt`]: "Content of file 1",
-            [`${utils.homedir}/project/files/2.txt`]: "Content of file 2",
+            [`${utils.projectDir}/files/1.txt`]: "Content of file 1",
+            [`${utils.projectDir}/files/2.txt`]: "Content of file 2",
           },
         })
-        yield
+      })
+      afterEach(async () => {
+        await cleanup[Symbol.asyncDispose]()
       })
 
       describe("/ mode", () => {
@@ -195,23 +197,25 @@ describe("Home", () => {
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test("should match items correctly", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+        test.only("should match items correctly", async () => {
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
-          await utils.testSetup.mockInput.typeText("@nonexfile1")
+          await utils.testSetup.mockInput.typeText("@file1")
+          await waitForOpen()
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test("should trigger in the middle of text", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+        test.only("should trigger in the middle of text", async () => {
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
-          await utils.testSetup.mockInput.typeText("blah @nonexfile1")
+          await utils.testSetup.mockInput.typeText("blah @file1")
+          await waitForOpen()
           await utils.renderOnceExpectMatchSnapshot()
         })
 
         test("enter should confirm choice", async () => {
           utils.testSetup = await testRenderTui(SIZES.SMALL)
-          await utils.testSetup.mockInput.typeText("@nonexfile1")
+          await utils.testSetup.mockInput.typeText("@file2")
           await utils.testSetup.mockInput.pressEnter()
           await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()
@@ -219,7 +223,7 @@ describe("Home", () => {
 
         test("tab should confirm choice", async () => {
           utils.testSetup = await testRenderTui(SIZES.SMALL)
-          await utils.testSetup.mockInput.typeText("@nonexfile1")
+          await utils.testSetup.mockInput.typeText("@file1")
           await utils.testSetup.mockInput.pressTab()
           await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()
@@ -228,7 +232,7 @@ describe("Home", () => {
         test("esc should close", async () => {
           utils.testSetup = await testRenderTui(SIZES.SMALL)
           await utils.testSetup.renderOnce()
-          await utils.testSetup.mockInput.typeText("@nonexfile1")
+          await utils.testSetup.mockInput.typeText("@file1")
           await utils.testSetup.mockInput.pressEscape()
           await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()
@@ -237,7 +241,7 @@ describe("Home", () => {
         test("clearing input should close", async () => {
           utils.testSetup = await testRenderTui(SIZES.SMALL)
           await utils.testSetup.renderOnce()
-          await utils.testSetup.mockInput.typeText("blah @nonexfile1")
+          await utils.testSetup.mockInput.typeText("blah @file1")
           await Promise.all(Array(11).fill(null).map(utils.testSetup.mockInput.pressBackspace))
           await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()

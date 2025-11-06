@@ -459,17 +459,6 @@ ${body}
   }
 }
 
-/** Wrap each test in a pytest-style fixture */
-export async function wrapEach(cb: () => AsyncGenerator<void, void, void>) {
-  let gen: AsyncGenerator = cb()
-  beforeEach(async () => {
-    await gen.next()
-  })
-  afterEach(async () => {
-    await gen.next()
-  })
-}
-
 /**
  * Common terminal sizes for testing
  */
