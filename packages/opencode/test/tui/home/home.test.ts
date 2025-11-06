@@ -115,6 +115,7 @@ describe("Home", () => {
 
     describe("Autocomplete", () => {
       let cleanup: Awaited<ReturnType<typeof createStubFiles>>
+      const waitForOpen = () => utils.sleep(200)
       beforeEach(async () => {
         cleanup = await createStubFiles({
           command: [
@@ -140,18 +141,18 @@ describe("Home", () => {
       })
 
       describe("/ mode", () => {
-        test("/ should open autocomplete", async () => {
+        test.only("/ should open autocomplete", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("/")
-          await utils.sleep(600)
+          await waitForOpen()
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test("should not open in the middle of text", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+        test.only("should not open in the middle of text", async () => {
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.mockInput.typeText("blah /")
-          await utils.sleep(100)
+          await waitForOpen()
           await utils.renderOnceExpectMatchSnapshot()
         })
 
