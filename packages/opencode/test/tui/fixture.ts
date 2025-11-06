@@ -1,4 +1,4 @@
-import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk"
+import { createOpencodeClient } from "@opencode-ai/sdk"
 import { afterEach, beforeAll, beforeEach, expect, mock } from "bun:test"
 import { type Context } from "solid-js"
 import os from "os"
@@ -8,7 +8,6 @@ import { type testRenderTui } from "./fixture_"
 import { Global } from "@/global"
 import { YAML } from "bun"
 import type { Config } from "@/config/config"
-import models from "../fixture/models.json"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
 
@@ -149,6 +148,8 @@ export function setUpCommonHooksAndUtils() {
     },
   }
 
+  const models = fetch("https://models.dev/api.json").then((res) => res.json())
+
   async function setUpOpencodeEnv() {
     const cleanup = await createStubFiles({
       "auth.json": {
@@ -160,7 +161,7 @@ export function setUpCommonHooksAndUtils() {
       "opencode.json": {
         model: "opencode/big-pickle",
       },
-      "models.json": models,
+      "models.json": await models,
       "model.json": {
         recent: [
           {
@@ -212,6 +213,7 @@ export function setUpCommonHooksAndUtils() {
     process.chdir(originalCwd)
     // Without this delay, some tests cause
     // error: EditBuffer is destroyed
+    // seems due to opentui
     await new Promise((r) => setTimeout(r, 0))
     if (utils.testSetup) utils.testSetup.renderer.destroy()
   })
