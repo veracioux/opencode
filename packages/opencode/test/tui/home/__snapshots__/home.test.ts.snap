@@ -337,13 +337,13 @@ exports[`Home Prompt Autocomplete @ mode should match items correctly 1`] = `
            Switch model                   ctrl+x m          
            Switch agent                        tab          
                                                             
-  ┃ /non/existent/file1.txt                              ┃  
+  ┃ files/1.txt                                          ┃  
   ┃                                                      ┃  
-  ┃ > @nonexfile1                                        ┃  
+  ┃ > @file1                                             ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
 "
 `;
 
@@ -361,13 +361,13 @@ exports[`Home Prompt Autocomplete @ mode should trigger in the middle of text 1`
            Switch model                   ctrl+x m          
            Switch agent                        tab          
                                                             
-  ┃ /non/existent/file1.txt                              ┃  
+  ┃ files/1.txt                                          ┃  
   ┃                                                      ┃  
-  ┃ > blah @nonexfile1                                   ┃  
+  ┃ > blah @file1                                        ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
 "
 `;
 
