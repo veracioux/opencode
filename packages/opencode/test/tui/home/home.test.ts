@@ -96,7 +96,7 @@ describe("Home", () => {
         await utils.renderOnceExpectMatchSnapshot()
       })
       test.failing("esc should revert to normal mode", async () => {
-        utils.testSetup = await testRenderTui(SIZES.SMALL)
+        utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
         await utils.testSetup.mockInput.typeText("!test")
         await utils.testSetup.mockInput.pressEscape()
         await utils.sleep(50)
