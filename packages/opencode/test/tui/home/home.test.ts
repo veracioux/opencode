@@ -16,12 +16,7 @@ import {
   setSystemTime,
   afterAll,
 } from "bun:test"
-import {
-  createStubFiles,
-  setUpCommonHooksAndUtils,
-  setUpProviderMocking,
-  SIZES,
-} from "../fixture"
+import { createStubFiles, setUpCommonHooksAndUtils, setUpProviderMocking, SIZES } from "../fixture"
 import { testRenderTui } from "../fixture_.tsx"
 import { sleep } from "bun"
 
@@ -146,7 +141,7 @@ describe("Home", () => {
         })
 
         test("enter should trigger action", async () => {
-          const onExit = mock(async () => { })
+          const onExit = mock(async () => {})
           utils.testSetup = await testRenderTui({ url: s.url, onExit }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("/ex")
@@ -230,15 +225,17 @@ describe("Home", () => {
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText(`blah ${input}`)
           await waitForOpen()
-          await Promise.all(Array(input.length).fill(null).map(utils.testSetup.mockInput.pressBackspace))
+          await Promise.all(
+            Array(input.length).fill(null).map(utils.testSetup.mockInput.pressBackspace),
+          )
           await utils.sleep(100)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
         // TODO: Ask to make sure this is desired behavior
-        test.todo("space should close", async () => { })
+        test.todo("space should close", async () => {})
 
-        test.todo("should honor input_submit binding", async () => { })
+        test.todo("should honor input_submit binding", async () => {})
       })
     })
   })
@@ -246,8 +243,7 @@ describe("Home", () => {
   describe("Agent cycling", () => {
     let cleanup: Awaited<ReturnType<typeof createStubFiles>>
     beforeEach(async () => {
-      cleanup = await createStubFiles({
-      })
+      cleanup = await createStubFiles({})
     })
     afterEach(async () => {
       await cleanup[Symbol.asyncDispose]()

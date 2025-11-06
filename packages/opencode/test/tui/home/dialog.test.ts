@@ -15,12 +15,7 @@ import {
   xdescribe,
   setSystemTime,
 } from "bun:test"
-import {
-  mockProviders,
-  setUpCommonHooksAndUtils,
-  setUpProviderMocking,
-  SIZES,
-} from "../fixture"
+import { mockProviders, setUpCommonHooksAndUtils, setUpProviderMocking, SIZES } from "../fixture"
 import { testRenderTui } from "../fixture_.tsx"
 
 describe("Dialog", () => {
@@ -112,13 +107,17 @@ describe("Dialog", () => {
 
   test("ctrl-x l should open session list dialog", async () => {
     setSystemTime(new Date("2025-01-01T00:00:00.000Z"))
-    const { data: { id: id1 } } = await s.client.session.create({
-      body: { title: "Session 1" }
-    }) as any
+    const {
+      data: { id: id1 },
+    } = (await s.client.session.create({
+      body: { title: "Session 1" },
+    })) as any
     setSystemTime(new Date("2025-01-02T00:00:00.000Z"))
-    const { data: { id: id2 } } = await s.client.session.create({
-      body: { title: "Session 2" }
-    }) as any
+    const {
+      data: { id: id2 },
+    } = (await s.client.session.create({
+      body: { title: "Session 2" },
+    })) as any
     try {
       await utils.sleep(300)
       utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)

@@ -104,15 +104,12 @@ export function tui(input: {
       resolve()
     }
 
-    render(
-      () => <Tui {...input} onExit={onExit} mode={mode} />,
-      {
-        targetFps: 60,
-        gatherStats: false,
-        exitOnCtrlC: false,
-        useKittyKeyboard: true,
-      },
-    )
+    render(() => <Tui {...input} onExit={onExit} mode={mode} />, {
+      targetFps: 60,
+      gatherStats: false,
+      exitOnCtrlC: false,
+      useKittyKeyboard: true,
+    })
   })
 }
 
@@ -127,9 +124,9 @@ export function Tui(props: {
 }) {
   const routeData: Route | undefined = props.sessionID
     ? {
-      type: "session",
-      sessionID: props.sessionID,
-    }
+        type: "session",
+        sessionID: props.sessionID,
+      }
     : undefined
 
   return (

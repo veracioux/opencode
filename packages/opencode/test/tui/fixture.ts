@@ -38,8 +38,9 @@ type ProvidedValue<K extends keyof typeof knownUseFns> = ReturnType<(typeof know
 
 export type MockConfig = {
   [key in keyof typeof knownUseFns]?:
-  | boolean
-  | ProvidedValue<key> | ((draft: ProvidedValue<key>) => ProvidedValue<key>)
+    | boolean
+    | ProvidedValue<key>
+    | ((draft: ProvidedValue<key>) => ProvidedValue<key>)
 }
 
 export async function mockProviders<T extends MockConfig>(
@@ -49,10 +50,10 @@ export async function mockProviders<T extends MockConfig>(
     [key in keyof MockConfig]: Awaited<ReturnType<(typeof knownUseFns)[key]>>
   }> & {
     [key in keyof T]: T[key] extends (...args: any[]) => any
-    ? ReturnType<T[key]>
-    : T[key] extends false
-    ? never
-    : T[key]
+      ? ReturnType<T[key]>
+      : T[key] extends false
+        ? never
+        : T[key]
   }
 > {
   const defaultConfig = {
@@ -61,7 +62,9 @@ export async function mockProviders<T extends MockConfig>(
       navigate: mock(),
     },
     useExit: mock(() => undefined as never),
-  } satisfies Partial<Record<keyof MockConfig, ReturnType<(typeof knownUseFns)[keyof typeof knownUseFns]>>>
+  } satisfies Partial<
+    Record<keyof MockConfig, ReturnType<(typeof knownUseFns)[keyof typeof knownUseFns]>>
+  >
 
   for (const key of Object.keys(knownUseFns) as (keyof MockConfig)[]) {
     const value = config?.[key]
@@ -93,7 +96,9 @@ export async function mockProviders<T extends MockConfig>(
 export function setUpCommonHooksAndUtils() {
   // Provide some safety for the developer, so they don't accidentally delete their real home dir or its contents
   if (!process.env.HOME?.startsWith(os.tmpdir())) {
-    throw new Error("HOME is not set to a temp directory for the test. Check the test setup in ../preload.ts for issues")
+    throw new Error(
+      "HOME is not set to a temp directory for the test. Check the test setup in ../preload.ts for issues",
+    )
   }
 
   const utils = {
@@ -149,7 +154,7 @@ export function setUpCommonHooksAndUtils() {
       "auth.json": {
         openai: {
           type: "api",
-          key: "stub"
+          key: "stub",
         },
       },
       "opencode.json": {
@@ -162,7 +167,7 @@ export function setUpCommonHooksAndUtils() {
             providerID: "openai",
             modelID: "gpt-5",
           },
-        ]
+        ],
       },
       agent: [
         {
@@ -182,7 +187,7 @@ export function setUpCommonHooksAndUtils() {
           name: "long-command",
           description: "Long command",
           content: "blah blah",
-        }
+        },
       ],
       misc: {
         [`${utils.projectDir}/files/1.txt`]: "Content of file 1",
@@ -215,23 +220,23 @@ export function setUpCommonHooksAndUtils() {
 }
 
 export async function createStubFiles(files: {
-  "auth.json"?: Record<string, unknown>,
-  "models.json"?: Record<string, unknown>,
-  "opencode.json"?: Config.Info,
-  "model.json"?: Record<string, unknown>,
+  "auth.json"?: Record<string, unknown>
+  "models.json"?: Record<string, unknown>
+  "opencode.json"?: Config.Info
+  "model.json"?: Record<string, unknown>
   /** List of templates for commands, defined as markdown files */
   command?: {
-    name: string,
-    description: string,
-    content: string,
-  }[],
+    name: string
+    description: string
+    content: string
+  }[]
   agent?: {
-    name: string,
-    description: string,
-    content: string,
-    model: string,
-  }[],
-  misc?: Record<string, string>,
+    name: string
+    description: string
+    content: string
+    model: string
+  }[]
+  misc?: Record<string, string>
 }) {
   const toDelete: string[] = []
 
@@ -293,7 +298,7 @@ ${body}
       for (const file of toDelete) {
         await fs.rm(file, { recursive: true })
       }
-    }
+    },
   }
 }
 

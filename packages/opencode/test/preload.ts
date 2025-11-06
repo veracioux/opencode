@@ -23,7 +23,6 @@ await fs.mkdir(process.env.XDG_CONFIG_HOME, { recursive: true })
 await fs.mkdir(process.env.XDG_DATA_HOME, { recursive: true })
 await fs.mkdir(process.env.XDG_CACHE_HOME, { recursive: true })
 await fs.mkdir(process.env.XDG_STATE_HOME, { recursive: true })
-
 ;(await import("@/util/log")).Log.init({
   print: false,
   dev: true,
