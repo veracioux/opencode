@@ -104,6 +104,30 @@ exports[`Home Toast should render correctly with title 1`] = `
 exports[`Home Toast should clear after timeout 1`] = `
 "                                                            
                                                             
+                             ┃                           ┃  
+           █▀▀█ █▀▀█ █▀▀█ █▀▀┃  Toast Title              ┃  
+           █░░█ █░░█ █▀▀▀ █░░┃                           ┃  
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ┃  This is a toast message  ┃  
+                             ┃                           ┃  
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/opencode-test      tab  BUILD AGENT 
+"
+`;
+
+exports[`Home Toast should clear after timeout 2`] = `
+"                                                            
+                                                            
                                             ▄               
            █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
            █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
@@ -119,9 +143,9 @@ exports[`Home Toast should clear after timeout 1`] = `
   ┃                                                      ┃  
   ┃ >                                                    ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/opencode-test      tab  BUILD AGENT 
 "
 `;
 

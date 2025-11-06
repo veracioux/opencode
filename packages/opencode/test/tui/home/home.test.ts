@@ -68,7 +68,7 @@ describe("Home", () => {
       await utils.renderOnceExpectMatchSnapshot()
     })
 
-    test.only("should render correctly with title", async () => {
+    test("should clear after timeout", async () => {
       utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
       await s.client.tui.showToast({
         body: {
@@ -81,28 +81,8 @@ describe("Home", () => {
       })
       await utils.sleep(400)
       await utils.renderOnceExpectMatchSnapshot()
-    })
 
-    test("should clear after timeout", async () => {
-      const mocks = await mockProviders({
-        useSDK: (draft) => ({
-          ...draft,
-          event: createGlobalEmitter(),
-        }),
-      })
-      utils.testSetup = await testRenderTui(SIZES.SMALL)
-      mocks.useSDK.event.emit("tui.toast.show", {
-        type: "tui.toast.show",
-        properties: {
-          variant: "error",
-          message: "This is a toast message",
-          title: "Toast Title",
-          duration: 100,
-        },
-      })
-
-      await utils.sleep(150)
-
+      await utils.sleep(200)
       await utils.renderOnceExpectMatchSnapshot()
     })
   })
