@@ -1,15 +1,14 @@
 import { type CommandOption } from "@/cli/cmd/tui/component/dialog-command"
-import { Config } from "@/config/config"
-import type { Agent, Model, OpencodeClient, Provider } from "@opencode-ai/sdk"
+import { createOpencodeClient, type Agent, type Model, type OpencodeClient, type Provider } from "@opencode-ai/sdk"
 import { RGBA } from "@opentui/core"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
 import { afterEach, beforeAll, beforeEach, expect, mock } from "bun:test"
 import { type Context } from "solid-js"
 import os from "os"
-import fsPromises from "fs/promises"
-import fs from "fs"
+import fs from "fs/promises"
 import path from "path"
 import { type testRenderTui } from "./fixture_"
+import { Global } from "@/global"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
 const nameToContextMap = new Map<string, Context<unknown>>()
@@ -18,71 +17,8 @@ const contextToNameMap = new Map<Context<unknown>, string>()
 let knownUseFns: Awaited<ReturnType<typeof setUpProviderMocking>>
 
 export async function setUpProviderMocking() {
-  const { createSimpleContext } = await import("@/cli/cmd/tui/context/helper")
   const { useContext } = await import("solid-js")
-  const global = await import("@/global")
 
-  function ensureXdgDir(name: string) {
-    let home = process.env.HOME
-    if (!home?.startsWith("/tmp"))
-      home = fs.mkdtempSync(path.join(os.tmpdir(), "opencode-test-"))
-    const dir = path.join(home, name)
-    fs.mkdirSync(dir, { recursive: true })
-    return dir
-  }
-  mock.module("@/global", () => ({
-    ...global,
-    Global: {
-      ...global.Global,
-      Path: {
-        ...global.Global.Path,
-        get state() {
-          return ensureXdgDir("state")
-        },
-        get config() {
-          return ensureXdgDir("config")
-        },
-        get cache() {
-          return ensureXdgDir("cache")
-        },
-        get home() {
-          return ensureXdgDir("")
-        },
-        get data() {
-          return ensureXdgDir("data")
-        },
-        get bin() {
-          return ensureXdgDir("bin")
-        },
-        get log() {
-          return ensureXdgDir("log")
-        },
-      } satisfies typeof global.Global.Path,
-    }
-  }))
-
-  mock.module("@/cli/cmd/tui/context/helper.tsx", () => ({
-    createSimpleContext(input: {
-      name: string
-      init: any
-    }): ReturnType<typeof createSimpleContext> {
-      const { provider, use, ctx } = createSimpleContext(input)
-      const mockedProvider: typeof provider = (props) => {
-        const mockedProviderValue = mockedProviderValues.get(use)
-        return mockedProviderValue
-          ? ctx.Provider({ value: mockedProviderValue, children: props.children })
-          : provider(props)
-      }
-      contextToUseFnMap.set(ctx, use)
-      nameToContextMap.set(input.name, ctx)
-      contextToNameMap.set(ctx, input.name)
-      return {
-        provider: mockedProvider,
-        use,
-        ctx,
-      } satisfies ReturnType<typeof createSimpleContext>
-    },
-  }))
   mock.module("solid-js", () => ({
     // ErrorBoundary: StubErrorBoundary,
     useContext(ctx: Context<any>) {
@@ -122,10 +58,10 @@ type UseSDKProvidedValue = Omit<ProvidedValue<"useSDK">, "client"> & {
 
 export type MockConfig = {
   [key in keyof typeof knownUseFns]?:
-    | boolean
-    | (key extends "useSDK"
-        ? UseSDKProvidedValue | ((draft: UseSDKProvidedValue) => UseSDKProvidedValue)
-        : ProvidedValue<key> | ((draft: ProvidedValue<key>) => ProvidedValue<key>))
+  | boolean
+  | (key extends "useSDK"
+    ? UseSDKProvidedValue | ((draft: UseSDKProvidedValue) => UseSDKProvidedValue)
+    : ProvidedValue<key> | ((draft: ProvidedValue<key>) => ProvidedValue<key>))
 }
 
 export async function mockProviders<T extends MockConfig>(
@@ -135,10 +71,10 @@ export async function mockProviders<T extends MockConfig>(
     [key in keyof MockConfig]: Awaited<ReturnType<(typeof knownUseFns)[key]>>
   }> & {
     [key in keyof T]: T[key] extends (...args: any[]) => any
-      ? ReturnType<T[key]>
-      : T[key] extends false
-        ? never
-        : T[key]
+    ? ReturnType<T[key]>
+    : T[key] extends false
+    ? never
+    : T[key]
   }
 > {
   const { resolveTheme, THEMES, syntaxStyleFromTheme } = await import("@/cli/cmd/tui/context/theme")
@@ -176,7 +112,7 @@ export async function mockProviders<T extends MockConfig>(
         move: mock(),
       },
       setInitialPrompt: {
-        listen: mock(() => () => {}),
+        listen: mock(() => () => { }),
         emit: mock(),
         clear: mock(),
       },
@@ -185,12 +121,12 @@ export async function mockProviders<T extends MockConfig>(
       ready: true,
       set: mock(),
       get: mock(() => undefined),
-      signal: mock(() => [() => undefined, (next: any) => {}] as const),
+      signal: mock(() => [() => undefined, (next: any) => { }] as const),
     },
     useCommandDialog: {
       trigger: mock(),
       keybinds: mock(),
-      show: mock(() => {}),
+      show: mock(() => { }),
       register: mock(),
       options: [] as CommandOption[],
       suspended: mock(() => false),
@@ -231,7 +167,7 @@ export async function mockProviders<T extends MockConfig>(
         config: {
           async get() {
             return {
-              keybinds: Config.Keybinds.parse({}),
+              keybinds: (await import("@/config/config")).Config.Keybinds.parse({}),
             }
           },
           providers: async () => {
@@ -325,7 +261,7 @@ export async function mockProviders<T extends MockConfig>(
         command: [],
         permission: {},
         config: {
-          keybinds: Config.Keybinds.parse({}),
+          keybinds: (await import("@/config/config")).Config.Keybinds.parse({}),
         },
         session: [],
         todo: {},
@@ -335,7 +271,7 @@ export async function mockProviders<T extends MockConfig>(
         mcp: {},
         formatter: [],
       },
-      set: mock((...args: any[]) => {}),
+      set: mock((...args: any[]) => { }),
       ready: true,
       session: {
         get: mock(),
@@ -398,7 +334,6 @@ export type OpencodeClientPlain = {
 }
 
 export function setUpCommonHooksAndUtils() {
-  let tmpdir: string
   const utils = {
     testSetup: null as unknown as Awaited<ReturnType<typeof testRenderTui>>,
     homedir: null as unknown as string,
@@ -410,20 +345,40 @@ export function setUpCommonHooksAndUtils() {
     sleep(ms: number) {
       return new Promise((r) => setTimeout(r, ms))
     },
-  }
+    async createIsolatedServer() {
+      const { Server } = await import("@/server/server")
 
-  beforeAll(async () => {
-    tmpdir = os.tmpdir()
-    process.chdir(tmpdir)
-  })
+      const BUN_OPTIONS_BACKUP = process.env.BUN_OPTIONS
+      process.env.BUN_OPTIONS = ""
+      const server = Server.listen({
+        port: 0,
+        hostname: "127.0.0.1",
+      })
+      process.env.BUN_OPTIONS = BUN_OPTIONS_BACKUP
+      const client = createOpencodeClient({
+        baseUrl: server.url.toString(),
+      })
+      return {
+        client,
+        url: server.url.toString(),
+        [Symbol.asyncDispose]: async function () {
+          await server.stop(true)
+        },
+      }
+    },
+  }
+  const originalCwd = process.cwd()
   beforeEach(async () => {
-    utils.homedir = await fsPromises.mkdtemp(tmpdir + path.sep)
-    process.env.HOME = utils.homedir
-    process.env.TZ = "America/Los_Angeles"
+    // Provide some safety for the developer, so they don't accidentally delete their real home dir or its contents
+    if (!process.env.HOME?.startsWith(os.tmpdir())) {
+      throw new Error("HOME is not set to a temp directory for the test. Check the test setup in ../preload.ts for issues")
+    }
+    utils.homedir = process.env.HOME
+    process.chdir(utils.homedir)
   })
   afterEach(async () => {
     mock.restore()
-    await fsPromises.rm(utils.homedir, { recursive: true })
+    process.chdir(originalCwd)
   })
   afterEach(async () => {
     // Without this delay, some tests cause
@@ -433,6 +388,30 @@ export function setUpCommonHooksAndUtils() {
   })
 
   return utils
+}
+
+export async function createStubFiles(files: {
+  "auth.json"?: Record<string, unknown>,
+  "models.json"?: Record<string, unknown>,
+}) {
+  const toDelete: string[] = []
+  async function createFileWithJSON(pth: string, content: any) {
+    await fs.mkdir(path.dirname(pth), { recursive: true })
+    await fs.writeFile(pth, JSON.stringify(content, null, 2))
+    toDelete.push(pth)
+  }
+  if (files["auth.json"])
+    await createFileWithJSON(path.join(Global.Path.data, "auth.json"), files["auth.json"])
+  if (files["models.json"])
+    await createFileWithJSON(path.join(Global.Path.cache, "models.json"), files["models.json"])
+
+  return {
+    [Symbol.asyncDispose]: async () => {
+      for (const file of toDelete) {
+        await fs.rm(file, { recursive: true })
+      }
+    }
+  }
 }
 
 /**

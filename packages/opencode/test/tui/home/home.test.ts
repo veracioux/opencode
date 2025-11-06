@@ -1,3 +1,4 @@
+const utils = setUpCommonHooksAndUtils()
 await setUpProviderMocking()
 
 import {
@@ -12,138 +13,73 @@ import {
   spyOn,
   type Mock,
   xdescribe,
+  setSystemTime,
 } from "bun:test"
 import {
   mockProviders,
   setUpCommonHooksAndUtils,
   setUpProviderMocking,
   SIZES,
-  type MockConfig,
 } from "../fixture"
 import { testRenderTui } from "../fixture_.tsx"
-import { mockIdentifiers } from "../../fixture/fixture.ts"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
 
-const utils = setUpCommonHooksAndUtils()
-
 describe("Home", () => {
-  beforeEach(async () => {
-    await mockProviders({
-      useTheme: true,
-      useKV: true,
-      useSDK: true,
-      useSync: true,
-      useExit: true,
-      usePromptHistory: true,
-      useLocal: false,
-      useToast: false,
-      useRoute: false,
-      useDialog: false,
-      useCommandDialog: false,
-      useKeybind: false,
-    } satisfies Required<MockConfig>)
+  let s: Awaited<ReturnType<typeof utils.createIsolatedServer>>
+  beforeAll(async () => {
+    s = await utils.createIsolatedServer()
+    setSystemTime(new Date("2025-01-01T00:00:00.000Z"))
   })
 
-  test("should render correctly", async () => {
-    utils.testSetup = await testRenderTui(SIZES.MEDIUM)
+  test.only("should render correctly", async () => {
+    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
     await utils.renderOnceExpectMatchSnapshot()
   })
 
-  test("should resize correctly", async () => {
-    utils.testSetup = await testRenderTui(SIZES.NORMAL)
+  test.only("should resize correctly", async () => {
+    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.NORMAL)
     await utils.testSetup.renderOnce()
     utils.testSetup.resize(SIZES.SMALL.width, SIZES.SMALL.height)
     await utils.renderOnceExpectMatchSnapshot()
   })
 
   // FIXME: Set up better mocks so it actually displays a message
-  test("prompt should start a new session", async () => {
-    const mocks = await mockProviders({
-      useSDK: (draft) => ({
-        ...draft,
-        client: {
-          ...draft.client,
-          session: {
-            ...draft.client.session,
-            create: mock(async (_) => ({ data: { id: "ses_1" } })),
-            prompt: mock(async (_) => ({ data: {} })),
-          },
-        } as any,
-      }),
-    })
-    await mockIdentifiers()
-
-    utils.testSetup = await testRenderTui(SIZES.MEDIUM)
+  test.only("prompt should start a new session", async () => {
+    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
     await utils.testSetup.mockInput.typeText("Hello, world!")
     await utils.testSetup.mockInput.pressEnter()
-    await utils.testSetup.renderOnce()
+    await utils.sleep(3000)
 
-    expect(mocks.useSDK.client.session.create).toHaveBeenCalledWith({})
-    expect(mocks.useSDK.client.session.prompt).toHaveBeenCalledWith({
-      body: {
-        agent: "mock-agent-1",
-        messageID: "message_1",
-        model: {
-          modelID: "mock-model-1",
-          providerID: "mock-provider-1",
-        },
-        modelID: "mock-model-1",
-        parts: [
-          {
-            id: "part_1",
-            text: "Hello, world!",
-            type: "text",
-          },
-        ],
-        providerID: "mock-provider-1",
-      },
-      path: {
-        id: "ses_1",
-      },
-    })
-    await utils.sleep(300)
     await utils.renderOnceExpectMatchSnapshot()
   })
 
   describe("Toast", () => {
-    test("should render correctly", async () => {
-      const mocks = await mockProviders({
-        useSDK: (draft) => ({
-          ...draft,
-          event: createGlobalEmitter(),
-        }),
-      })
-      utils.testSetup = await testRenderTui(SIZES.SMALL)
-      mocks.useSDK.event.emit("tui.toast.show", {
-        type: "tui.toast.show",
-        properties: {
+    test.only("should render correctly", async () => {
+      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await s.client.tui.showToast({
+        body: {
           variant: "info",
           message: "This is a toast message",
-          duration: 100,
+          duration: 500,
         },
+        throwOnError: true,
       })
-
+      await utils.sleep(100)
       await utils.renderOnceExpectMatchSnapshot()
     })
 
-    test("should render correctly with title", async () => {
-      const mocks = await mockProviders({
-        useSDK: (draft) => ({
-          ...draft,
-          event: createGlobalEmitter(),
-        }),
-      })
-      utils.testSetup = await testRenderTui(SIZES.SMALL)
-      mocks.useSDK.event.emit("tui.toast.show", {
-        type: "tui.toast.show",
-        properties: {
-          variant: "info",
+    test.only("should render correctly with title", async () => {
+      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await s.client.tui.showToast({
+        body: {
+          variant: "error",
           message: "This is a toast message",
+          duration: 500,
           title: "Toast Title",
-          duration: 100,
         },
+        throwOnError: true,
       })
-
+      await utils.sleep(200)
       await utils.renderOnceExpectMatchSnapshot()
     })
 
