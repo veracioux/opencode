@@ -7,7 +7,7 @@ import { Installation } from "@/installation"
 import { Global } from "@/global"
 import { DialogProvider, useDialog } from "@tui/ui/dialog"
 import { SDKProvider, useSDK } from "@tui/context/sdk"
-import { SyncProvider, useSync } from "@tui/context/sync"
+import { SyncProvider } from "@tui/context/sync"
 import { LocalProvider, useLocal } from "@tui/context/local"
 import { DialogModel } from "@tui/component/dialog-model"
 import { DialogStatus } from "@tui/component/dialog-status"
@@ -131,6 +131,7 @@ export function Tui(props: {
       sessionID: props.sessionID,
     }
     : undefined
+
   return (
     <ErrorBoundary
       fallback={(error, reset) => (
@@ -170,7 +171,7 @@ export function Tui(props: {
   )
 }
 
-export function App() {
+function App() {
   const route = useRoute()
   const dimensions = useTerminalDimensions()
   const renderer = useRenderer()
@@ -180,39 +181,9 @@ export function App() {
   const kv = useKV()
   const command = useCommandDialog()
   const { event } = useSDK()
-  const sync = useSync()
   const toast = useToast()
-  const [sessionExists, setSessionExists] = createSignal(false)
   const { theme, mode, setMode } = useTheme()
   const exit = useExit()
-
-  useKeyboard(async (evt) => {
-    if (!Installation.isLocal()) return
-    if (evt.meta && evt.name === "t") {
-      renderer.toggleDebugOverlay()
-      return
-    }
-
-    if (evt.meta && evt.name === "d") {
-      renderer.console.toggle()
-      return
-    }
-  })
-
-  // Make sure session is valid, otherwise redirect to home
-  createEffect(async () => {
-    if (route.data.type === "session") {
-      const data = route.data
-      await sync.session.sync(data.sessionID).catch(() => {
-        toast.show({
-          message: `Session not found: ${data.sessionID}`,
-          variant: "error",
-        })
-        return route.navigate({ type: "home" })
-      })
-      setSessionExists(true)
-    }
-  })
 
   createEffect(() => {
     console.log(JSON.stringify(route.data))
@@ -335,6 +306,24 @@ export function App() {
       onSelect: exit,
       category: "System",
     },
+    {
+      title: "Toggle debug panel",
+      category: "System",
+      value: "app.debug",
+      onSelect: (dialog) => {
+        renderer.toggleDebugOverlay()
+        dialog.clear()
+      },
+    },
+    {
+      title: "Toggle console",
+      category: "System",
+      value: "app.fps",
+      onSelect: (dialog) => {
+        renderer.console.toggle()
+        dialog.clear()
+      },
+    },
   ])
 
   createEffect(() => {
@@ -420,7 +409,7 @@ export function App() {
           <Match when={route.data.type === "home"}>
             <Home />
           </Match>
-          <Match when={route.data.type === "session" && sessionExists()}>
+          <Match when={route.data.type === "session"}>
             <Session />
           </Match>
         </Switch>

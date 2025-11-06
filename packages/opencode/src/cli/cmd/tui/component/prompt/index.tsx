@@ -8,6 +8,7 @@ import {
   t,
   dim,
   fg,
+  type KeyBinding,
 } from "@opentui/core"
 import { createEffect, createMemo, Match, Switch, type JSX, onMount, batch } from "solid-js"
 import { useLocal } from "@tui/context/local"
@@ -28,6 +29,7 @@ import { useExit } from "../../context/exit"
 import { Clipboard } from "../../util/clipboard"
 import type { FilePart } from "@opencode-ai/sdk"
 import { TuiEvent } from "../../event"
+import { iife } from "@/util/iife"
 
 export type PromptProps = {
   sessionID?: string
@@ -83,7 +85,7 @@ export function Prompt(props: PromptProps) {
         shift: binding.shift || undefined,
         action: "submit" as const,
       })),
-    ]
+    ] satisfies KeyBinding[]
   })
 
   const fileStyleId = syntax().getStyleId("extmark.file")!
@@ -363,8 +365,15 @@ export function Prompt(props: PromptProps) {
         },
       })
       setStore("mode", "normal")
-    } else if (inputText.startsWith("/")) {
-      const [command, ...args] = inputText.split(" ")
+    } else if (
+      inputText.startsWith("/") &&
+      iife(() => {
+        const command = inputText.split(" ")[0].slice(1)
+        console.log(command)
+        return sync.data.command.some((x) => x.name === command)
+      })
+    ) {
+      let [command, ...args] = inputText.split(" ")
       sdk.client.session.command({
         path: {
           id: sessionID,
@@ -530,7 +539,8 @@ export function Prompt(props: PromptProps) {
                 syncExtmarksWithPromptParts()
               }}
               keyBindings={textareaKeybindings()}
-              onKeyDown={async (e: KeyEvent) => {
+              // TODO: fix this any
+              onKeyDown={async (e: any) => {
                 if (props.disabled) {
                   e.preventDefault()
                   return
@@ -642,7 +652,10 @@ export function Prompt(props: PromptProps) {
                 } catch {}
 
                 const lineCount = (pastedContent.match(/\n/g)?.length ?? 0) + 1
-                if (lineCount >= 5 && !sync.data.config.experimental?.disable_paste_summary) {
+                if (
+                  (lineCount >= 3 || pastedContent.length > 150) &&
+                  !sync.data.config.experimental?.disable_paste_summary
+                ) {
                   event.preventDefault()
                   const currentOffset = input.visualCursor.offset
                   const virtualText = `[Pasted ~${lineCount} lines]`
