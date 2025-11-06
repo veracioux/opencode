@@ -14,17 +14,16 @@ import {
   type Mock,
   xdescribe,
   setSystemTime,
+  afterAll,
 } from "bun:test"
 import {
   createStubFiles,
-  mockProviders,
   setUpCommonHooksAndUtils,
   setUpProviderMocking,
   SIZES,
+  wrapEach,
 } from "../fixture"
 import { testRenderTui } from "../fixture_.tsx"
-import { createGlobalEmitter } from "@solid-primitives/event-bus"
-import { command } from "yargs"
 
 describe("Home", () => {
   let s: Awaited<ReturnType<typeof utils.createIsolatedServer>>
@@ -114,10 +113,9 @@ describe("Home", () => {
     })
 
     describe("Autocomplete", () => {
-      let cleanup: Awaited<ReturnType<typeof createStubFiles>>
       const waitForOpen = () => utils.sleep(200)
-      beforeEach(async () => {
-        cleanup = await createStubFiles({
+      wrapEach(async function* () {
+        await using _ = await createStubFiles({
           command: [
             {
               name: "e",
@@ -131,13 +129,11 @@ describe("Home", () => {
             }
           ],
           misc: {
-            "./files/1.txt": "Content of file 1",
-            "./files/2.txt": "Content of file 2",
-          }
+            [`${utils.homedir}/project/files/1.txt`]: "Content of file 1",
+            [`${utils.homedir}/project/files/2.txt`]: "Content of file 2",
+          },
         })
-      })
-      afterEach(async () => {
-        await cleanup[Symbol.asyncDispose]()
+        yield
       })
 
       describe("/ mode", () => {
@@ -156,7 +152,7 @@ describe("Home", () => {
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test.only("should narrow /ex input to /exit", async () => {
+        test("should narrow /ex input to /exit", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("/ex")
@@ -181,7 +177,7 @@ describe("Home", () => {
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test.only("/ exact matches should be prioritized", async () => {
+        test("/ exact matches should be prioritized", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.mockInput.typeText("/e")
           await waitForOpen()
@@ -189,11 +185,13 @@ describe("Home", () => {
         })
       })
 
+      // TODO: Set up agents in fixture
       describe("@ mode", () => {
-        test("@ should open autocomplete", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+        test.only("@ should open autocomplete", async () => {
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("@")
+          await waitForOpen()
           await utils.renderOnceExpectMatchSnapshot()
         })
 

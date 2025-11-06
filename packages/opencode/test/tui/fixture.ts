@@ -335,9 +335,14 @@ export type OpencodeClientPlain = {
 }
 
 export function setUpCommonHooksAndUtils() {
+  // Provide some safety for the developer, so they don't accidentally delete their real home dir or its contents
+  if (!process.env.HOME?.startsWith(os.tmpdir())) {
+    throw new Error("HOME is not set to a temp directory for the test. Check the test setup in ../preload.ts for issues")
+  }
   const utils = {
-    testSetup: null as unknown as Awaited<ReturnType<typeof testRenderTui>>,
-    homedir: null as unknown as string,
+    homedir: process.env.HOME,
+    projectDir: path.join(process.env.HOME, "project"),
+    testSetup: undefined as unknown as Awaited<ReturnType<typeof testRenderTui>>,
     renderOnceExpectMatchSnapshot: async function () {
       await this.testSetup!.renderOnce()
       const frame = this.testSetup!.captureCharFrame()
@@ -349,33 +354,41 @@ export function setUpCommonHooksAndUtils() {
     async createIsolatedServer() {
       const { Server } = await import("@/server/server")
 
-      const BUN_OPTIONS_BACKUP = process.env.BUN_OPTIONS
-      process.env.BUN_OPTIONS = ""
-      const server = Server.listen({
-        port: 0,
-        hostname: "127.0.0.1",
+      return await this.withCwd(this.projectDir, async () => {
+        const BUN_OPTIONS_BACKUP = process.env.BUN_OPTIONS
+        process.env.BUN_OPTIONS = ""
+        const server = Server.listen({
+          port: 0,
+          hostname: "127.0.0.1",
+        })
+        process.env.BUN_OPTIONS = BUN_OPTIONS_BACKUP
+        const client = createOpencodeClient({
+          baseUrl: server.url.toString(),
+        })
+        return {
+          client,
+          url: server.url.toString(),
+          [Symbol.asyncDispose]: async function () {
+            await server.stop(true)
+          },
+        }
       })
-      process.env.BUN_OPTIONS = BUN_OPTIONS_BACKUP
-      const client = createOpencodeClient({
-        baseUrl: server.url.toString(),
-      })
-      return {
-        client,
-        url: server.url.toString(),
-        [Symbol.asyncDispose]: async function () {
-          await server.stop(true)
-        },
-      }
     },
+    /** Execute cb in specified cwd */
+    async withCwd(newCwd: string, cb: () => any) {
+      await fs.mkdir(newCwd, { recursive: true })
+      const originalCwd = process.cwd()
+      process.chdir(newCwd)
+      try {
+        return await cb()
+      } finally {
+        process.chdir(originalCwd)
+      }
+    }
   }
   const originalCwd = process.cwd()
   beforeEach(async () => {
-    // Provide some safety for the developer, so they don't accidentally delete their real home dir or its contents
-    if (!process.env.HOME?.startsWith(os.tmpdir())) {
-      throw new Error("HOME is not set to a temp directory for the test. Check the test setup in ../preload.ts for issues")
-    }
-    utils.homedir = process.env.HOME
-    process.chdir(utils.homedir)
+    process.chdir(path.join(utils.homedir, "project"))
   })
   afterEach(async () => {
     mock.restore()
@@ -444,6 +457,17 @@ ${body}
       }
     }
   }
+}
+
+/** Wrap each test in a pytest-style fixture */
+export async function wrapEach(cb: () => AsyncGenerator<void, void, void>) {
+  let gen: AsyncGenerator = cb()
+  beforeEach(async () => {
+    await gen.next()
+  })
+  afterEach(async () => {
+    await gen.next()
+  })
 }
 
 /**

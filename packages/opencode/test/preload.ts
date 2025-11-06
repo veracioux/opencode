@@ -6,7 +6,7 @@ import os from "os"
 process.env.USER = "test-user"
 process.env.TZ = "America/Los_Angeles"
 
-const homedir = path.join(os.tmpdir(), "opencode-test")
+const homedir = path.join(os.tmpdir(), "oc-test")
 await fs.mkdir(homedir, { recursive: true })
 for await (const file of new Bun.Glob(`${homedir}/**`).scan()) {
   await fs.rm(file, { recursive: true })

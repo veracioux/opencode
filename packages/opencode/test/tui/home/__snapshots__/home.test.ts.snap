@@ -309,17 +309,17 @@ exports[`Home Prompt Autocomplete @ mode @ should open autocomplete 1`] = `
                                              local          
                                                             
            Commands                         ctrl+p          
-  ┃ @mock-agent-1                                        ┃  
-  ┃ @mock-agent-2                                        ┃  
-  ┃ @mock-agent-3                                        ┃  
-  ┃ /non/existent/file1.txt                              ┃  
-  ┃ /non/existent/file2.txt                              ┃  
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+  ┃ files/                                               ┃  
   ┃                                                      ┃  
   ┃ > @                                                  ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
 "
 `;
 
@@ -594,25 +594,25 @@ TODO: Make deterministic by mocking LLM responses
 `;
 
 exports[`Home Prompt Autocomplete / mode / exact matches should be prioritized 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-  ┃ /e             Short command                         ┃  
-  ┃ /exit          exit the app                          ┃  
-  ┃ /editor        open editor                           ┃  
-  ┃ /new           create a new session                  ┃  
-  ┃ /session       list sessions                         ┃  
-  ┃ /help          show help                             ┃  
-  ┃ /init          create/update AGENTS.md               ┃  
-  ┃ /theme         toggle theme                          ┃  
-  ┃ /agents        list agents                           ┃  
-  ┃ /models        list models                           ┃  
-  ┃                                                      ┃  
-  ┃ > /e                                                 ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/opencode-test      tab  BUILD AGENT 
+"
+
+                                            ▄
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█
+  ┃ /e             Short command                         ┃
+  ┃ /exit          exit the app                          ┃
+  ┃ /editor        open editor                           ┃
+  ┃ /new           create a new session                  ┃
+  ┃ /session       list sessions                         ┃
+  ┃ /help          show help                             ┃
+  ┃ /init          create/update AGENTS.md               ┃
+  ┃ /theme         toggle theme                          ┃
+  ┃ /agents        list agents                           ┃
+  ┃ /models        list models                           ┃
+  ┃                                                      ┃
+  ┃ > /e                                                 ┃
+  ┃                                                      ┃
+  OpenCode Zen Big Pickle
+
+ opencode vlocal  /tmp/opencode-test      tab  BUILD AGENT
 "
 `;
