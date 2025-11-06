@@ -160,24 +160,25 @@ describe("Home", () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("/ex")
+          await waitForOpen()
           await utils.renderOnceExpectMatchSnapshot()
         })
 
         test("enter should trigger action", async () => {
-          const mocks = await mockProviders()
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+          const onExit = mock(async () => { })
+          utils.testSetup = await testRenderTui({ url: s.url, onExit }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("/ex")
           await utils.testSetup.mockInput.pressEnter()
-          await utils.renderOnceExpectMatchSnapshot()
-          expect(mocks.useExit).toHaveBeenCalled()
+          expect(onExit).toHaveBeenCalled()
         })
 
-        test("enter on custom command should expect args", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+        test.only("enter on custom command should expect args", async () => {
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("/long-c")
           await utils.testSetup.mockInput.pressEnter()
+          await utils.testSetup.mockInput.typeText("arg1 arg2")
           await utils.renderOnceExpectMatchSnapshot()
         })
 

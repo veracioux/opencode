@@ -275,30 +275,6 @@ exports[`Home Prompt Autocomplete / mode should narrow /ex input to /exit 1`] = 
 "
 `;
 
-exports[`Home Prompt Autocomplete / mode enter should trigger action 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ >                                                    ┃  
-  ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
-                                                            
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
-"
-`;
-
 exports[`Home Prompt Autocomplete / mode enter on custom command should expect args 1`] = `
 "                                                            
                                                             
@@ -315,11 +291,11 @@ exports[`Home Prompt Autocomplete / mode enter on custom command should expect a
                                                             
                                                             
   ┃                                                      ┃  
-  ┃ > /long-command                                      ┃  
+  ┃ > /long-command arg1 arg2                            ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/opencode-test      tab  BUILD AGENT 
 "
 `;
 
