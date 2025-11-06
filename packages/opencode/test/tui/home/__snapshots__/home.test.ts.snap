@@ -269,9 +269,9 @@ exports[`Home Prompt Autocomplete / mode should narrow /ex input to /exit 1`] = 
   ┃                                                      ┃  
   ┃ > /ex                                                ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/opencode-test      tab  BUILD AGENT 
 "
 `;
 

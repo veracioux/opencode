@@ -141,7 +141,7 @@ describe("Home", () => {
       })
 
       describe("/ mode", () => {
-        test.only("/ should open autocomplete", async () => {
+        test("/ should open autocomplete", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("/")
@@ -149,15 +149,15 @@ describe("Home", () => {
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test.only("should not open in the middle of text", async () => {
+        test("should not open in the middle of text", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.mockInput.typeText("blah /")
           await waitForOpen()
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test("should narrow /ex input to /exit", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+        test.only("should narrow /ex input to /exit", async () => {
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("/ex")
           await utils.renderOnceExpectMatchSnapshot()
