@@ -173,23 +173,19 @@ describe("Home", () => {
           expect(onExit).toHaveBeenCalled()
         })
 
-        test.only("enter on custom command should expect args", async () => {
+        test("enter on custom command should expect args", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
-          await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("/long-c")
           await utils.testSetup.mockInput.pressEnter()
           await utils.testSetup.mockInput.typeText("arg1 arg2")
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        // Behavior to be implemented, PR is open
-        test.todo("/ exact matches should be prioritized", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
-          await utils.testSetup.renderOnce()
+        test.only("/ exact matches should be prioritized", async () => {
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.mockInput.typeText("/e")
-          await utils.testSetup.renderOnce()
-          const frame = utils.testSetup.captureCharFrame()
-          expect(frame).toMatchSnapshot()
+          await waitForOpen()
+          await utils.renderOnceExpectMatchSnapshot()
         })
       })
 

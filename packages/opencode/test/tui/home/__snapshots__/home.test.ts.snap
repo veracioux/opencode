@@ -592,3 +592,27 @@ exports[`Home prompt should start a new session 1`] = `
 TODO: Make deterministic by mocking LLM responses
 "
 `;
+
+exports[`Home Prompt Autocomplete / mode / exact matches should be prioritized 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+  ┃ /e             Short command                         ┃  
+  ┃ /exit          exit the app                          ┃  
+  ┃ /editor        open editor                           ┃  
+  ┃ /new           create a new session                  ┃  
+  ┃ /session       list sessions                         ┃  
+  ┃ /help          show help                             ┃  
+  ┃ /init          create/update AGENTS.md               ┃  
+  ┃ /theme         toggle theme                          ┃  
+  ┃ /agents        list agents                           ┃  
+  ┃ /models        list models                           ┃  
+  ┃                                                      ┃  
+  ┃ > /e                                                 ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/opencode-test      tab  BUILD AGENT 
+"
+`;
