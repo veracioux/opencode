@@ -387,11 +387,11 @@ exports[`Home Prompt Autocomplete @ mode enter should confirm choice 1`] = `
                                                             
                                                             
   ┃                                                      ┃  
-  ┃ > @nonexfile1                                        ┃  
+  ┃ > @files/2.txt                                       ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
 "
 `;
 
@@ -411,11 +411,11 @@ exports[`Home Prompt Autocomplete @ mode tab should confirm choice 1`] = `
                                                             
                                                             
   ┃                                                      ┃  
-  ┃ > @nonexfile1                                        ┃  
+  ┃ > @files/1.txt                                       ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
 "
 `;
 
@@ -435,11 +435,11 @@ exports[`Home Prompt Autocomplete @ mode esc should close 1`] = `
                                                             
                                                             
   ┃                                                      ┃  
-  ┃ > @nonexfile1                                        ┃  
+  ┃ > @file1                                             ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
 "
 `;
 
@@ -461,12 +461,11 @@ exports[`Home Prompt Autocomplete @ mode clearing input should close 1`] = `
   ┃                                                      ┃  
   ┃ > blah                                               ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenCode Zen Big Pickle                                   
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
 "
 `;
-
 exports[`Home Agent cycling tab should switch agent, with wrap-around 1`] = `
 "                                                            
                                                             

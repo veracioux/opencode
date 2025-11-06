@@ -113,6 +113,7 @@ describe("Home", () => {
 
     describe("Autocomplete", () => {
       let cleanup: Awaited<ReturnType<typeof createStubFiles>>
+      /** Wait for the autocomplete popup to open */
       const waitForOpen = () => utils.sleep(200)
       beforeEach(async () => {
         cleanup = await createStubFiles({
@@ -189,7 +190,7 @@ describe("Home", () => {
 
       // TODO: Set up agents in fixture
       describe("@ mode", () => {
-        test.only("@ should open autocomplete", async () => {
+        test("@ should open autocomplete", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("@")
@@ -197,7 +198,7 @@ describe("Home", () => {
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test.only("should match items correctly", async () => {
+        test("should match items correctly", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("@file1")
@@ -205,7 +206,7 @@ describe("Home", () => {
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test.only("should trigger in the middle of text", async () => {
+        test("should trigger in the middle of text", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("blah @file1")
@@ -213,36 +214,41 @@ describe("Home", () => {
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test("enter should confirm choice", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+        test.only("enter should confirm choice", async () => {
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.mockInput.typeText("@file2")
+          await waitForOpen()
           await utils.testSetup.mockInput.pressEnter()
           await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test("tab should confirm choice", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+        test.only("tab should confirm choice", async () => {
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.mockInput.typeText("@file1")
+          await waitForOpen()
           await utils.testSetup.mockInput.pressTab()
           await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test("esc should close", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+        test.only("esc should close", async () => {
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("@file1")
+          await waitForOpen()
           await utils.testSetup.mockInput.pressEscape()
           await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test("clearing input should close", async () => {
-          utils.testSetup = await testRenderTui(SIZES.SMALL)
+        test.only("clearing input should close", async () => {
+          utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+          const input = "@file1"
           await utils.testSetup.renderOnce()
-          await utils.testSetup.mockInput.typeText("blah @file1")
-          await Promise.all(Array(11).fill(null).map(utils.testSetup.mockInput.pressBackspace))
+          await utils.testSetup.mockInput.typeText(`blah ${input}`)
+          await waitForOpen()
+          await Promise.all(Array(input.length).fill(null).map(utils.testSetup.mockInput.pressBackspace))
           await utils.sleep(50)
           await utils.renderOnceExpectMatchSnapshot()
         })
