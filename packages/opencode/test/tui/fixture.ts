@@ -10,6 +10,7 @@ import path from "path"
 import { type testRenderTui } from "./fixture_"
 import { Global } from "@/global"
 import { YAML } from "bun"
+import type { Config } from "@/config/config"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
 const nameToContextMap = new Map<string, Context<unknown>>()
@@ -339,12 +340,13 @@ export function setUpCommonHooksAndUtils() {
   if (!process.env.HOME?.startsWith(os.tmpdir())) {
     throw new Error("HOME is not set to a temp directory for the test. Check the test setup in ../preload.ts for issues")
   }
+
   const utils = {
     homedir: process.env.HOME,
     projectDir: path.join(process.env.HOME, "project"),
     testSetup: undefined as unknown as Awaited<ReturnType<typeof testRenderTui>>,
     renderOnceExpectMatchSnapshot: async function () {
-      await this.testSetup!.renderOnce()
+      await this.testSetup.renderOnce()
       const frame = this.testSetup!.captureCharFrame()
       expect(frame).toMatchSnapshot()
     },
@@ -375,7 +377,7 @@ export function setUpCommonHooksAndUtils() {
       })
     },
     /** Execute cb in specified cwd */
-    async withCwd(newCwd: string, cb: () => any) {
+    async withCwd<T>(newCwd: string, cb: () => T) {
       await fs.mkdir(newCwd, { recursive: true })
       const originalCwd = process.cwd()
       process.chdir(newCwd)
@@ -384,17 +386,61 @@ export function setUpCommonHooksAndUtils() {
       } finally {
         process.chdir(originalCwd)
       }
-    }
+    },
   }
-  const originalCwd = process.cwd()
+
+  async function setUpOpencodeEnv() {
+    const cleanup = await createStubFiles({
+      "auth.json": {
+        openai: {
+          type: "api",
+          key: "stub"
+        },
+      },
+      "opencode.json": {
+        model: "opencode/big-pickle",
+      },
+      agent: [
+        {
+          name: "docs",
+          description: "0 - Documentation agent",
+          content: "Handles questions about project documentation.",
+          model: "opencode/grok-code",
+        },
+      ],
+      command: [
+        {
+          name: "e",
+          description: "Short command",
+          content: "blah blah",
+        },
+        {
+          name: "long-command",
+          description: "Long command",
+          content: "blah blah",
+        }
+      ],
+      misc: {
+        [`${utils.projectDir}/files/1.txt`]: "Content of file 1",
+        [`${utils.projectDir}/files/2.txt`]: "Content of file 2",
+      },
+    })
+    return cleanup
+  }
+
+  beforeAll(async () => {
+    await fs.mkdir(path.join(utils.homedir, "project"), { recursive: true })
+    await setUpOpencodeEnv()
+  })
+
+  let originalCwd: string
   beforeEach(async () => {
-    process.chdir(path.join(utils.homedir, "project"))
+    originalCwd = process.cwd()
+    process.chdir(utils.projectDir)
   })
   afterEach(async () => {
     mock.restore()
     process.chdir(originalCwd)
-  })
-  afterEach(async () => {
     // Without this delay, some tests cause
     // error: EditBuffer is destroyed
     await new Promise((r) => setTimeout(r, 0))
@@ -407,6 +453,7 @@ export function setUpCommonHooksAndUtils() {
 export async function createStubFiles(files: {
   "auth.json"?: Record<string, unknown>,
   "models.json"?: Record<string, unknown>,
+  "opencode.json"?: Config.Info,
   /** List of templates for commands, defined as markdown files */
   command?: {
     name: string,
@@ -449,6 +496,10 @@ ${body}
   if (files["models.json"])
     await createJSONFile(path.join(Global.Path.cache, "models.json"), files["models.json"])
 
+  // global opencode.json
+  if (files["opencode.json"])
+    await createJSONFile(path.join(Global.Path.config, "opencode.json"), files["opencode.json"])
+
   // command
   for (const def of files.command ?? []) {
     const { name, content, ...rest } = def
@@ -459,8 +510,8 @@ ${body}
   // agent
   for (const def of files.agent ?? []) {
     const { name, content, ...rest } = def
-    const cmdPath = path.join(Global.Path.config, "agent", `${def.name}.md`)
-    await createMarkdownFile(cmdPath, rest, def.content)
+    const agentPath = path.join(Global.Path.config, "agent", `${def.name}.md`)
+    await createMarkdownFile(agentPath, rest, def.content)
   }
 
   // misc files

@@ -29,6 +29,8 @@ describe("Home", () => {
   let s: Awaited<ReturnType<typeof utils.createIsolatedServer>>
   beforeAll(async () => {
     s = await utils.createIsolatedServer()
+    // Let the server boot up
+    await utils.sleep(500)
     setSystemTime(new Date("2025-01-01T00:00:00.000Z"))
   })
 
@@ -113,32 +115,8 @@ describe("Home", () => {
     })
 
     describe("Autocomplete", () => {
-      let cleanup: Awaited<ReturnType<typeof createStubFiles>>
       /** Wait for the autocomplete popup to open */
       const waitForOpen = () => utils.sleep(200)
-      beforeEach(async () => {
-        cleanup = await createStubFiles({
-          command: [
-            {
-              name: "e",
-              description: "Short command",
-              content: "blah blah",
-            },
-            {
-              name: "long-command",
-              description: "Long command",
-              content: "blah blah",
-            }
-          ],
-          misc: {
-            [`${utils.projectDir}/files/1.txt`]: "Content of file 1",
-            [`${utils.projectDir}/files/2.txt`]: "Content of file 2",
-          },
-        })
-      })
-      afterEach(async () => {
-        await cleanup[Symbol.asyncDispose]()
-      })
 
       describe("/ mode", () => {
         test("/ should open autocomplete", async () => {
@@ -266,20 +244,6 @@ describe("Home", () => {
     let cleanup: Awaited<ReturnType<typeof createStubFiles>>
     beforeEach(async () => {
       cleanup = await createStubFiles({
-        "auth.json": {
-          openai: {
-            type: "api",
-            key: "stub"
-          },
-        },
-        agent: [
-          {
-            name: "docs",
-            description: "0 - Documentation agent",
-            content: "Handles questions about project documentation.",
-            model: "opencode/grok-code",
-          },
-        ],
       })
     })
     afterEach(async () => {
