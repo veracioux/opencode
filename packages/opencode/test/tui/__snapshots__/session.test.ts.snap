@@ -2,13 +2,6 @@
 
 exports[`Session should render correctly 1`] = `
 "                                                                                
-  ┃ #                                                                        ┃  
-  ┃ /share to create a shareable link                                        ┃  
-                                                                                
-  ┃                                                                             
-  ┃  Hello, world!                                                              
-  ┃  You (4:00:00 PM)                                                           
-  ┃                                                                             
                                                                                 
                                                                                 
                                                                                 
@@ -20,11 +13,18 @@ exports[`Session should render correctly 1`] = `
                                                                                 
                                                                                 
                                                                                 
-  ┃                                                                          ┃  
-  ┃ >                                                                        ┃  
-  ┃                                                                          ┃  
-  Mock Provider 1 Mock Model 1                                 ctrl+p commands  
                                                                                 
- opencode vlocal  /tmp                                 tab  MOCK-AGENT-1 AGENT 
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 "
 `;

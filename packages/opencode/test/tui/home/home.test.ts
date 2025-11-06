@@ -31,12 +31,12 @@ describe("Home", () => {
     setSystemTime(new Date("2025-01-01T00:00:00.000Z"))
   })
 
-  test.only("should render correctly", async () => {
+  test("should render correctly", async () => {
     utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
     await utils.renderOnceExpectMatchSnapshot()
   })
 
-  test.only("should resize correctly", async () => {
+  test("should resize correctly", async () => {
     utils.testSetup = await testRenderTui({ url: s.url }, SIZES.NORMAL)
     await utils.testSetup.renderOnce()
     utils.testSetup.resize(SIZES.SMALL.width, SIZES.SMALL.height)
@@ -54,7 +54,7 @@ describe("Home", () => {
   })
 
   describe("Toast", () => {
-    test.only("should render correctly", async () => {
+    test("should render correctly", async () => {
       utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
       await s.client.tui.showToast({
         body: {
@@ -79,7 +79,7 @@ describe("Home", () => {
         },
         throwOnError: true,
       })
-      await utils.sleep(200)
+      await utils.sleep(400)
       await utils.renderOnceExpectMatchSnapshot()
     })
 
