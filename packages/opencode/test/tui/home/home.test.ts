@@ -57,17 +57,20 @@ describe("Home", () => {
   })
 
   describe("Toast", () => {
+    const duration = 500
+    const awaitShown = () => utils.sleep(200)
+
     test("should render correctly", async () => {
       utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
       await s.client.tui.showToast({
         body: {
           variant: "info",
           message: "This is a toast message",
-          duration: 500,
+          duration,
         },
         throwOnError: true,
       })
-      await utils.sleep(100)
+      await awaitShown()
       await utils.renderOnceExpectMatchSnapshot()
     })
 
@@ -77,15 +80,15 @@ describe("Home", () => {
         body: {
           variant: "error",
           message: "This is a toast message",
-          duration: 500,
+          duration,
           title: "Toast Title",
         },
         throwOnError: true,
       })
-      await utils.sleep(400)
+      await awaitShown()
       await utils.renderOnceExpectMatchSnapshot()
 
-      await utils.sleep(200)
+      await utils.sleep(500)
       await utils.renderOnceExpectMatchSnapshot()
     })
   })
@@ -101,7 +104,7 @@ describe("Home", () => {
         utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
         await utils.testSetup.mockInput.typeText("!test")
         await utils.testSetup.mockInput.pressEscape()
-        await utils.sleep(50)
+        await utils.sleep(100)
         await utils.renderOnceExpectMatchSnapshot()
       })
       test("backspace should revert to normal mode", async () => {
@@ -109,14 +112,14 @@ describe("Home", () => {
         await utils.testSetup.mockInput.typeText("!a")
         await utils.testSetup.mockInput.pressBackspace()
         await utils.testSetup.mockInput.pressBackspace()
-        await utils.sleep(50)
+        await utils.sleep(100)
         await utils.renderOnceExpectMatchSnapshot()
       })
     })
 
     describe("Autocomplete", () => {
       /** Wait for the autocomplete popup to open */
-      const waitForOpen = () => utils.sleep(200)
+      const waitForOpen = () => utils.sleep(300)
 
       describe("/ mode", () => {
         test("/ should open autocomplete", async () => {
@@ -198,7 +201,7 @@ describe("Home", () => {
           await utils.testSetup.mockInput.typeText("@file2")
           await waitForOpen()
           await utils.testSetup.mockInput.pressEnter()
-          await utils.sleep(50)
+          await utils.sleep(100)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
@@ -207,7 +210,7 @@ describe("Home", () => {
           await utils.testSetup.mockInput.typeText("@file1")
           await waitForOpen()
           await utils.testSetup.mockInput.pressTab()
-          await utils.sleep(50)
+          await utils.sleep(100)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
@@ -217,7 +220,7 @@ describe("Home", () => {
           await utils.testSetup.mockInput.typeText("@file1")
           await waitForOpen()
           await utils.testSetup.mockInput.pressEscape()
-          await utils.sleep(50)
+          await utils.sleep(100)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
@@ -228,7 +231,7 @@ describe("Home", () => {
           await utils.testSetup.mockInput.typeText(`blah ${input}`)
           await waitForOpen()
           await Promise.all(Array(input.length).fill(null).map(utils.testSetup.mockInput.pressBackspace))
-          await utils.sleep(50)
+          await utils.sleep(100)
           await utils.renderOnceExpectMatchSnapshot()
         })
 
@@ -257,15 +260,15 @@ describe("Home", () => {
       await sleep(100)
 
       await utils.testSetup.mockInput.pressTab()
-      await sleep(50)
+      await sleep(100)
       await utils.renderOnceExpectMatchSnapshot()
 
       await utils.testSetup.mockInput.pressTab()
-      await sleep(50)
+      await sleep(100)
       await utils.renderOnceExpectMatchSnapshot()
 
       await utils.testSetup.mockInput.pressTab()
-      await sleep(50)
+      await sleep(100)
       await utils.renderOnceExpectMatchSnapshot()
     })
 
@@ -284,11 +287,11 @@ describe("Home", () => {
       }
 
       await pressBacktab()
-      await sleep(50)
+      await sleep(100)
       await utils.renderOnceExpectMatchSnapshot()
 
       await pressBacktab()
-      await sleep(50)
+      await sleep(100)
       await utils.renderOnceExpectMatchSnapshot()
     })
   })
