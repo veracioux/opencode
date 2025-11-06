@@ -30,7 +30,7 @@ describe("Home", () => {
   beforeAll(async () => {
     s = await utils.createIsolatedServer()
     // Let the server boot up
-    await utils.sleep(500)
+    await utils.sleep(2500)
     setSystemTime(new Date("2025-01-01T00:00:00.000Z"))
   })
 
