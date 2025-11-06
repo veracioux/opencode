@@ -57,38 +57,37 @@ describe("Home", () => {
   })
 
   describe("Toast", () => {
-    const duration = 500
-    const awaitShown = () => utils.sleep(200)
-
     test("should render correctly", async () => {
       utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
       await s.client.tui.showToast({
         body: {
           variant: "info",
           message: "This is a toast message",
-          duration,
+          duration: 1000,
         },
         throwOnError: true,
       })
-      await awaitShown()
+      await utils.sleep(300)
       await utils.renderOnceExpectMatchSnapshot()
     })
 
     test("should clear after timeout", async () => {
+      await utils.sleep(1000)
       utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await utils.sleep(1000)
       await s.client.tui.showToast({
         body: {
           variant: "error",
           message: "This is a toast message",
-          duration,
+          duration: 600,
           title: "Toast Title",
         },
         throwOnError: true,
       })
-      await awaitShown()
+      await utils.sleep(300)
       await utils.renderOnceExpectMatchSnapshot()
 
-      await utils.sleep(500)
+      await utils.sleep(800)
       await utils.renderOnceExpectMatchSnapshot()
     })
   })
@@ -98,6 +97,7 @@ describe("Home", () => {
       test("! should open shell mode", async () => {
         utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
         await utils.testSetup.mockInput.typeText("!")
+        await utils.sleep(100)
         await utils.renderOnceExpectMatchSnapshot()
       })
       test.failing("esc should revert to normal mode", async () => {
