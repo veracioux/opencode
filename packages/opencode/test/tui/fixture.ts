@@ -413,7 +413,7 @@ export function setUpCommonHooksAndUtils() {
       agent: [
         {
           name: "docs",
-          description: "0 - Documentation agent",
+          description: "Documentation agent",
           content: "Handles questions about project documentation.",
           model: "opencode/grok-code",
         },

@@ -4,7 +4,7 @@ import os from "os"
 
 // Make tests more deterministic
 process.env.USER = "test-user"
-process.env.TZ = "America/Los_Angeles"
+process.env.TZ = "Etc/UTC"
 
 const homedir = path.join(os.tmpdir(), "oc-test")
 await fs.mkdir(homedir, { recursive: true })

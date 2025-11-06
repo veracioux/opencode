@@ -39,22 +39,22 @@ describe("Dialog", () => {
       await utils.sleep(50)
     }
 
-    test.only("ctrl-x m should open model dialog", async () => {
+    test("ctrl-x m should open model dialog", async () => {
       utils.testSetup = await testRenderTui({ url: s.url }, { ...SIZES.MEDIUM, height: 30 })
       await openDialogAndSleep()
       await utils.renderOnceExpectMatchSnapshot()
     })
 
-    test.only("item navigation should work", async () => {
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    test("item navigation should work", async () => {
+      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.NORMAL)
       await openDialogAndSleep()
-      utils.testSetup.mockInput.pressArrow("down")
+      await utils.testSetup.mockInput.pressArrow("down")
       await utils.renderOnceExpectMatchSnapshot()
-      utils.testSetup.mockInput.pressArrow("down")
+      await utils.testSetup.mockInput.pressArrow("down")
       await utils.renderOnceExpectMatchSnapshot()
-      utils.testSetup.mockInput.pressArrow("up")
-      utils.testSetup.mockInput.pressArrow("up")
-      utils.testSetup.mockInput.pressArrow("up")
+      await utils.testSetup.mockInput.pressArrow("up")
+      await utils.testSetup.mockInput.pressArrow("up")
+      await utils.testSetup.mockInput.pressArrow("up")
       await utils.renderOnceExpectMatchSnapshot()
     })
 
@@ -62,7 +62,7 @@ describe("Dialog", () => {
       utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
       await openDialogAndSleep()
       await utils.testSetup.renderOnce()
-      await utils.testSetup.mockInput.typeText("mockmodel2")
+      await utils.testSetup.mockInput.typeText("gpt41")
       await utils.renderOnceExpectMatchSnapshot()
     })
 
@@ -78,7 +78,7 @@ describe("Dialog", () => {
       utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
       await openDialogAndSleep()
       await utils.testSetup.renderOnce()
-      await utils.testSetup.mockInput.typeText("mockmodel1")
+      await utils.testSetup.mockInput.typeText("gpt41")
       await utils.testSetup.mockInput.pressEnter()
       await utils.renderOnceExpectMatchSnapshot()
     })
@@ -93,6 +93,15 @@ describe("Dialog", () => {
       await utils.sleep(200)
       expect(mocks.useRoute.navigate).not.toHaveBeenCalled()
     })
+
+    test("esc should close dialog", async () => {
+      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await openDialogAndSleep()
+      await utils.testSetup.mockInput.pressArrow("down")
+      await utils.testSetup.mockInput.pressEscape()
+      await utils.sleep(50)
+      await utils.renderOnceExpectMatchSnapshot()
+    })
   })
 
   test("ctrl-x p should open command dialog", async () => {
@@ -102,10 +111,27 @@ describe("Dialog", () => {
   })
 
   test("ctrl-x l should open session list dialog", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
-    utils.testSetup.mockInput.pressKey("x", { ctrl: true })
-    utils.testSetup.mockInput.pressKey("l")
-    await utils.renderOnceExpectMatchSnapshot()
+    setSystemTime(new Date("2025-01-01T00:00:00.000Z"))
+    const { data: { id: id1 } } = await s.client.session.create({
+      body: { title: "Session 1" }
+    }) as any
+    setSystemTime(new Date("2025-01-02T00:00:00.000Z"))
+    const { data: { id: id2 } } = await s.client.session.create({
+      body: { title: "Session 2" }
+    }) as any
+    try {
+      await utils.sleep(300)
+      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
+      utils.testSetup.mockInput.pressKey("x", { ctrl: true })
+      utils.testSetup.mockInput.pressKey("l")
+      await utils.renderOnceExpectMatchSnapshot()
+    } finally {
+      // FIXME: Fails when this is used
+      //  - Currently no other tests are affected by sessions, so cleanup is not critical
+      //  - Seems that renderer.destroy() doesn't invoke sdk's onCleanup hook
+      // await s.client.session.delete({ path: { id: id1 }, throwOnError: true })
+      // await s.client.session.delete({ path: { id: id2 }, throwOnError: true })
+    }
   })
 
   test.todo("ctrl-x t should open theme list dialog", async () => {
@@ -127,15 +153,6 @@ describe("Dialog", () => {
     utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
     utils.testSetup.mockInput.pressKey("x", { ctrl: true })
     utils.testSetup.mockInput.pressKey("a")
-    await utils.renderOnceExpectMatchSnapshot()
-  })
-
-  test("esc should close dialog", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
-    utils.testSetup.mockInput.pressKey("x", { ctrl: true })
-    utils.testSetup.mockInput.pressKey("l")
-    utils.testSetup.mockInput.pressEscape()
-    await utils.sleep(50)
     await utils.renderOnceExpectMatchSnapshot()
   })
 })

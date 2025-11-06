@@ -33,3 +33,339 @@ exports[`Dialog Model dialog ctrl-x m should open model dialog 1`] = `
  opencode vlocal  /tmp/oc-test/project                        tab  BUILD AGENT 
 "
 `;
+
+exports[`Dialog Model dialog item navigation should work 1`] = `
+"                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                ▄                                   
+                                                                                                    
+                       Select model                                        esc                      
+                                                                                                    
+                       Enter search term                                                            
+                                                                                                    
+                       Recent                                                                       
+                       GPT-5 OpenAI                                                                 
+                                                                                                    
+                       OpenCode Zen                                                                 
+                       Big Pickle                                                                   
+                       Grok Code Fast 1                                                             
+             ┃                                                                         ┃            
+             ┃ >       OpenAI                                                          ┃            
+             ┃         GPT-4.1 nano                                                    ┃            
+             OpenCod                                                                                
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+ opencode vlocal  /tmp/oc-test/project                                            tab  BUILD AGENT 
+"
+`;
+
+exports[`Dialog Model dialog item navigation should work 2`] = `
+"                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                ▄                                   
+                                                                                                    
+                       Select model                                        esc                      
+                                                                                                    
+                       Enter search term                                                            
+                                                                                                    
+                       Recent                                                                       
+                       GPT-5 OpenAI                                                                 
+                                                                                                    
+                       OpenCode Zen                                                                 
+                       ● Big Pickle                                                                 
+                       Grok Code Fast 1                                                             
+             ┃                                                                         ┃            
+             ┃ >       OpenAI                                                          ┃            
+             ┃         GPT-4.1 nano                                                    ┃            
+             OpenCod                                                                                
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+ opencode vlocal  /tmp/oc-test/project                                            tab  BUILD AGENT 
+"
+`;
+
+exports[`Dialog Model dialog item navigation should work 3`] = `
+"                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                ▄                                   
+                                                                                                    
+                       Select model                                        esc                      
+                                                                                                    
+                       Enter search term                                                            
+                                                                                                    
+                       GPT-5 Mini                                                                   
+                       o1-mini                                                                      
+                       text-embedding-ada-002                                                       
+                       o3-pro                                                                       
+                       GPT-4o (2024-11-20)                                                          
+                       o3                                                                           
+             ┃         o4-mini-deep-research                                           ┃            
+             ┃ >       GPT-4o mini                                                     ┃            
+             ┃         GPT-5 Pro                                                       ┃            
+             OpenCod                                                                                
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+ opencode vlocal  /tmp/oc-test/project                                            tab  BUILD AGENT 
+"
+`;
+
+exports[`Dialog Model dialog search should narrow candidates 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+                                                            
+    Select model                                      esc   
+                                                            
+    gpt41                                                   
+                                                            
+    OpenAI                                                  
+    GPT-4.1                                                 
+    GPT-4.1 mini                                            
+    GPT-4.1 nano                                            
+                                                            
+                                                            
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`Dialog Model dialog enter should select first model 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  OpenAI GPT-5                                              
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`Dialog Model dialog enter with input should set selected model 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  OpenAI GPT-4.1                                            
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`Dialog Model dialog enter should not submit prompt 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > Hello                                              ┃  
+  ┃                                                      ┃  
+  OpenAI GPT-4.1                                            
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`Dialog ctrl-x p should open command dialog 1`] = `
+"                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                            ▄               
+                                                            
+    Commands                                          esc   
+                                                            
+    Enter search term                                       
+                                                            
+    Session                                                 
+    Open editor                                 ctrl+x e    
+    Switch session                              ctrl+x l    
+    New session                                 ctrl+x n    
+                                                            
+    Agent                                                   
+    Switch model                                ctrl+x m    
+    Model cycle                                       f2    
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`Dialog ctrl-x l should open session list dialog 1`] = `
+"                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                      ▄                         
+                     █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█                    
+                                                                                
+    Sessions                                                              esc   
+                                                                                
+    Enter search term                                                           
+                                                                                
+    Today                                                                       
+    Session 2                                                    12:00:00 AM    
+                                                                                
+    Wed Jan 01 2025                                                             
+    Session 1                                                    12:00:00 AM    
+                                                                                
+    ctrl+d delete ctrl+r rename                                                 
+                                                                                
+   OpenCode Zen Big Pickle                                                      
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ opencode vlocal  /tmp/oc-test/project                        tab  BUILD AGENT 
+"
+`;
+
+exports[`Dialog /theme should open theme list dialog 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+                                                            
+    Themes                                            esc   
+                                                            
+    Enter search term                                       
+                                                            
+    aura                                                    
+    ayu                                                     
+    catppuccin                                              
+    cobalt2                                                 
+                                                            
+                                                            
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`Dialog ctrl-x a should open agent list dialog 1`] = `
+"                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                      ▄                         
+                     █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█                    
+                                                                                
+             Select agent                                        esc            
+                                                                                
+             Enter search term                                                  
+                                                                                
+             build native                                                       
+             plan native                                                        
+             docs Documentation agent                                           
+                                                                                
+                                                                                
+   ┃                                                                         ┃  
+   ┃ >                                                                       ┃  
+   ┃                                                                         ┃  
+   OpenCode Zen Big Pickle                                                      
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+ opencode vlocal  /tmp/oc-test/project                        tab  BUILD AGENT 
+"
+`;
+
+exports[`Dialog Model dialog esc should close dialog 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
