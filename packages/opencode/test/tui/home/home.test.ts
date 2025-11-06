@@ -46,8 +46,8 @@ describe("Home", () => {
     await utils.renderOnceExpectMatchSnapshot()
   })
 
-  // FIXME: Set up better mocks so it actually displays a message
-  test.failing("prompt should start a new session", async () => {
+  // FIXME: Mock LLM response
+  test.todo("prompt should start a new session", async () => {
     utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
     await utils.testSetup.mockInput.typeText("Hello, world!")
     await utils.testSetup.mockInput.pressEnter()

@@ -16,7 +16,7 @@ export async function testRenderTui(
   )
   // allow some time for initial sync with server
   if (options?.url) {
-    await new Promise((r) => setTimeout(r, 500))
+    await new Promise((r) => setTimeout(r, 700))
   }
   return result
 }
