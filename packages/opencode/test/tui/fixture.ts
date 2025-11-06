@@ -413,6 +413,12 @@ export async function createStubFiles(files: {
     description: string,
     content: string,
   }[],
+  agent?: {
+    name: string,
+    description: string,
+    content: string,
+    model: string,
+  }[],
   misc?: Record<string, string>,
 }) {
   const toDelete: string[] = []
@@ -435,17 +441,29 @@ ${body}
     await createTextFile(pth, content)
   }
 
+  // auth.json
   if (files["auth.json"])
     await createJSONFile(path.join(Global.Path.data, "auth.json"), files["auth.json"])
+
+  // models.json
   if (files["models.json"])
     await createJSONFile(path.join(Global.Path.cache, "models.json"), files["models.json"])
 
+  // command
   for (const def of files.command ?? []) {
     const { name, content, ...rest } = def
     const cmdPath = path.join(Global.Path.config, "command", `${def.name}.md`)
     await createMarkdownFile(cmdPath, rest, def.content)
   }
 
+  // agent
+  for (const def of files.agent ?? []) {
+    const { name, content, ...rest } = def
+    const cmdPath = path.join(Global.Path.config, "agent", `${def.name}.md`)
+    await createMarkdownFile(cmdPath, rest, def.content)
+  }
+
+  // misc files
   for (const [pth, content] of Object.entries(files.misc ?? {})) {
     await createTextFile(pth, content)
   }

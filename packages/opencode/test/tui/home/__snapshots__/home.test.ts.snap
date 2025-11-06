@@ -466,6 +466,7 @@ exports[`Home Prompt Autocomplete @ mode clearing input should close 1`] = `
  opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
 "
 `;
+
 exports[`Home Agent cycling tab should switch agent, with wrap-around 1`] = `
 "                                                            
                                                             
@@ -484,9 +485,9 @@ exports[`Home Agent cycling tab should switch agent, with wrap-around 1`] = `
   ┃                                                      ┃  
   ┃ > blah blah                                          ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 2                              
+  OpenAI GPT-4.1 nano                                       
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-2 AGENT 
+ opencode vlocal  /tmp/oc-test/project     tab  PLAN AGENT 
 "
 `;
 
@@ -508,9 +509,9 @@ exports[`Home Agent cycling tab should switch agent, with wrap-around 2`] = `
   ┃                                                      ┃  
   ┃ > blah blah                                          ┃  
   ┃                                                      ┃  
-  Mock Provider 2 Mock Model 3                              
+  OpenCode Zen Grok Code Fast 1                             
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-3 AGENT 
+ opencode vlocal  /tmp/oc-test/project     tab  DOCS AGENT 
 "
 `;
 
@@ -532,9 +533,9 @@ exports[`Home Agent cycling tab should switch agent, with wrap-around 3`] = `
   ┃                                                      ┃  
   ┃ > blah blah                                          ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 1                              
+  OpenAI GPT-4.1 nano                                       
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-1 AGENT 
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
 "
 `;
 
@@ -556,9 +557,9 @@ exports[`Home Agent cycling backtab should switch agent in reverse, with wrap-ar
   ┃                                                      ┃  
   ┃ > blah blah                                          ┃  
   ┃                                                      ┃  
-  Mock Provider 2 Mock Model 3                              
+  OpenCode Zen Grok Code Fast 1                             
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-3 AGENT 
+ opencode vlocal  /tmp/oc-test/project     tab  DOCS AGENT 
 "
 `;
 
@@ -580,9 +581,9 @@ exports[`Home Agent cycling backtab should switch agent in reverse, with wrap-ar
   ┃                                                      ┃  
   ┃ > blah blah                                          ┃  
   ┃                                                      ┃  
-  Mock Provider 1 Mock Model 2                              
+  OpenAI GPT-4.1 nano                                       
                                                             
- opencode vlocal  /tmp             tab  MOCK-AGENT-2 AGENT 
+ opencode vlocal  /tmp/oc-test/project     tab  PLAN AGENT 
 "
 `;
 

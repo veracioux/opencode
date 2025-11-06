@@ -23,6 +23,7 @@ import {
   SIZES,
 } from "../fixture"
 import { testRenderTui } from "../fixture_.tsx"
+import { sleep } from "bun"
 
 describe("Home", () => {
   let s: Awaited<ReturnType<typeof utils.createIsolatedServer>>
@@ -214,7 +215,7 @@ describe("Home", () => {
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test.only("enter should confirm choice", async () => {
+        test("enter should confirm choice", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.mockInput.typeText("@file2")
           await waitForOpen()
@@ -223,7 +224,7 @@ describe("Home", () => {
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test.only("tab should confirm choice", async () => {
+        test("tab should confirm choice", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.mockInput.typeText("@file1")
           await waitForOpen()
@@ -232,7 +233,7 @@ describe("Home", () => {
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test.only("esc should close", async () => {
+        test("esc should close", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           await utils.testSetup.renderOnce()
           await utils.testSetup.mockInput.typeText("@file1")
@@ -242,7 +243,7 @@ describe("Home", () => {
           await utils.renderOnceExpectMatchSnapshot()
         })
 
-        test.only("clearing input should close", async () => {
+        test("clearing input should close", async () => {
           utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
           const input = "@file1"
           await utils.testSetup.renderOnce()
@@ -262,24 +263,55 @@ describe("Home", () => {
   })
 
   describe("Agent cycling", () => {
+    let cleanup: Awaited<ReturnType<typeof createStubFiles>>
+    beforeEach(async () => {
+      cleanup = await createStubFiles({
+        "auth.json": {
+          openai: {
+            type: "api",
+            key: "stub"
+          },
+        },
+        agent: [
+          {
+            name: "docs",
+            description: "0 - Documentation agent",
+            content: "Handles questions about project documentation.",
+            model: "opencode/grok-code",
+          },
+        ],
+      })
+    })
+    afterEach(async () => {
+      await cleanup[Symbol.asyncDispose]()
+    })
+
     test("tab should switch agent, with wrap-around", async () => {
-      utils.testSetup = await testRenderTui(SIZES.SMALL)
+      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
       await utils.testSetup.renderOnce()
       await utils.testSetup.mockInput.typeText("blah blah") // have some initial input
+      await sleep(100)
+
       await utils.testSetup.mockInput.pressTab()
+      await sleep(50)
       await utils.renderOnceExpectMatchSnapshot()
 
       await utils.testSetup.mockInput.pressTab()
+      await sleep(50)
       await utils.renderOnceExpectMatchSnapshot()
 
       await utils.testSetup.mockInput.pressTab()
+      await sleep(50)
       await utils.renderOnceExpectMatchSnapshot()
     })
+
     test("backtab should switch agent in reverse, with wrap-around", async () => {
       // const mocks = await mockProviders()
-      utils.testSetup = await testRenderTui(SIZES.SMALL)
+      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
       await utils.testSetup.renderOnce()
       await utils.testSetup.mockInput.typeText("blah blah") // have some initial input
+      await sleep(100)
+
       // FIXME: opentui bug: following doesn't work
       // await ns.testSetup.mockInput.pressTab({ shift: true })
       // Workaround:
@@ -288,9 +320,11 @@ describe("Home", () => {
       }
 
       await pressBacktab()
+      await sleep(50)
       await utils.renderOnceExpectMatchSnapshot()
 
       await pressBacktab()
+      await sleep(50)
       await utils.renderOnceExpectMatchSnapshot()
     })
   })
