@@ -916,6 +916,8 @@ function UserMessage(props: {
 function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; last: boolean }) {
   const local = useLocal()
   const { theme } = useTheme()
+  const inProgress = createMemo(() => !props.message.time.completed)
+
   return (
     <>
       <For each={props.parts}>
@@ -944,39 +946,27 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
       </Show>
       <Show
         when={
-          !props.message.time.completed ||
-          (props.last &&
-            props.parts.some((item) => item.type === "step-finish" && item.reason === "tool-calls"))
+          // Do not show for shell commands executed by user
+          props.message.modelID
         }
       >
         <box
-          paddingLeft={2}
+          paddingLeft={inProgress() ? 2 : 3}
           marginTop={1}
           flexDirection="row"
           gap={1}
-          border={["left"]}
+          border={inProgress() ? ["left"] : []}
           customBorderChars={SplitBorder.customBorderChars}
           borderColor={theme.backgroundElement}
         >
           <text fg={local.agent.color(props.message.mode)}>
             {Locale.titlecase(props.message.mode)}
           </text>
-          <Shimmer text={`${props.message.modelID}`} color={theme.text} />
-        </box>
-      </Show>
-      <Show
-        when={
-          props.message.time.completed &&
-          props.parts.some((item) => item.type === "step-finish" && item.reason !== "tool-calls")
-        }
-      >
-        <box paddingLeft={3}>
-          <text marginTop={1}>
-            <span style={{ fg: local.agent.color(props.message.mode) }}>
-              {Locale.titlecase(props.message.mode)}
-            </span>{" "}
-            <span style={{ fg: theme.textMuted }}>{props.message.modelID}</span>
-          </text>
+          {
+            inProgress()
+              ? <Shimmer text={`${props.message.modelID}`} color={theme.text} />
+              : <text fg={theme.textMuted}>{props.message.modelID}</text>
+          }
         </box>
       </Show>
     </>
@@ -1052,19 +1042,19 @@ function ToolPart(props: { part: ToolPart; message: AssistantMessage }) {
     const style: BoxProps =
       container === "block" || permission
         ? {
-            border: permissionIndex === 0 ? (["left", "right"] as const) : (["left"] as const),
-            paddingTop: 1,
-            paddingBottom: 1,
-            paddingLeft: 2,
-            marginTop: 1,
-            gap: 1,
-            backgroundColor: theme.backgroundPanel,
-            customBorderChars: SplitBorder.customBorderChars,
-            borderColor: permissionIndex === 0 ? theme.warning : theme.background,
-          }
+          border: permissionIndex === 0 ? (["left", "right"] as const) : (["left"] as const),
+          paddingTop: 1,
+          paddingBottom: 1,
+          paddingLeft: 2,
+          marginTop: 1,
+          gap: 1,
+          backgroundColor: theme.backgroundPanel,
+          customBorderChars: SplitBorder.customBorderChars,
+          borderColor: permissionIndex === 0 ? theme.warning : theme.background,
+        }
         : {
-            paddingLeft: 3,
-          }
+          paddingLeft: 3,
+        }
 
     return (
       <box
