@@ -962,11 +962,11 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
           <text fg={local.agent.color(props.message.mode)}>
             {Locale.titlecase(props.message.mode)}
           </text>
-          {
-            inProgress()
-              ? <Shimmer text={`${props.message.modelID}`} color={theme.text} />
-              : <text fg={theme.textMuted}>{props.message.modelID}</text>
-          }
+          {inProgress() ? (
+            <Shimmer text={`${props.message.modelID}`} color={theme.text} />
+          ) : (
+            <text fg={theme.textMuted}>{props.message.modelID}</text>
+          )}
         </box>
       </Show>
     </>
@@ -1042,19 +1042,19 @@ function ToolPart(props: { part: ToolPart; message: AssistantMessage }) {
     const style: BoxProps =
       container === "block" || permission
         ? {
-          border: permissionIndex === 0 ? (["left", "right"] as const) : (["left"] as const),
-          paddingTop: 1,
-          paddingBottom: 1,
-          paddingLeft: 2,
-          marginTop: 1,
-          gap: 1,
-          backgroundColor: theme.backgroundPanel,
-          customBorderChars: SplitBorder.customBorderChars,
-          borderColor: permissionIndex === 0 ? theme.warning : theme.background,
-        }
+            border: permissionIndex === 0 ? (["left", "right"] as const) : (["left"] as const),
+            paddingTop: 1,
+            paddingBottom: 1,
+            paddingLeft: 2,
+            marginTop: 1,
+            gap: 1,
+            backgroundColor: theme.backgroundPanel,
+            customBorderChars: SplitBorder.customBorderChars,
+            borderColor: permissionIndex === 0 ? theme.warning : theme.background,
+          }
         : {
-          paddingLeft: 3,
-        }
+            paddingLeft: 3,
+          }
 
     return (
       <box
