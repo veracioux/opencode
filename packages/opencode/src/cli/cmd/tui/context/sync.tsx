@@ -17,6 +17,7 @@ import { useSDK } from "@tui/context/sdk"
 import { Binary } from "@/util/binary"
 import { createSimpleContext } from "./helper"
 import type { Snapshot } from "@/snapshot"
+import { useToast } from "../ui/toast"
 
 export const { use: useSync, provider: SyncProvider } = createSimpleContext({
   name: "Sync",
@@ -64,8 +65,8 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       mcp: {},
       formatter: [],
     })
-
     const sdk = useSDK()
+    const toast = useToast()
 
     sdk.event.listen((e) => {
       const event = e.details
@@ -219,7 +220,9 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         }
 
         case "lsp.updated": {
-          sdk.client.lsp.status().then((x) => setStore("lsp", x.data!))
+          sdk.client.lsp.status({ throwOnError: true })
+            .then((x) => setStore("lsp", x.data!))
+            .catch(toast.error)
           break
         }
       }
@@ -227,23 +230,39 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
 
     // blocking
     Promise.all([
-      sdk.client.config.providers().then((x) => setStore("provider", x.data!.providers)),
-      sdk.client.app.agents().then((x) => setStore("agent", x.data ?? [])),
-      sdk.client.config.get().then((x) => setStore("config", x.data!)),
+      sdk.client.config.providers({ throwOnError: true })
+        .then((x) => setStore("provider", x.data!.providers))
+        .catch(toast.error),
+      sdk.client.app.agents({ throwOnError: true })
+        .then((x) => setStore("agent", x.data ?? []))
+        .catch(toast.error),
+      sdk.client.config.get({ throwOnError: true })
+        .then((x) => setStore("config", x.data!))
+        .catch(toast.error),
     ]).then(() => setStore("ready", true))
 
     // non-blocking
     Promise.all([
-      sdk.client.session.list().then((x) =>
-        setStore(
-          "session",
-          (x.data ?? []).toSorted((a, b) => a.id.localeCompare(b.id)),
-        ),
-      ),
-      sdk.client.command.list().then((x) => setStore("command", x.data ?? [])),
-      sdk.client.lsp.status().then((x) => setStore("lsp", x.data!)),
-      sdk.client.mcp.status().then((x) => setStore("mcp", x.data!)),
-      sdk.client.formatter.status().then((x) => setStore("formatter", x.data!)),
+      sdk.client.session.list({ throwOnError: true })
+        .then((x) =>
+          setStore(
+            "session",
+            (x.data ?? []).toSorted((a, b) => a.id.localeCompare(b.id)),
+          ),
+        )
+        .catch(toast.error),
+      sdk.client.command.list({ throwOnError: true })
+        .then((x) => setStore("command", x.data ?? []))
+        .catch(toast.error),
+      sdk.client.lsp.status({ throwOnError: true })
+        .then((x) => setStore("lsp", x.data!))
+        .catch(toast.error),
+      sdk.client.mcp.status({ throwOnError: true })
+        .then((x) => setStore("mcp", x.data!))
+        .catch(toast.error),
+      sdk.client.formatter.status({ throwOnError: true })
+        .then((x) => setStore("formatter", x.data!))
+        .catch(toast.error),
     ])
 
     const result = {
