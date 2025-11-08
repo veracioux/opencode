@@ -220,7 +220,8 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
         }
 
         case "lsp.updated": {
-          sdk.client.lsp.status({ throwOnError: true })
+          sdk.client.lsp
+            .status({ throwOnError: true })
             .then((x) => setStore("lsp", x.data!))
             .catch(toast.error)
           break
@@ -230,20 +231,24 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
 
     // blocking
     Promise.all([
-      sdk.client.config.providers({ throwOnError: true })
+      sdk.client.config
+        .providers({ throwOnError: true })
         .then((x) => setStore("provider", x.data!.providers))
         .catch(toast.error),
-      sdk.client.app.agents({ throwOnError: true })
+      sdk.client.app
+        .agents({ throwOnError: true })
         .then((x) => setStore("agent", x.data ?? []))
         .catch(toast.error),
-      sdk.client.config.get({ throwOnError: true })
+      sdk.client.config
+        .get({ throwOnError: true })
         .then((x) => setStore("config", x.data!))
         .catch(toast.error),
     ]).then(() => setStore("ready", true))
 
     // non-blocking
     Promise.all([
-      sdk.client.session.list({ throwOnError: true })
+      sdk.client.session
+        .list({ throwOnError: true })
         .then((x) =>
           setStore(
             "session",
@@ -251,16 +256,20 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           ),
         )
         .catch(toast.error),
-      sdk.client.command.list({ throwOnError: true })
+      sdk.client.command
+        .list({ throwOnError: true })
         .then((x) => setStore("command", x.data ?? []))
         .catch(toast.error),
-      sdk.client.lsp.status({ throwOnError: true })
+      sdk.client.lsp
+        .status({ throwOnError: true })
         .then((x) => setStore("lsp", x.data!))
         .catch(toast.error),
-      sdk.client.mcp.status({ throwOnError: true })
+      sdk.client.mcp
+        .status({ throwOnError: true })
         .then((x) => setStore("mcp", x.data!))
         .catch(toast.error),
-      sdk.client.formatter.status({ throwOnError: true })
+      sdk.client.formatter
+        .status({ throwOnError: true })
         .then((x) => setStore("formatter", x.data!))
         .catch(toast.error),
     ])
