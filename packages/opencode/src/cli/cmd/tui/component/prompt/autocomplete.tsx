@@ -52,7 +52,11 @@ export function Autocomplete(props: {
     // Track props.value to make memo reactive to text changes
     props.value // <- there surely is a better way to do this, like making .input() reactive
 
-    const val = props.input().getTextRange(store.index + 1, props.input().cursorOffset + 1).match(/^\S*/)?.[0] ?? ""
+    const val =
+      props
+        .input()
+        .getTextRange(store.index + 1, props.input().cursorOffset + 1)
+        .match(/^\S*/)?.[0] ?? ""
     return val
   })
 
