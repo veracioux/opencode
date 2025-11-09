@@ -369,13 +369,15 @@ export function Autocomplete(props: {
       get visible() {
         return store.visible
       },
-      onInput() {
+      onInput(value) {
         if (store.visible) {
           if (
             // Typed text before the trigger
             props.input().cursorOffset <= store.index ||
             // There is a space between the trigger and the cursor
-            props.input().getTextRange(store.index, props.input().cursorOffset).match(/\s/)
+            props.input().getTextRange(store.index, props.input().cursorOffset).match(/\s/) ||
+            // "/<command>" is not the sole content
+            (store.visible === "/" && value.match(/^\S+\s+\S+\s*$/))
           ) {
             hide()
             return
