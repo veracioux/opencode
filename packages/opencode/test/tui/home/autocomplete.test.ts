@@ -3,9 +3,6 @@ const utils = setUpCommonHooksAndUtils()
 import { beforeAll, beforeEach, describe, expect, mock, test } from "bun:test"
 import { setUpCommonHooksAndUtils, SIZES } from "../fixture"
 
-/** Wait for the autocomplete popup to open */
-const waitForOpen = () => utils.sleep(1200)
-
 let s: Awaited<ReturnType<typeof utils.createServer>>
 beforeAll(async () => {
   s = await utils.createServer()
@@ -15,14 +12,12 @@ describe("/ mode", () => {
   test("/ should open autocomplete", async () => {
     await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("/")
-    await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
   })
 
   test("should not open in the middle of text", async () => {
     await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("blah /")
-    await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
   })
 
@@ -30,7 +25,6 @@ describe("/ mode", () => {
     await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("/ex")
-    await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
   })
 
@@ -54,14 +48,17 @@ describe("/ mode", () => {
   test("/ exact matches should be prioritized", async () => {
     await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("/e")
-    await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
   })
 })
 
 describe("@ mode", () => {
+  /** Wait for the autocomplete popup to open */
+  let waitForOpen = () => utils.sleep(300)
+
   test("@ should open autocomplete", async () => {
     await utils.testRenderTui(SIZES.SMALL)
+    await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("@")
     await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
