@@ -8,7 +8,6 @@ import {
   SIZES,
   type MockConfig,
 } from "./fixture"
-import { testRenderTui } from "./fixture_.tsx"
 
 const utils = setUpCommonHooksAndUtils()
 
@@ -75,7 +74,7 @@ describe("Session", async () => {
     //     }) as any,
     // })
 
-    utils.testSetup = await testRenderTui(SIZES.MEDIUM)
+    await utils.testRenderTui(SIZES.MEDIUM)
 
     await utils.renderOnceExpectMatchSnapshot()
   })

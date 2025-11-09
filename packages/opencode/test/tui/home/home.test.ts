@@ -17,25 +17,22 @@ import {
   afterAll,
 } from "bun:test"
 import { createStubFiles, setUpCommonHooksAndUtils, setUpProviderMocking, SIZES } from "../fixture"
-import { testRenderTui } from "../fixture_.tsx"
 import { sleep } from "bun"
 
 describe("Home", () => {
   let s: Awaited<ReturnType<typeof utils.createServer>>
   beforeAll(async () => {
     s = await utils.createServer()
-    // Let the server boot up
-    await utils.sleep(2500)
     setSystemTime(new Date("2025-01-01T00:00:00.000Z"))
   })
 
   test("should render correctly", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
+    await utils.testRenderTui(SIZES.MEDIUM)
     await utils.renderOnceExpectMatchSnapshot()
   })
 
   test("should resize correctly", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.NORMAL)
+    await utils.testRenderTui(SIZES.NORMAL)
     await utils.testSetup.renderOnce()
     utils.testSetup.resize(SIZES.SMALL.width, SIZES.SMALL.height)
     await utils.renderOnceExpectMatchSnapshot()
@@ -43,7 +40,7 @@ describe("Home", () => {
 
   // FIXME: Mock LLM response
   test.todo("prompt should start a new session", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
+    await utils.testRenderTui(SIZES.MEDIUM)
     await utils.testSetup.mockInput.typeText("Hello, world!")
     await utils.testSetup.mockInput.pressEnter()
     await utils.sleep(3000)
@@ -53,7 +50,7 @@ describe("Home", () => {
 
   describe("Toast", () => {
     test("should render correctly", async () => {
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await utils.testRenderTui(SIZES.SMALL)
       await s.client.tui.showToast({
         body: {
           variant: "info",
@@ -64,17 +61,20 @@ describe("Home", () => {
       })
       await utils.sleep(300)
       await utils.renderOnceExpectMatchSnapshot()
+      // FIXME: Wait for the toast to disappear before the other tests
+      // Avoids an exception inbetween tests - not sure what is causing this
+      await utils.sleep(1000)
     })
 
+    // FIXME: flaky, I think because sdk's onCleanup is not called
     test("should clear after timeout", async () => {
-      await utils.sleep(1000)
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
-      await utils.sleep(1000)
+      await utils.testRenderTui(SIZES.SMALL)
+      await utils.sleep(50)
       await s.client.tui.showToast({
         body: {
           variant: "error",
           message: "This is a toast message",
-          duration: 600,
+          duration: 500,
           title: "Toast Title",
         },
         throwOnError: true,
@@ -82,7 +82,7 @@ describe("Home", () => {
       await utils.sleep(300)
       await utils.renderOnceExpectMatchSnapshot()
 
-      await utils.sleep(800)
+      await utils.sleep(600)
       await utils.renderOnceExpectMatchSnapshot()
     })
   })
@@ -90,20 +90,20 @@ describe("Home", () => {
   describe("Prompt", () => {
     describe("! mode", () => {
       test("! should open shell mode", async () => {
-        utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+        await utils.testRenderTui(SIZES.SMALL)
         await utils.testSetup.mockInput.typeText("!")
         await utils.sleep(100)
         await utils.renderOnceExpectMatchSnapshot()
       })
       test.failing("esc should revert to normal mode", async () => {
-        utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+        await utils.testRenderTui(SIZES.SMALL)
         await utils.testSetup.mockInput.typeText("!test")
         await utils.testSetup.mockInput.pressEscape()
         await utils.sleep(100)
         await utils.renderOnceExpectMatchSnapshot()
       })
       test("backspace should revert to normal mode", async () => {
-        utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+        await utils.testRenderTui(SIZES.SMALL)
         await utils.testSetup.mockInput.typeText("!a")
         await utils.testSetup.mockInput.pressBackspace()
         await utils.testSetup.mockInput.pressBackspace()
@@ -123,7 +123,7 @@ describe("Home", () => {
     })
 
     test("tab should switch agent, with wrap-around", async () => {
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await utils.testRenderTui(SIZES.SMALL)
       await utils.testSetup.renderOnce()
       await utils.testSetup.mockInput.typeText("blah blah") // have some initial input
       await sleep(100)
@@ -143,7 +143,7 @@ describe("Home", () => {
 
     test("backtab should switch agent in reverse, with wrap-around", async () => {
       // const mocks = await mockProviders()
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await utils.testRenderTui(SIZES.SMALL)
       await utils.testSetup.renderOnce()
       await utils.testSetup.mockInput.typeText("blah blah") // have some initial input
       await sleep(100)
