@@ -21,9 +21,9 @@ import { testRenderTui } from "../fixture_.tsx"
 import { sleep } from "bun"
 
 describe("Home", () => {
-  let s: Awaited<ReturnType<typeof utils.createIsolatedServer>>
+  let s: Awaited<ReturnType<typeof utils.createServer>>
   beforeAll(async () => {
-    s = await utils.createIsolatedServer()
+    s = await utils.createServer()
     // Let the server boot up
     await utils.sleep(2500)
     setSystemTime(new Date("2025-01-01T00:00:00.000Z"))

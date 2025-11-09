@@ -1,13 +1,14 @@
-import { createOpencodeClient } from "@opencode-ai/sdk"
 import { afterEach, beforeAll, beforeEach, expect, mock } from "bun:test"
 import { type Context } from "solid-js"
 import os from "os"
 import fs from "fs/promises"
 import path from "path"
-import { type testRenderTui } from "./fixture_"
 import { Global } from "@/global"
 import { YAML } from "bun"
 import type { Config } from "@/config/config"
+import { testRender } from "@opentui/solid"
+import type { TestRendererOptions } from "@opentui/core/testing"
+import { createOpencodeClient } from "@opencode-ai/sdk"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
 
@@ -37,9 +38,9 @@ type ProvidedValue<K extends keyof typeof knownUseFns> = ReturnType<(typeof know
 
 export type MockConfig = {
   [key in keyof typeof knownUseFns]?:
-    | boolean
-    | ProvidedValue<key>
-    | ((draft: ProvidedValue<key>) => ProvidedValue<key>)
+  | boolean
+  | ProvidedValue<key>
+  | ((draft: ProvidedValue<key>) => ProvidedValue<key>)
 }
 
 export async function mockProviders<T extends MockConfig>(
@@ -49,10 +50,10 @@ export async function mockProviders<T extends MockConfig>(
     [key in keyof MockConfig]: Awaited<ReturnType<(typeof knownUseFns)[key]>>
   }> & {
     [key in keyof T]: T[key] extends (...args: any[]) => any
-      ? ReturnType<T[key]>
-      : T[key] extends false
-        ? never
-        : T[key]
+    ? ReturnType<T[key]>
+    : T[key] extends false
+    ? never
+    : T[key]
   }
 > {
   const defaultConfig = {
@@ -99,11 +100,50 @@ export function setUpCommonHooksAndUtils() {
       "HOME is not set to a temp directory for the test. Check the test setup in ../preload.ts for issues",
     )
   }
+  const projectDir = path.join(process.env.HOME, "project")
+
+  /** Execute cb in specified cwd */
+  async function withCwd<T>(newCwd: string, cb: () => T) {
+    await fs.mkdir(newCwd, { recursive: true })
+    const originalCwd = process.cwd()
+    process.chdir(newCwd)
+    try {
+      return await cb()
+    } finally {
+      process.chdir(originalCwd)
+    }
+  }
+
+  async function createIsolatedServer() {
+    const { Server } = await import("@/server/server")
+
+    return await withCwd(projectDir, async () => {
+      const BUN_OPTIONS_BACKUP = process.env.BUN_OPTIONS
+      process.env.BUN_OPTIONS = ""
+      const server = Server.listen({
+        port: 0,
+        hostname: "127.0.0.1",
+      })
+      process.env.BUN_OPTIONS = BUN_OPTIONS_BACKUP
+      const abort = new AbortController()
+      return {
+        client: createOpencodeClient({
+          baseUrl: server.url.toString(),
+        }),
+        url: server.url.toString(),
+        [Symbol.asyncDispose]: async function () {
+          abort.abort()
+          await server.stop(true)
+        },
+      }
+    })
+  }
 
   const utils = {
     homedir: process.env.HOME,
-    projectDir: path.join(process.env.HOME, "project"),
-    testSetup: undefined as unknown as Awaited<ReturnType<typeof testRenderTui>>,
+    projectDir,
+    testSetup: undefined as unknown as Awaited<ReturnType<typeof testRender>>,
+    server: undefined as undefined | Awaited<ReturnType<typeof createIsolatedServer>>,
     renderOnceExpectMatchSnapshot: async function () {
       await this.testSetup.renderOnce()
       const frame = this.testSetup!.captureCharFrame()
@@ -112,40 +152,25 @@ export function setUpCommonHooksAndUtils() {
     sleep(ms: number) {
       return new Promise((r) => setTimeout(r, ms))
     },
-    async createIsolatedServer() {
-      const { Server } = await import("@/server/server")
-
-      return await this.withCwd(this.projectDir, async () => {
-        const BUN_OPTIONS_BACKUP = process.env.BUN_OPTIONS
-        process.env.BUN_OPTIONS = ""
-        const server = Server.listen({
-          port: 0,
-          hostname: "127.0.0.1",
-        })
-        process.env.BUN_OPTIONS = BUN_OPTIONS_BACKUP
-        const client = createOpencodeClient({
-          baseUrl: server.url.toString(),
-        })
-        return {
-          client,
-          url: server.url.toString(),
-          [Symbol.asyncDispose]: async function () {
-            await server.stop(true)
-          },
-        }
-      })
+    async createServer() {
+      this.server = await createIsolatedServer()
+      return this.server
     },
-    /** Execute cb in specified cwd */
-    async withCwd<T>(newCwd: string, cb: () => T) {
-      await fs.mkdir(newCwd, { recursive: true })
-      const originalCwd = process.cwd()
-      process.chdir(newCwd)
-      try {
-        return await cb()
-      } finally {
-        process.chdir(originalCwd)
-      }
-    },
+    async testRenderTui(
+      options?: TestRendererOptions & { wait?: number; onExit?: () => Promise<void> },
+      sizeMixin?: { width?: number; height?: number },
+    ) {
+      const { Tui } = await import("@/cli/cmd/tui/app")
+      const { onExit, ...rest } = options ?? {}
+      this.testSetup = await testRender(
+        () => Tui({ url: this.server?.url ?? "mock", args: {}, mode: "dark", onExit: onExit ?? Promise.reject }),
+        {
+          ...rest,
+          ...(sizeMixin ?? {}),
+        },
+      )
+      await this.sleep(options?.wait ?? 500)
+    }
   }
 
   const models = fetch("https://models.dev/api.json").then((res) => res.json())

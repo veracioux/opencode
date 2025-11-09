@@ -16,14 +16,11 @@ import {
   setSystemTime,
 } from "bun:test"
 import { mockProviders, setUpCommonHooksAndUtils, setUpProviderMocking, SIZES } from "../fixture"
-import { testRenderTui } from "../fixture_.tsx"
 
 describe("Dialog", () => {
-  let s: Awaited<ReturnType<typeof utils.createIsolatedServer>>
+  let s: Awaited<ReturnType<typeof utils.createServer>>
   beforeAll(async () => {
-    s = await utils.createIsolatedServer()
-    // Let the server boot up
-    await utils.sleep(2500)
+    s = await utils.createServer()
     setSystemTime(new Date("2025-01-01T00:00:00.000Z"))
   })
 
@@ -31,17 +28,19 @@ describe("Dialog", () => {
     async function openDialogAndSleep() {
       utils.testSetup!.mockInput.pressKey("x", { ctrl: true })
       utils.testSetup!.mockInput.pressKey("m")
-      await utils.sleep(50)
+      await s.client.config.providers({ throwOnError: true })
+      await utils.sleep(10)
     }
 
     test("ctrl-x m should open model dialog", async () => {
-      utils.testSetup = await testRenderTui({ url: s.url }, { ...SIZES.MEDIUM, height: 30 })
+      await utils.testRenderTui(SIZES.MEDIUM, { height: 30 })
+      utils.testSetup.renderOnce()
       await openDialogAndSleep()
       await utils.renderOnceExpectMatchSnapshot()
     })
 
     test("item navigation should work", async () => {
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.NORMAL)
+      await utils.testRenderTui(SIZES.NORMAL)
       await openDialogAndSleep()
       await utils.testSetup.mockInput.pressArrow("down")
       await utils.renderOnceExpectMatchSnapshot()
@@ -54,7 +53,7 @@ describe("Dialog", () => {
     })
 
     test("search should narrow candidates", async () => {
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await utils.testRenderTui(SIZES.SMALL)
       await openDialogAndSleep()
       await utils.testSetup.renderOnce()
       await utils.testSetup.mockInput.typeText("gpt41")
@@ -62,7 +61,7 @@ describe("Dialog", () => {
     })
 
     test("enter should select first model", async () => {
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await utils.testRenderTui(SIZES.SMALL)
       await openDialogAndSleep()
       await utils.testSetup.renderOnce()
       await utils.testSetup.mockInput.pressEnter()
@@ -70,7 +69,7 @@ describe("Dialog", () => {
     })
 
     test("enter with input should set selected model", async () => {
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await utils.testRenderTui(SIZES.SMALL)
       await openDialogAndSleep()
       await utils.testSetup.renderOnce()
       await utils.testSetup.mockInput.typeText("gpt41")
@@ -80,7 +79,7 @@ describe("Dialog", () => {
 
     test("enter should not submit prompt", async () => {
       const mocks = await mockProviders({ useRoute: true })
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await utils.testRenderTui(SIZES.SMALL)
       await utils.testSetup.mockInput.typeText("Hello")
       await openDialogAndSleep()
       await utils.testSetup.mockInput.pressEnter()
@@ -90,7 +89,7 @@ describe("Dialog", () => {
     })
 
     test("esc should close dialog", async () => {
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+      await utils.testRenderTui(SIZES.SMALL)
       await openDialogAndSleep()
       await utils.testSetup.mockInput.pressArrow("down")
       await utils.testSetup.mockInput.pressEscape()
@@ -100,7 +99,7 @@ describe("Dialog", () => {
   })
 
   test("ctrl-x p should open command dialog", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, { ...SIZES.SMALL, height: 28 })
+    await utils.testRenderTui(SIZES.SMALL, { height: 28 })
     utils.testSetup.mockInput.pressKey("p", { ctrl: true })
     await utils.renderOnceExpectMatchSnapshot()
   })
@@ -120,7 +119,7 @@ describe("Dialog", () => {
     })) as any
     try {
       await utils.sleep(300)
-      utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
+      await utils.testRenderTui({ url: s.url }, SIZES.MEDIUM)
       utils.testSetup.mockInput.pressKey("x", { ctrl: true })
       utils.testSetup.mockInput.pressKey("l")
       await utils.renderOnceExpectMatchSnapshot()
@@ -134,14 +133,14 @@ describe("Dialog", () => {
   })
 
   test.todo("ctrl-x t should open theme list dialog", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
+    await utils.testRenderTui({ url: s.url }, SIZES.MEDIUM)
     utils.testSetup.mockInput.pressKey("x", { ctrl: true })
     utils.testSetup.mockInput.pressKey("t")
     await utils.renderOnceExpectMatchSnapshot()
   })
 
   test("/theme should open theme list dialog", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui({ url: s.url }, SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("/theme")
     await utils.testSetup.mockInput.pressEnter()
     await utils.sleep(50)
@@ -149,7 +148,7 @@ describe("Dialog", () => {
   })
 
   test("ctrl-x a should open agent list dialog", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.MEDIUM)
+    await utils.testRenderTui({ url: s.url }, SIZES.MEDIUM)
     utils.testSetup.mockInput.pressKey("x", { ctrl: true })
     utils.testSetup.mockInput.pressKey("a")
     await utils.renderOnceExpectMatchSnapshot()

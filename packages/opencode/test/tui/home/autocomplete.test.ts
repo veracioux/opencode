@@ -1,37 +1,33 @@
 const utils = setUpCommonHooksAndUtils()
 
-import { beforeAll, describe, expect, mock, test } from "bun:test"
-import { testRenderTui } from "../fixture_"
+import { beforeAll, beforeEach, describe, expect, mock, test } from "bun:test"
 import { setUpCommonHooksAndUtils, SIZES } from "../fixture"
 
 /** Wait for the autocomplete popup to open */
-const waitForOpen = () => utils.sleep(300)
+const waitForOpen = () => utils.sleep(1200)
 
-let s: Awaited<ReturnType<typeof utils.createIsolatedServer>>
+let s: Awaited<ReturnType<typeof utils.createServer>>
 beforeAll(async () => {
-  s = await utils.createIsolatedServer()
-  // Let the server boot up
-  await utils.sleep(2500)
+  s = await utils.createServer()
 })
 
 describe("/ mode", () => {
   test("/ should open autocomplete", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
-    await utils.testSetup.renderOnce()
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("/")
     await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
   })
 
   test("should not open in the middle of text", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("blah /")
     await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
   })
 
   test("should narrow /ex input to /exit", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("/ex")
     await waitForOpen()
@@ -40,7 +36,7 @@ describe("/ mode", () => {
 
   test("enter should trigger action", async () => {
     const onExit = mock(async () => { })
-    utils.testSetup = await testRenderTui({ url: s.url, onExit }, SIZES.SMALL)
+    await utils.testRenderTui({ onExit }, SIZES.SMALL)
     await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("/ex")
     await utils.testSetup.mockInput.pressEnter()
@@ -48,7 +44,7 @@ describe("/ mode", () => {
   })
 
   test("enter on custom command should expect args", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("/long-c")
     await utils.testSetup.mockInput.pressEnter()
     await utils.testSetup.mockInput.typeText("arg1 arg2")
@@ -56,7 +52,7 @@ describe("/ mode", () => {
   })
 
   test("/ exact matches should be prioritized", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("/e")
     await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
@@ -65,15 +61,14 @@ describe("/ mode", () => {
 
 describe("@ mode", () => {
   test("@ should open autocomplete", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
-    await utils.testSetup.renderOnce()
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("@")
     await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
   })
 
   test("should match items correctly", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("@file1")
     await waitForOpen()
@@ -81,7 +76,7 @@ describe("@ mode", () => {
   })
 
   test("should trigger at the end of text", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("blah @file1")
     await waitForOpen()
@@ -89,7 +84,7 @@ describe("@ mode", () => {
   })
 
   test("should trigger in the middle of text", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("blah blah")
     " blah".split("").forEach(() => utils.testSetup.mockInput.pressArrow("left"))
@@ -99,7 +94,7 @@ describe("@ mode", () => {
   })
 
   test("enter should confirm choice", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("@file2")
     await waitForOpen()
     await utils.testSetup.mockInput.pressEnter()
@@ -108,7 +103,7 @@ describe("@ mode", () => {
   })
 
   test("tab should confirm choice", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("@file1")
     await waitForOpen()
     await utils.testSetup.mockInput.pressTab()
@@ -117,7 +112,7 @@ describe("@ mode", () => {
   })
 
   test("esc should close", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("@file1")
     await waitForOpen()
@@ -127,12 +122,12 @@ describe("@ mode", () => {
   })
 
   test("clearing input should close", async () => {
-    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText(`blah @file1`)
     await waitForOpen()
     "@file1".split("").forEach(() => utils.testSetup.mockInput.pressBackspace()),
-    await utils.sleep(100)
+      await utils.sleep(100)
     await utils.renderOnceExpectMatchSnapshot()
   })
 

@@ -1,291 +1,3 @@
-exports[`Autocomplete / mode / should open autocomplete 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-  ┃ /long-command  Long command                          ┃  
-  ┃ /e             Short command                         ┃  
-  ┃ /init          create/update AGENTS.md               ┃  
-  ┃ /new           create a new session                  ┃  
-  ┃ /models        list models                           ┃  
-  ┃ /agents        list agents                           ┃  
-  ┃ /session       list sessions                         ┃  
-  ┃ /status        show status                           ┃  
-  ┃ /theme         toggle theme                          ┃  
-  ┃ /editor        open editor                           ┃  
-  ┃                                                      ┃  
-  ┃ > /                                                  ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
-exports[`Autocomplete / mode should not open in the middle of text 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ > blah /                                             ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
-exports[`Autocomplete / mode should narrow /ex input to /exit 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-  ┃ /exit          exit the app                          ┃  
-  ┃                                                      ┃  
-  ┃ > /ex                                                ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
-exports[`Autocomplete / mode enter on custom command should expect args 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ > /long-command arg1 arg2                            ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
-exports[`Autocomplete / mode / exact matches should be prioritized 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-  ┃ /e             Short command                         ┃  
-  ┃ /exit          exit the app                          ┃  
-  ┃ /editor        open editor                           ┃  
-  ┃ /new           create a new session                  ┃  
-  ┃ /session       list sessions                         ┃  
-  ┃ /help          show help                             ┃  
-  ┃ /init          create/update AGENTS.md               ┃  
-  ┃ /theme         toggle theme                          ┃  
-  ┃ /agents        list agents                           ┃  
-  ┃ /models        list models                           ┃  
-  ┃                                                      ┃  
-  ┃ > /e                                                 ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
-exports[`Autocomplete @ mode @ should open autocomplete 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-  ┃ @docs                                                ┃  
-  ┃ files/                                               ┃  
-  ┃                                                      ┃  
-  ┃ > @                                                  ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
-exports[`Autocomplete @ mode should match items correctly 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-  ┃ files/1.txt                                          ┃  
-  ┃                                                      ┃  
-  ┃ > @file1                                             ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
-exports[`Autocomplete @ mode should trigger at the end of text 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-  ┃ files/1.txt                                          ┃  
-  ┃                                                      ┃  
-  ┃ > blah @file1                                        ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
-exports[`Autocomplete @ mode enter should confirm choice 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ > @files/2.txt                                       ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
-exports[`Autocomplete @ mode tab should confirm choice 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ > @files/1.txt                                       ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
-exports[`Autocomplete @ mode esc should close 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ > @file1                                             ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
-exports[`Autocomplete @ mode clearing input should close 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ > blah                                               ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
-"
-`;
-
 exports[`/ mode / should open autocomplete 1`] = `
 "                                                            
                                                             
@@ -399,6 +111,174 @@ exports[`/ mode / exact matches should be prioritized 1`] = `
   ┃ /models        list models                           ┃  
   ┃                                                      ┃  
   ┃ > /e                                                 ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`@ mode @ should open autocomplete 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+  ┃ @docs                                                ┃  
+  ┃ files/                                               ┃  
+  ┃                                                      ┃  
+  ┃ > @                                                  ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`@ mode should match items correctly 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+  ┃ files/1.txt                                          ┃  
+  ┃                                                      ┃  
+  ┃ > @file1                                             ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`@ mode should trigger at the end of text 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+  ┃ files/1.txt                                          ┃  
+  ┃                                                      ┃  
+  ┃ > blah @file1                                        ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`@ mode enter should confirm choice 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > @files/2.txt                                       ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`@ mode tab should confirm choice 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > @files/1.txt                                       ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`@ mode esc should close 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > @file1                                             ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`@ mode clearing input should close 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > blah                                               ┃  
   ┃                                                      ┃  
   OpenCode Zen Big Pickle                                   
                                                             
