@@ -166,7 +166,7 @@ exports[`Autocomplete @ mode should match items correctly 1`] = `
 "
 `;
 
-exports[`Autocomplete @ mode should trigger in the middle of text 1`] = `
+exports[`Autocomplete @ mode should trigger at the end of text 1`] = `
 "                                                            
                                                             
                                             ▄               

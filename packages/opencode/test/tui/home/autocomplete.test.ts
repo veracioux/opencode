@@ -80,10 +80,20 @@ describe("@ mode", () => {
     await utils.renderOnceExpectMatchSnapshot()
   })
 
-  test("should trigger in the middle of text", async () => {
+  test("should trigger at the end of text", async () => {
     utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
     await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("blah @file1")
+    await waitForOpen()
+    await utils.renderOnceExpectMatchSnapshot()
+  })
+
+  test("should trigger in the middle of text", async () => {
+    utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testSetup.renderOnce()
+    await utils.testSetup.mockInput.typeText("blah blah")
+    " blah".split("").forEach(() => utils.testSetup.mockInput.pressArrow("left"))
+    await utils.testSetup.mockInput.typeText(" @")
     await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
   })
@@ -118,13 +128,10 @@ describe("@ mode", () => {
 
   test("clearing input should close", async () => {
     utils.testSetup = await testRenderTui({ url: s.url }, SIZES.SMALL)
-    const input = "@file1"
     await utils.testSetup.renderOnce()
-    await utils.testSetup.mockInput.typeText(`blah ${input}`)
+    await utils.testSetup.mockInput.typeText(`blah @file1`)
     await waitForOpen()
-    await Promise.all(
-      Array(input.length).fill(null).map(utils.testSetup.mockInput.pressBackspace),
-    )
+    "@file1".split("").forEach(() => utils.testSetup.mockInput.pressBackspace()),
     await utils.sleep(100)
     await utils.renderOnceExpectMatchSnapshot()
   })
