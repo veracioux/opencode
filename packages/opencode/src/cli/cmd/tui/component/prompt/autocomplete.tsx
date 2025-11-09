@@ -52,12 +52,7 @@ export function Autocomplete(props: {
     // Track props.value to make memo reactive to text changes
     props.value // <- there surely is a better way to do this, like making .input() reactive
 
-    const val =
-      props
-        .input()
-        .getTextRange(store.index + 1, props.input().cursorOffset + 1)
-        .match(/^\S*/)?.[0] ?? ""
-    return val
+    return props.input().getTextRange(store.index + 1, props.input().cursorOffset)
   })
 
   function insertPart(text: string, part: PromptInfo["parts"][number]) {
@@ -374,13 +369,13 @@ export function Autocomplete(props: {
       get visible() {
         return store.visible
       },
-      onInput(value) {
+      onInput() {
         if (store.visible) {
           if (
             // Typed text before the trigger
             props.input().cursorOffset <= store.index ||
-            // Typed a space after the trigger
-            value[props.input().cursorOffset - 1] === " "
+            // There is a space between the trigger and the cursor
+            props.input().getTextRange(store.index, props.input().cursorOffset).match(/\s/)
           ) {
             hide()
             return
