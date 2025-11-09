@@ -52,14 +52,7 @@ export function Autocomplete(props: {
     // Track props.value to make memo reactive to text changes
     props.value // <- there surely is a better way to do this, like making .input() reactive
 
-    const val = props.input().getTextRange(store.index + 1, props.input().cursorOffset + 1)
-
-    // If the filter contains a space, hide the autocomplete
-    if (val.includes(" ")) {
-      hide()
-      return undefined
-    }
-
+    const val = props.input().getTextRange(store.index + 1, props.input().cursorOffset + 1).match(/^\S*/)?.[0] ?? ""
     return val
   })
 
@@ -377,16 +370,16 @@ export function Autocomplete(props: {
       get visible() {
         return store.visible
       },
-      onInput() {
+      onInput(value) {
         if (store.visible) {
-          if (props.input().cursorOffset <= store.index) {
+          if (
+            // Typed text before the trigger
+            props.input().cursorOffset <= store.index ||
+            // Typed a space after the trigger
+            value[props.input().cursorOffset - 1] === " "
+          ) {
             hide()
             return
-          }
-          // Check if a space was typed after the trigger character
-          const currentText = props.input().getTextRange(store.index + 1, props.input().cursorOffset + 1)
-          if (currentText.includes(" ")) {
-            hide()
           }
         }
       },
