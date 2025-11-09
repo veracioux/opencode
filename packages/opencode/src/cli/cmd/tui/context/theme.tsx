@@ -1,5 +1,5 @@
-import { SyntaxStyle, RGBA } from "@opentui/core"
-import { createMemo, createSignal } from "solid-js"
+import { SyntaxStyle, RGBA, type TerminalColors } from "@opentui/core"
+import { createMemo } from "solid-js"
 import { useSync } from "@tui/context/sync"
 import { createSimpleContext } from "./helper"
 import aura from "./theme/aura.json" with { type: "json" }
@@ -26,6 +26,8 @@ import tokyonight from "./theme/tokyonight.json" with { type: "json" }
 import vesper from "./theme/vesper.json" with { type: "json" }
 import zenburn from "./theme/zenburn.json" with { type: "json" }
 import { useKV } from "./kv"
+import { useRenderer } from "@opentui/solid"
+import { createStore } from "solid-js/store"
 
 type Theme = {
   primary: RGBA
@@ -86,14 +88,14 @@ type Variant = {
   dark: HexColor | RefName
   light: HexColor | RefName
 }
-type ColorValue = HexColor | RefName | Variant
+type ColorValue = HexColor | RefName | Variant | RGBA
 type ThemeJson = {
   $schema?: string
   defs?: Record<string, HexColor | RefName>
   theme: Record<keyof Theme, ColorValue>
 }
 
-export const THEMES: Record<string, ThemeJson> = {
+export const DEFAULT_THEMES: Record<string, ThemeJson> = {
   aura,
   ayu,
   catppuccin,
@@ -119,9 +121,10 @@ export const THEMES: Record<string, ThemeJson> = {
   zenburn,
 }
 
-export function resolveTheme(theme: ThemeJson, mode: "dark" | "light") {
+function resolveTheme(theme: ThemeJson, mode: "dark" | "light") {
   const defs = theme.defs ?? {}
   function resolveColor(c: ColorValue): RGBA {
+    if (c instanceof RGBA) return c
     if (typeof c === "string") return c.startsWith("#") ? RGBA.fromHex(c) : resolveColor(defs[c])
     return resolveColor(c[mode])
   }
@@ -132,7 +135,243 @@ export function resolveTheme(theme: ThemeJson, mode: "dark" | "light") {
   ) as Theme
 }
 
-export function syntaxStyleFromTheme(theme: Theme) {
+export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
+  name: "Theme",
+  init: (props: { mode: "dark" | "light" }) => {
+    const sync = useSync()
+    const kv = useKV()
+    const [store, setStore] = createStore({
+      themes: DEFAULT_THEMES,
+      mode: props.mode,
+      active: (sync.data.config.theme ?? kv.get("theme", "opencode")) as string,
+    })
+
+    const renderer = useRenderer()
+    renderer
+      .getPalette({
+        size: 16,
+      })
+      .then((colors) => {
+        if (!colors.palette[0]) return
+        setStore("themes", "system", generateSystem(colors, store.mode))
+      })
+
+    const values = createMemo(() => {
+      return resolveTheme(store.themes[store.active] ?? store.themes.opencode, store.mode)
+    })
+
+    const syntax = createMemo(() => generateSyntax(values()))
+
+    return {
+      theme: new Proxy(values(), {
+        get(_target, prop) {
+          // @ts-expect-error
+          return values()[prop]
+        },
+      }),
+      get selected() {
+        return store.active
+      },
+      all() {
+        return store.themes
+      },
+      syntax,
+      mode() {
+        return store.mode
+      },
+      setMode(mode: "dark" | "light") {
+        setStore("mode", mode)
+      },
+      set(theme: string) {
+        setStore("active", theme)
+        kv.set("theme", theme)
+      },
+      get ready() {
+        return sync.ready
+      },
+    }
+  },
+})
+
+function generateSystem(colors: TerminalColors, mode: "dark" | "light"): ThemeJson {
+  const bg = RGBA.fromHex(colors.defaultBackground ?? colors.palette[0]!)
+  const fg = RGBA.fromHex(colors.defaultForeground ?? colors.palette[7]!)
+  const palette = colors.palette.filter((x) => x !== null).map((x) => RGBA.fromHex(x))
+  const isDark = mode == "dark"
+
+  // Generate gray scale based on terminal background
+  const grays = generateGrayScale(bg, isDark)
+  const textMuted = generateMutedTextColor(bg, isDark)
+
+  // ANSI color references
+  const ansiColors = {
+    black: palette[0],
+    red: palette[1],
+    green: palette[2],
+    yellow: palette[3],
+    blue: palette[4],
+    magenta: palette[5],
+    cyan: palette[6],
+    white: palette[7],
+  }
+
+  return {
+    theme: {
+      // Primary colors using ANSI
+      primary: ansiColors.cyan,
+      secondary: ansiColors.magenta,
+      accent: ansiColors.cyan,
+
+      // Status colors using ANSI
+      error: ansiColors.red,
+      warning: ansiColors.yellow,
+      success: ansiColors.green,
+      info: ansiColors.cyan,
+
+      // Text colors
+      text: fg,
+      textMuted,
+
+      // Background colors
+      background: bg,
+      backgroundPanel: grays[2],
+      backgroundElement: grays[3],
+
+      // Border colors
+      borderSubtle: grays[6],
+      border: grays[7],
+      borderActive: grays[8],
+
+      // Diff colors
+      diffAdded: ansiColors.green,
+      diffRemoved: ansiColors.red,
+      diffContext: grays[7],
+      diffHunkHeader: grays[7],
+      diffHighlightAdded: ansiColors.green,
+      diffHighlightRemoved: ansiColors.red,
+      diffAddedBg: grays[2],
+      diffRemovedBg: grays[2],
+      diffContextBg: grays[1],
+      diffLineNumber: grays[6],
+      diffAddedLineNumberBg: grays[3],
+      diffRemovedLineNumberBg: grays[3],
+
+      // Markdown colors
+      markdownText: fg,
+      markdownHeading: fg,
+      markdownLink: ansiColors.blue,
+      markdownLinkText: ansiColors.cyan,
+      markdownCode: ansiColors.green,
+      markdownBlockQuote: ansiColors.yellow,
+      markdownEmph: ansiColors.yellow,
+      markdownStrong: fg,
+      markdownHorizontalRule: grays[7],
+      markdownListItem: ansiColors.blue,
+      markdownListEnumeration: ansiColors.cyan,
+      markdownImage: ansiColors.blue,
+      markdownImageText: ansiColors.cyan,
+      markdownCodeBlock: fg,
+
+      // Syntax colors
+      syntaxComment: textMuted,
+      syntaxKeyword: ansiColors.magenta,
+      syntaxFunction: ansiColors.blue,
+      syntaxVariable: fg,
+      syntaxString: ansiColors.green,
+      syntaxNumber: ansiColors.yellow,
+      syntaxType: ansiColors.cyan,
+      syntaxOperator: ansiColors.cyan,
+      syntaxPunctuation: fg,
+    },
+  }
+}
+
+function generateGrayScale(bg: RGBA, isDark: boolean): Record<number, RGBA> {
+  const grays: Record<number, RGBA> = {}
+
+  // RGBA stores floats in range 0-1, convert to 0-255
+  const bgR = bg.r * 255
+  const bgG = bg.g * 255
+  const bgB = bg.b * 255
+
+  const luminance = 0.299 * bgR + 0.587 * bgG + 0.114 * bgB
+
+  for (let i = 1; i <= 12; i++) {
+    const factor = i / 12.0
+
+    let grayValue: number
+    let newR: number
+    let newG: number
+    let newB: number
+
+    if (isDark) {
+      if (luminance < 10) {
+        grayValue = Math.floor(factor * 0.4 * 255)
+        newR = grayValue
+        newG = grayValue
+        newB = grayValue
+      } else {
+        const newLum = luminance + (255 - luminance) * factor * 0.4
+
+        const ratio = newLum / luminance
+        newR = Math.min(bgR * ratio, 255)
+        newG = Math.min(bgG * ratio, 255)
+        newB = Math.min(bgB * ratio, 255)
+      }
+    } else {
+      if (luminance > 245) {
+        grayValue = Math.floor(255 - factor * 0.4 * 255)
+        newR = grayValue
+        newG = grayValue
+        newB = grayValue
+      } else {
+        const newLum = luminance * (1 - factor * 0.4)
+
+        const ratio = newLum / luminance
+        newR = Math.max(bgR * ratio, 0)
+        newG = Math.max(bgG * ratio, 0)
+        newB = Math.max(bgB * ratio, 0)
+      }
+    }
+
+    grays[i] = RGBA.fromInts(Math.floor(newR), Math.floor(newG), Math.floor(newB))
+  }
+
+  return grays
+}
+
+function generateMutedTextColor(bg: RGBA, isDark: boolean): RGBA {
+  // RGBA stores floats in range 0-1, convert to 0-255
+  const bgR = bg.r * 255
+  const bgG = bg.g * 255
+  const bgB = bg.b * 255
+
+  const bgLum = 0.299 * bgR + 0.587 * bgG + 0.114 * bgB
+
+  let grayValue: number
+
+  if (isDark) {
+    if (bgLum < 10) {
+      // Very dark/black background
+      grayValue = 180 // #b4b4b4
+    } else {
+      // Scale up for lighter dark backgrounds
+      grayValue = Math.min(Math.floor(160 + bgLum * 0.3), 200)
+    }
+  } else {
+    if (bgLum > 245) {
+      // Very light/white background
+      grayValue = 75 // #4b4b4b
+    } else {
+      // Scale down for darker light backgrounds
+      grayValue = Math.max(Math.floor(100 - (255 - bgLum) * 0.2), 60)
+    }
+  }
+
+  return RGBA.fromInts(grayValue, grayValue, grayValue)
+}
+
+function generateSyntax(theme: Theme) {
   return SyntaxStyle.fromTheme([
     {
       scope: ["prompt"],
@@ -289,13 +528,7 @@ export function syntaxStyleFromTheme(theme: Theme) {
       },
     },
     {
-      scope: [
-        "variable.builtin",
-        "type.builtin",
-        "function.builtin",
-        "module.builtin",
-        "constant.builtin",
-      ],
+      scope: ["variable.builtin", "type.builtin", "function.builtin", "module.builtin", "constant.builtin"],
       style: {
         foreground: theme.error,
       },
@@ -632,47 +865,3 @@ export function syntaxStyleFromTheme(theme: Theme) {
     },
   ])
 }
-
-export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
-  name: "Theme",
-  init: (props: { mode: "dark" | "light" }) => {
-    const sync = useSync()
-    const kv = useKV()
-
-    const [theme, setTheme] = createSignal(sync.data.config.theme ?? kv.get("theme", "opencode"))
-    const [mode, setMode] = createSignal(props.mode)
-
-    const values = createMemo(() => {
-      return resolveTheme(THEMES[theme()] ?? THEMES.opencode, mode())
-    })
-
-    const syntax = createMemo(() => {
-      return syntaxStyleFromTheme(values())
-    })
-
-    return {
-      theme: new Proxy(values(), {
-        get(_target, prop) {
-          // @ts-expect-error
-          return values()[prop]
-        },
-      }),
-      get selected() {
-        return theme()
-      },
-      syntax,
-      mode,
-      setMode(mode: "dark" | "light") {
-        setMode(mode)
-      },
-      set(theme: string) {
-        if (!THEMES[theme]) return
-        setTheme(theme)
-        kv.set("theme", theme)
-      },
-      get ready() {
-        return sync.ready
-      },
-    }
-  },
-})

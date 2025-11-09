@@ -1,13 +1,13 @@
 import { render, useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/solid"
 import { Clipboard } from "@tui/util/clipboard"
 import { TextAttributes } from "@opentui/core"
-import { RouteProvider, useRoute, type Route } from "@tui/context/route"
-import { Switch, Match, createEffect, untrack, ErrorBoundary, createSignal } from "solid-js"
+import { RouteProvider, useRoute } from "@tui/context/route"
+import { Switch, Match, createEffect, untrack, ErrorBoundary, createSignal, onMount, batch } from "solid-js"
 import { Installation } from "@/installation"
 import { Global } from "@/global"
 import { DialogProvider, useDialog } from "@tui/ui/dialog"
 import { SDKProvider, useSDK } from "@tui/context/sdk"
-import { SyncProvider } from "@tui/context/sync"
+import { SyncProvider, useSync } from "@tui/context/sync"
 import { LocalProvider, useLocal } from "@tui/context/local"
 import { DialogModel } from "@tui/component/dialog-model"
 import { DialogStatus } from "@tui/component/dialog-status"
@@ -27,6 +27,8 @@ import { ExitProvider, useExit } from "./context/exit"
 import { Session as SessionApi } from "@/session"
 import { TuiEvent } from "./event"
 import { KVProvider, useKV } from "./context/kv"
+import { Provider } from "@/provider/provider"
+import { ArgsProvider, useArgs, type Args } from "./context/args"
 
 async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
   // can't set raw mode if not a TTY
@@ -88,14 +90,7 @@ async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
   })
 }
 
-export function tui(input: {
-  url: string
-  sessionID?: string
-  model?: string
-  agent?: string
-  prompt?: string
-  onExit?: () => Promise<void>
-}) {
+export function tui(input: { url: string; args: Args; onExit?: () => Promise<void> }) {
   // promise to prevent immediate exit
   return new Promise<void>(async (resolve) => {
     const mode = await getTerminalBackgroundColor()
@@ -115,55 +110,39 @@ export function tui(input: {
 
 export function Tui(props: {
   url: string
-  sessionID?: string
-  model?: string
-  agent?: string
-  prompt?: string
+  args: Args
   onExit: () => Promise<void>
   mode: "dark" | "light"
 }) {
-  const routeData: Route | undefined = props.sessionID
-    ? {
-        type: "session",
-        sessionID: props.sessionID,
-      }
-    : undefined
-
   return (
-    <ErrorBoundary
-      fallback={(error, reset) => (
-        <ErrorComponent error={error} reset={reset} onExit={props.onExit} />
-      )}
-    >
-      <ExitProvider onExit={props.onExit}>
-        <KVProvider>
-          <ToastProvider>
-            <RouteProvider data={routeData}>
-              <SDKProvider url={props.url}>
-                <SyncProvider>
-                  <ThemeProvider mode={props.mode}>
-                    <LocalProvider
-                      initialModel={props.model}
-                      initialAgent={props.agent}
-                      initialPrompt={props.prompt}
-                    >
-                      <KeybindProvider>
-                        <DialogProvider>
-                          <CommandProvider>
-                            <PromptHistoryProvider>
-                              <App />
-                            </PromptHistoryProvider>
-                          </CommandProvider>
-                        </DialogProvider>
-                      </KeybindProvider>
-                    </LocalProvider>
-                  </ThemeProvider>
-                </SyncProvider>
-              </SDKProvider>
-            </RouteProvider>
-          </ToastProvider>
-        </KVProvider>
-      </ExitProvider>
+    <ErrorBoundary fallback={(error, reset) => <ErrorComponent error={error} reset={reset} onExit={props.onExit} />}>
+      <ArgsProvider {...props.args}>
+        <ExitProvider onExit={props.onExit}>
+          <KVProvider>
+            <ToastProvider>
+              <RouteProvider>
+                <SDKProvider url={props.url}>
+                  <SyncProvider>
+                    <ThemeProvider mode={props.mode}>
+                      <LocalProvider>
+                        <KeybindProvider>
+                          <DialogProvider>
+                            <CommandProvider>
+                              <PromptHistoryProvider>
+                                <App />
+                              </PromptHistoryProvider>
+                            </CommandProvider>
+                          </DialogProvider>
+                        </KeybindProvider>
+                      </LocalProvider>
+                    </ThemeProvider>
+                  </SyncProvider>
+                </SDKProvider>
+              </RouteProvider>
+            </ToastProvider>
+          </KVProvider>
+        </ExitProvider>
+      </ArgsProvider>
     </ErrorBoundary>
   )
 }
@@ -180,10 +159,47 @@ function App() {
   const { event } = useSDK()
   const toast = useToast()
   const { theme, mode, setMode } = useTheme()
+  const sync = useSync()
   const exit = useExit()
 
   createEffect(() => {
     console.log(JSON.stringify(route.data))
+  })
+
+  const args = useArgs()
+  onMount(() => {
+    batch(() => {
+      if (args.agent) local.agent.set(args.agent)
+      if (args.model) {
+        const { providerID, modelID } = Provider.parseModel(args.model)
+        if (!providerID || !modelID)
+          return toast.show({
+            variant: "warning",
+            message: `Invalid model format: ${args.model}`,
+            duration: 3000,
+          })
+        local.model.set({ providerID, modelID }, { recent: true })
+      }
+      if (args.sessionID) {
+        route.navigate({
+          type: "session",
+          sessionID: args.sessionID,
+        })
+      }
+    })
+  })
+
+  createEffect(() => {
+    if (sync.status !== "complete") return
+    if (args.continue) {
+      const match = sync.data.session.at(0)?.id
+      if (match) {
+        route.navigate({
+          type: "session",
+          sessionID: match,
+        })
+      }
+    }
   })
 
   command.register(() => [
@@ -419,12 +435,7 @@ function App() {
         flexShrink={0}
       >
         <box flexDirection="row">
-          <box
-            flexDirection="row"
-            backgroundColor={theme.backgroundElement}
-            paddingLeft={1}
-            paddingRight={1}
-          >
+          <box flexDirection="row" backgroundColor={theme.backgroundElement} paddingLeft={1} paddingRight={1}>
             <text fg={theme.textMuted}>open</text>
             <text fg={theme.text} attributes={TextAttributes.BOLD}>
               code{" "}
@@ -440,11 +451,7 @@ function App() {
             tab
           </text>
           <text fg={local.agent.color(local.agent.current().name)}>{""}</text>
-          <text
-            bg={local.agent.color(local.agent.current().name)}
-            fg={theme.background}
-            wrapMode={undefined}
-          >
+          <text bg={local.agent.color(local.agent.current().name)} fg={theme.background} wrapMode={undefined}>
             <span style={{ bold: true }}> {local.agent.current().name.toUpperCase()}</span>
             <span> AGENT </span>
           </text>
