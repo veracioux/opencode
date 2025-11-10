@@ -1,4 +1,4 @@
-import { createContext, useContext, type ParentProps, Show } from "solid-js"
+import { createContext, useContext, type ParentProps, Show, onCleanup } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useTheme } from "@tui/context/theme"
 import { SplitBorder } from "../component/border"
@@ -48,6 +48,9 @@ function init() {
   })
 
   let timeoutHandle: NodeJS.Timeout | null = null
+  onCleanup(() => {
+    if (timeoutHandle) clearTimeout(timeoutHandle)
+  })
 
   const toast = {
     show(options: ToastOptions) {
