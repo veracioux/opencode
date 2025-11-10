@@ -61,9 +61,6 @@ describe("Home", () => {
       })
       await utils.sleep(300)
       await utils.renderOnceExpectMatchSnapshot()
-      // FIXME: Wait for the toast to disappear before the other tests
-      // Avoids an exception inbetween tests - not sure what is causing this
-      await utils.sleep(1000)
     })
 
     // FIXME: flaky, I think because sdk's onCleanup is not called

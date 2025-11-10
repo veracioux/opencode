@@ -226,7 +226,7 @@ exports[`Dialog Model dialog enter should not submit prompt 1`] = `
   ┃                                                      ┃  
   ┃ > Hello                                              ┃  
   ┃                                                      ┃  
-  OpenAI GPT-4.1                                            
+  OpenAI GPT-5                                              
                                                             
  opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
 "

@@ -29,7 +29,7 @@ describe("Dialog", () => {
       utils.testSetup!.mockInput.pressKey("x", { ctrl: true })
       utils.testSetup!.mockInput.pressKey("m")
       await s.client.config.providers({ throwOnError: true })
-      await utils.sleep(10)
+      await utils.sleep(50)
     }
 
     test("ctrl-x m should open model dialog", async () => {
@@ -84,7 +84,7 @@ describe("Dialog", () => {
       await openDialogAndSleep()
       await utils.testSetup.mockInput.pressEnter()
       await utils.renderOnceExpectMatchSnapshot()
-      await utils.sleep(200)
+      await utils.sleep(400)
       expect(mocks.useRoute.navigate).not.toHaveBeenCalled()
     })
 

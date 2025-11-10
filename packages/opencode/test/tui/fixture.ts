@@ -1,14 +1,13 @@
 import { afterEach, beforeAll, beforeEach, expect, mock } from "bun:test"
 import { type Context } from "solid-js"
-import os from "os"
 import fs from "fs/promises"
 import path from "path"
-import { Global } from "@/global"
 import { YAML } from "bun"
 import type { Config } from "@/config/config"
 import { testRender } from "@opentui/solid"
 import type { TestRendererOptions } from "@opentui/core/testing"
 import { createOpencodeClient } from "@opencode-ai/sdk"
+import { ensureXdgDirs, XDG_DIRS } from "../fixture/fixture"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
 
@@ -37,10 +36,7 @@ const mockedProviderValues = new Map<() => any, any>()
 type ProvidedValue<K extends keyof typeof knownUseFns> = ReturnType<(typeof knownUseFns)[K]>
 
 export type MockConfig = {
-  [key in keyof typeof knownUseFns]?:
-  | boolean
-  | ProvidedValue<key>
-  | ((draft: ProvidedValue<key>) => ProvidedValue<key>)
+  [key in keyof typeof knownUseFns]?: boolean | ProvidedValue<key> | ((draft: ProvidedValue<key>) => ProvidedValue<key>)
 }
 
 export async function mockProviders<T extends MockConfig>(
@@ -50,10 +46,10 @@ export async function mockProviders<T extends MockConfig>(
     [key in keyof MockConfig]: Awaited<ReturnType<(typeof knownUseFns)[key]>>
   }> & {
     [key in keyof T]: T[key] extends (...args: any[]) => any
-    ? ReturnType<T[key]>
-    : T[key] extends false
-    ? never
-    : T[key]
+      ? ReturnType<T[key]>
+      : T[key] extends false
+        ? never
+        : T[key]
   }
 > {
   const defaultConfig = {
@@ -62,9 +58,7 @@ export async function mockProviders<T extends MockConfig>(
       navigate: mock(),
     },
     useExit: mock(() => undefined as never),
-  } satisfies Partial<
-    Record<keyof MockConfig, ReturnType<(typeof knownUseFns)[keyof typeof knownUseFns]>>
-  >
+  } satisfies Partial<Record<keyof MockConfig, ReturnType<(typeof knownUseFns)[keyof typeof knownUseFns]>>>
 
   for (const key of Object.keys(knownUseFns) as (keyof MockConfig)[]) {
     const value = config?.[key]
@@ -94,13 +88,7 @@ export async function mockProviders<T extends MockConfig>(
 }
 
 export function setUpCommonHooksAndUtils() {
-  // Provide some safety for the developer, so they don't accidentally delete their real home dir or its contents
-  if (!process.env.HOME?.startsWith(os.tmpdir())) {
-    throw new Error(
-      "HOME is not set to a temp directory for the test. Check the test setup in ../preload.ts for issues",
-    )
-  }
-  const projectDir = path.join(process.env.HOME, "project")
+  const projectDir = path.join(XDG_DIRS.home, "project")
 
   /** Execute cb in specified cwd */
   async function withCwd<T>(newCwd: string, cb: () => T) {
@@ -114,7 +102,7 @@ export function setUpCommonHooksAndUtils() {
     }
   }
 
-  async function createIsolatedServer() {
+  async function createServer() {
     const { Server } = await import("@/server/server")
 
     return await withCwd(projectDir, async () => {
@@ -140,10 +128,8 @@ export function setUpCommonHooksAndUtils() {
   }
 
   const utils = {
-    homedir: process.env.HOME,
-    projectDir,
     testSetup: undefined as unknown as Awaited<ReturnType<typeof testRender>>,
-    server: undefined as undefined | Awaited<ReturnType<typeof createIsolatedServer>>,
+    server: undefined as undefined | Awaited<ReturnType<typeof createServer>>,
     renderOnceExpectMatchSnapshot: async function () {
       await this.testSetup.renderOnce()
       const frame = this.testSetup!.captureCharFrame()
@@ -153,7 +139,7 @@ export function setUpCommonHooksAndUtils() {
       return new Promise((r) => setTimeout(r, ms))
     },
     async createServer() {
-      this.server = await createIsolatedServer()
+      this.server = await createServer()
       return this.server
     },
     async testRenderTui(
@@ -170,7 +156,7 @@ export function setUpCommonHooksAndUtils() {
         },
       )
       await this.sleep(options?.wait ?? 500)
-    }
+    },
   }
 
   const models = fetch("https://models.dev/api.json").then((res) => res.json())
@@ -216,23 +202,29 @@ export function setUpCommonHooksAndUtils() {
         },
       ],
       misc: {
-        [`${utils.projectDir}/files/1.txt`]: "Content of file 1",
-        [`${utils.projectDir}/files/2.txt`]: "Content of file 2",
+        [`${projectDir}/files/1.txt`]: "Content of file 1",
+        [`${projectDir}/files/2.txt`]: "Content of file 2",
       },
     })
     return cleanup
   }
 
   beforeAll(async () => {
-    await fs.mkdir(path.join(utils.homedir, "project"), { recursive: true })
-    await setUpOpencodeEnv()
+    for await (const file of new Bun.Glob(`${XDG_DIRS.home}/**`).scan()) {
+      await fs.rm(file, { recursive: true })
+    }
+    await ensureXdgDirs()
+    await fs.mkdir(projectDir, { recursive: true })
   })
 
   let originalCwd: string
+  let cleanup: Awaited<ReturnType<typeof setUpOpencodeEnv>>
   beforeEach(async () => {
     originalCwd = process.cwd()
-    process.chdir(utils.projectDir)
+    process.chdir(projectDir)
+    cleanup = await setUpOpencodeEnv()
   })
+
   afterEach(async () => {
     mock.restore()
     process.chdir(originalCwd)
@@ -241,6 +233,7 @@ export function setUpCommonHooksAndUtils() {
     // seems due to opentui
     await new Promise((r) => setTimeout(r, 0))
     if (utils.testSetup) utils.testSetup.renderer.destroy()
+    if (cleanup) await cleanup[Symbol.asyncDispose]()
   })
 
   return utils
@@ -285,33 +278,32 @@ ${body}
     await createTextFile(pth, content)
   }
 
+  const { dataHome, cacheHome, configHome, stateHome } = XDG_DIRS
+
   // auth.json
-  if (files["auth.json"])
-    await createJSONFile(path.join(Global.Path.data, "auth.json"), files["auth.json"])
+  if (files["auth.json"]) await createJSONFile(path.join(dataHome, "opencode", "auth.json"), files["auth.json"])
 
   // models.json
-  if (files["models.json"])
-    await createJSONFile(path.join(Global.Path.cache, "models.json"), files["models.json"])
+  if (files["models.json"]) await createJSONFile(path.join(cacheHome, "opencode", "models.json"), files["models.json"])
 
   // global opencode.json
   if (files["opencode.json"])
-    await createJSONFile(path.join(Global.Path.config, "opencode.json"), files["opencode.json"])
+    await createJSONFile(path.join(configHome, "opencode", "opencode.json"), files["opencode.json"])
 
   // model.json
-  if (files["model.json"])
-    await createJSONFile(path.join(Global.Path.state, "model.json"), files["model.json"])
+  if (files["model.json"]) await createJSONFile(path.join(stateHome, "opencode", "model.json"), files["model.json"])
 
   // command
   for (const def of files.command ?? []) {
     const { name, content, ...rest } = def
-    const cmdPath = path.join(Global.Path.config, "command", `${def.name}.md`)
+    const cmdPath = path.join(configHome, "opencode", "command", `${def.name}.md`)
     await createMarkdownFile(cmdPath, rest, def.content)
   }
 
   // agent
   for (const def of files.agent ?? []) {
     const { name, content, ...rest } = def
-    const agentPath = path.join(Global.Path.config, "agent", `${def.name}.md`)
+    const agentPath = path.join(configHome, "opencode", "agent", `${def.name}.md`)
     await createMarkdownFile(agentPath, rest, def.content)
   }
 

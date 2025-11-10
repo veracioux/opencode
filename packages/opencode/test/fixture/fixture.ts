@@ -2,7 +2,8 @@ import { $ } from "bun"
 import { realpathSync } from "fs"
 import os from "os"
 import path from "path"
-import { mock } from "bun:test"
+import fs from "fs/promises"
+import { iife } from "@/util/iife"
 
 type TmpDirOptions<T> = {
   git?: boolean
@@ -30,24 +31,43 @@ export async function tmpdir<T>(options?: TmpDirOptions<T>) {
   return result
 }
 
-/**
- * Mocks the Identifier.ascending method to return predictable identifiers for testing.
- */
-export async function mockIdentifiers() {
-  const { Identifier } = await import("@/id/id")
-  const lastIndexPerPrefix: Record<string, number> = {}
-  mock.module("@/id/id", () => ({
-    Identifier: {
-      ...Identifier,
-      ascending(prefix, given) {
-        if (given) {
-          return Identifier.ascending(prefix, given)
-        }
-        const lastIndex = lastIndexPerPrefix[prefix] ?? 0
-        const newIndex = lastIndex + 1
-        lastIndexPerPrefix[prefix] = newIndex
-        return `${prefix}_${newIndex}`
-      },
-    } as typeof Identifier,
-  }))
+export const XDG_DIRS = iife(() => {
+  const home = path.join(os.tmpdir(), "oc-test")
+  const configHome = path.join(home, "_config")
+  const dataHome = path.join(home, "_data")
+  const cacheHome = path.join(home, "_cache")
+  const stateHome = path.join(home, "_state")
+
+  return {
+    home,
+    configHome,
+    dataHome,
+    cacheHome,
+    stateHome,
+  }
+})
+
+export async function ensureXdgDirs() {
+  const { home, configHome, dataHome, cacheHome, stateHome } = XDG_DIRS
+  await fs.mkdir(home, { recursive: true })
+  for await (const file of new Bun.Glob(`${home}/**`).scan()) {
+    await fs.rm(file, { recursive: true })
+  }
+
+  process.env.HOME = home
+  process.env.XDG_CONFIG_HOME = configHome
+  process.env.XDG_DATA_HOME = dataHome
+  process.env.XDG_CACHE_HOME = cacheHome
+  process.env.XDG_STATE_HOME = stateHome
+
+  await fs.mkdir(configHome, { recursive: true })
+  await fs.mkdir(dataHome, { recursive: true })
+  await fs.mkdir(cacheHome, { recursive: true })
+  await fs.mkdir(stateHome, { recursive: true })
+
+  ;(await import("@/util/log")).Log.init({
+    print: false,
+    dev: true,
+    level: "DEBUG",
+  })
 }
