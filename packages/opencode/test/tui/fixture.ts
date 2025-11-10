@@ -155,7 +155,7 @@ export function setUpCommonHooksAndUtils() {
           ...(sizeMixin ?? {}),
         },
       )
-      await this.sleep(options?.wait ?? 500)
+      await this.sleep(options?.wait ?? 600)
     },
   }
 
