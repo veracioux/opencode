@@ -18,8 +18,8 @@ exports[`Dialog Model dialog ctrl-x m should open model dialog 1`] = `
              GPT-5 OpenAI                                                       
                                                                                 
              OpenCode Zen                                                       
-             ● Big Pickle                                                       
-             Grok Code Fast 1                                                   
+             ● Big Pickle                                      Free             
+             Grok Code Fast 1                                  Free             
    ┃                                                                         ┃  
    ┃ >       OpenAI                                                          ┃  
    ┃         GPT-4.1 nano                                                    ┃  
@@ -52,8 +52,8 @@ exports[`Dialog Model dialog item navigation should work 1`] = `
                        GPT-5 OpenAI                                                                 
                                                                                                     
                        OpenCode Zen                                                                 
-                       Big Pickle                                                                   
-                       Grok Code Fast 1                                                             
+                       Big Pickle                                        Free                       
+                       Grok Code Fast 1                                  Free                       
              ┃                                                                         ┃            
              ┃ >       OpenAI                                                          ┃            
              ┃         GPT-4.1 nano                                                    ┃            
@@ -86,8 +86,8 @@ exports[`Dialog Model dialog item navigation should work 2`] = `
                        GPT-5 OpenAI                                                                 
                                                                                                     
                        OpenCode Zen                                                                 
-                       ● Big Pickle                                                                 
-                       Grok Code Fast 1                                                             
+                       ● Big Pickle                                      Free                       
+                       Grok Code Fast 1                                  Free                       
              ┃                                                                         ┃            
              ┃ >       OpenAI                                                          ┃            
              ┃         GPT-4.1 nano                                                    ┃            
