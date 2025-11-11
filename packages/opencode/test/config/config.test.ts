@@ -1,4 +1,4 @@
-import { test, expect } from "bun:test"
+import { test, expect, describe } from "bun:test"
 import { Config } from "../../src/config/config"
 import { Instance } from "../../src/project/instance"
 import { tmpdir } from "../fixture/fixture"
@@ -327,17 +327,40 @@ Test agent prompt`,
   })
 })
 
-test("updates config and writes to file", async () => {
-  await using tmp = await tmpdir()
-  await Instance.provide({
-    directory: tmp.path,
-    fn: async () => {
-      const newConfig = { model: "updated/model" }
-      await Config.update(newConfig as any)
+describe("updates config and writes to file", async () => {
+  test("should correctly pick existing file to overwrite", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const files = [
+          path.join(tmp.path, "opencode.jsonc"),
+          path.join(tmp.path, ".opencode", "opencode.json"),
+        ]
+        const oldConfig = { $schema: "https://opencode.ai/config.json", model: "old/model" }
+        await Bun.write(files[0], JSON.stringify(oldConfig, null, 2))
+        await Bun.write(files[1], JSON.stringify(oldConfig, null, 2))
 
-      const writtenConfig = JSON.parse(await Bun.file(path.join(tmp.path, "config.json")).text())
-      expect(writtenConfig.model).toBe("updated/model")
-    },
+        const newConfig = { $schema: "https://opencode.ai/config.json", model: "updated/model" }
+        await Config.update(newConfig as any)
+
+        const writtenConfig = JSON.parse(await Bun.file(files[0]).text())
+        expect(writtenConfig.model).toBe("updated/model")
+      },
+    })
+  })
+  test("should create new config file if missing", async () => {
+    await using tmp = await tmpdir()
+    await Instance.provide({
+      directory: tmp.path,
+      fn: async () => {
+        const newConfig = { model: "updated/model" }
+        await Config.update(newConfig as any)
+
+        const writtenConfig = JSON.parse(await Bun.file(path.join(tmp.path, "opencode.json")).text())
+        expect(writtenConfig.model).toBe("updated/model")
+      },
+    })
   })
 })
 
