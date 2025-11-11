@@ -147,7 +147,7 @@ export function setUpCommonHooksAndUtils() {
       sizeMixin?: { width?: number; height?: number },
     ) {
       const { Tui } = await import("@/cli/cmd/tui/app")
-      const { onExit, ...rest } = options ?? {}
+      const { onExit, wait, ...rest } = options ?? {}
       this.testSetup = await testRender(
         () => Tui({ url: this.server?.url ?? "mock", args: {}, mode: "dark", onExit: onExit ?? Promise.reject }),
         {
@@ -155,7 +155,7 @@ export function setUpCommonHooksAndUtils() {
           ...(sizeMixin ?? {}),
         },
       )
-      await this.sleep(options?.wait ?? 600)
+      await this.sleep(wait ?? 700)
     },
   }
 
