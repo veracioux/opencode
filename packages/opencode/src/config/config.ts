@@ -24,12 +24,6 @@ export namespace Config {
   export const state = Instance.state(async () => {
     const auth = await Auth.all()
     let result = await global()
-    for (const file of ["opencode.jsonc", "opencode.json"]) {
-      const found = await Filesystem.findUp(file, Instance.directory, Instance.worktree)
-      for (const resolved of found.toReversed()) {
-        result = mergeDeep(result, await loadFile(resolved))
-      }
-    }
 
     // Override with custom config if provided
     if (Flag.OPENCODE_CONFIG) {
@@ -89,6 +83,16 @@ export namespace Config {
       result.plugin.push(...(await loadPlugin(dir)))
     }
     await Promise.allSettled(promises)
+
+    for (const file of ["opencode.jsonc", "opencode.json"]) {
+      const found = await Filesystem.findUp(file, Instance.directory, Instance.worktree)
+      for (const resolved of found.toReversed()) {
+        result = mergeDeep(result, await loadFile(resolved))
+      }
+    }
+
+    // to satisy the type checker
+    result.mode ??= {}
 
     // Migrate deprecated mode field to agent field
     for (const [name, mode] of Object.entries(result.mode)) {
