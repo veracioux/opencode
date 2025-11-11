@@ -333,10 +333,7 @@ describe("updates config and writes to file", async () => {
     await Instance.provide({
       directory: tmp.path,
       fn: async () => {
-        const files = [
-          path.join(tmp.path, "opencode.jsonc"),
-          path.join(tmp.path, ".opencode", "opencode.json"),
-        ]
+        const files = [path.join(tmp.path, "opencode.jsonc"), path.join(tmp.path, ".opencode", "opencode.json")]
         const oldConfig = { $schema: "https://opencode.ai/config.json", model: "old/model" }
         await Bun.write(files[0], JSON.stringify(oldConfig, null, 2))
         await Bun.write(files[1], JSON.stringify(oldConfig, null, 2))
