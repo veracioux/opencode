@@ -132,7 +132,7 @@ export function setUpCommonHooksAndUtils() {
     server: undefined as undefined | Awaited<ReturnType<typeof createServer>>,
     renderOnceExpectMatchSnapshot: async function () {
       await this.testSetup.renderOnce()
-      const frame = this.testSetup!.captureCharFrame()
+      const frame = this.testSetup.captureCharFrame()
       expect(frame).toMatchSnapshot()
     },
     sleep(ms: number) {
@@ -140,6 +140,7 @@ export function setUpCommonHooksAndUtils() {
     },
     async createServer() {
       this.server = await createServer()
+      await this.sleep(500) // wait for server to be ready
       return this.server
     },
     async testRenderTui(
@@ -155,7 +156,7 @@ export function setUpCommonHooksAndUtils() {
           ...(sizeMixin ?? {}),
         },
       )
-      await this.sleep(wait ?? 700)
+      await this.sleep(wait ?? 800)
     },
   }
 

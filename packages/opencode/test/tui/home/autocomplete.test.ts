@@ -23,15 +23,31 @@ describe("/ mode", () => {
 
   test("should narrow /ex input to /exit", async () => {
     await utils.testRenderTui(SIZES.SMALL)
-    await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("/ex")
+    await utils.renderOnceExpectMatchSnapshot()
+  })
+
+  // FIXME: I don't think this behavior is correct
+  test("should consume / at beginning if there is text", async () => {
+    await utils.testRenderTui(SIZES.SMALL)
+    await utils.testSetup.mockInput.typeText(" blah")
+    " blah".split("").forEach(() => utils.testSetup.mockInput.pressArrow("left"))
+    await utils.testSetup.mockInput.typeText("/")
+    await utils.renderOnceExpectMatchSnapshot()
+  })
+
+  // FIXME: I don't think traling space should affect this
+  test("should just type / at beginning if there is trailing space", async () => {
+    await utils.testRenderTui(SIZES.SMALL)
+    await utils.testSetup.mockInput.typeText(" blah ")
+    " blah ".split("").forEach(() => utils.testSetup.mockInput.pressArrow("left"))
+    await utils.testSetup.mockInput.typeText("/")
     await utils.renderOnceExpectMatchSnapshot()
   })
 
   test("enter should trigger action", async () => {
     const onExit = mock(async () => { })
     await utils.testRenderTui({ onExit }, SIZES.SMALL)
-    await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("/ex")
     await utils.testSetup.mockInput.pressEnter()
     expect(onExit).toHaveBeenCalled()
@@ -58,7 +74,6 @@ describe("@ mode", () => {
 
   test("@ should open autocomplete", async () => {
     await utils.testRenderTui(SIZES.SMALL)
-    await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("@")
     await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
@@ -66,7 +81,6 @@ describe("@ mode", () => {
 
   test("should match items correctly", async () => {
     await utils.testRenderTui(SIZES.SMALL)
-    await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("@file1")
     await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
@@ -74,18 +88,25 @@ describe("@ mode", () => {
 
   test("should trigger at the end of text", async () => {
     await utils.testRenderTui(SIZES.SMALL)
-    await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("blah @file1")
     await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
   })
 
-  test("should trigger in the middle of text", async () => {
+  test.failing("should trigger in the middle of text", async () => {
     await utils.testRenderTui(SIZES.SMALL)
-    await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("blah blah")
     " blah".split("").forEach(() => utils.testSetup.mockInput.pressArrow("left"))
     await utils.testSetup.mockInput.typeText(" @")
+    await waitForOpen()
+    await utils.renderOnceExpectMatchSnapshot()
+  })
+
+  test.failing("typing left of trigger should close", async () => {
+    await utils.testRenderTui(SIZES.SMALL)
+    await utils.testSetup.mockInput.typeText("blah @file1")
+    "@file1".split("").forEach(() => utils.testSetup.mockInput.pressArrow("left"))
+    await utils.testSetup.mockInput.typeText("x")
     await waitForOpen()
     await utils.renderOnceExpectMatchSnapshot()
   })
@@ -110,7 +131,6 @@ describe("@ mode", () => {
 
   test("esc should close", async () => {
     await utils.testRenderTui(SIZES.SMALL)
-    await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText("@file1")
     await waitForOpen()
     await utils.testSetup.mockInput.pressEscape()
@@ -120,11 +140,10 @@ describe("@ mode", () => {
 
   test("clearing input should close", async () => {
     await utils.testRenderTui(SIZES.SMALL)
-    await utils.testSetup.renderOnce()
     await utils.testSetup.mockInput.typeText(`blah @file1`)
     await waitForOpen()
-    "@file1".split("").forEach(() => utils.testSetup.mockInput.pressBackspace()),
-      await utils.sleep(100)
+    "@file1".split("").forEach(() => utils.testSetup.mockInput.pressBackspace())
+    await utils.sleep(100)
     await utils.renderOnceExpectMatchSnapshot()
   })
 

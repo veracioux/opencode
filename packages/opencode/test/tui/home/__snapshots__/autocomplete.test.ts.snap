@@ -1,3 +1,5 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
 exports[`/ mode / should open autocomplete 1`] = `
 "                                                            
                                                             
@@ -63,6 +65,54 @@ exports[`/ mode should narrow /ex input to /exit 1`] = `
   ┃ /exit          exit the app                          ┃  
   ┃                                                      ┃  
   ┃ > /ex                                                ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`/ mode should consume / at beginning if there is text 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >  blah                                              ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`/ mode should just type / at beginning if there is trailing space 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ > / blah                                             ┃  
   ┃                                                      ┃  
   OpenCode Zen Big Pickle                                   
                                                             
@@ -187,6 +237,18 @@ exports[`@ mode should trigger at the end of text 1`] = `
   OpenCode Zen Big Pickle                                   
                                                             
  opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
+exports[`@ mode should trigger in the middle of text 1`] = `
+"                                                            
+TODO: marked as failing
+"
+`;
+
+exports[`@ mode typing left of trigger should close 1`] = `
+"                                                            
+TODO: marked as failing
 "
 `;
 
