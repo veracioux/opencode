@@ -119,7 +119,7 @@ describe("Dialog", () => {
     })) as any
     try {
       await utils.sleep(300)
-      await utils.testRenderTui({ url: s.url }, SIZES.MEDIUM)
+      await utils.testRenderTui(SIZES.MEDIUM)
       utils.testSetup.mockInput.pressKey("x", { ctrl: true })
       utils.testSetup.mockInput.pressKey("l")
       await utils.renderOnceExpectMatchSnapshot()
@@ -133,14 +133,14 @@ describe("Dialog", () => {
   })
 
   test.todo("ctrl-x t should open theme list dialog", async () => {
-    await utils.testRenderTui({ url: s.url }, SIZES.MEDIUM)
+    await utils.testRenderTui(SIZES.MEDIUM)
     utils.testSetup.mockInput.pressKey("x", { ctrl: true })
     utils.testSetup.mockInput.pressKey("t")
     await utils.renderOnceExpectMatchSnapshot()
   })
 
   test("/theme should open theme list dialog", async () => {
-    await utils.testRenderTui({ url: s.url }, SIZES.SMALL)
+    await utils.testRenderTui(SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("/theme")
     await utils.testSetup.mockInput.pressEnter()
     await utils.sleep(50)
@@ -148,7 +148,7 @@ describe("Dialog", () => {
   })
 
   test("ctrl-x a should open agent list dialog", async () => {
-    await utils.testRenderTui({ url: s.url }, SIZES.MEDIUM)
+    await utils.testRenderTui(SIZES.MEDIUM)
     utils.testSetup.mockInput.pressKey("x", { ctrl: true })
     utils.testSetup.mockInput.pressKey("a")
     await utils.renderOnceExpectMatchSnapshot()
