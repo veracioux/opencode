@@ -8,6 +8,7 @@ import { testRender } from "@opentui/solid"
 import type { TestRendererOptions } from "@opentui/core/testing"
 import { createOpencodeClient } from "@opencode-ai/sdk"
 import { ensureXdgDirs, XDG_DIRS } from "../fixture/fixture"
+import { Writable } from "stream"
 
 const contextToUseFnMap = new Map<Context<unknown>, () => unknown>()
 
@@ -46,10 +47,10 @@ export async function mockProviders<T extends MockConfig>(
     [key in keyof MockConfig]: Awaited<ReturnType<(typeof knownUseFns)[key]>>
   }> & {
     [key in keyof T]: T[key] extends (...args: any[]) => any
-      ? ReturnType<T[key]>
-      : T[key] extends false
-        ? never
-        : T[key]
+    ? ReturnType<T[key]>
+    : T[key] extends false
+    ? never
+    : T[key]
   }
 > {
   const defaultConfig = {
@@ -127,9 +128,30 @@ export function setUpCommonHooksAndUtils() {
     })
   }
 
+  async function createLLM() {
+    const { MockLLMServer } = await import("./llm")
+
+    const server = new MockLLMServer({
+      hostname: "127.0.0.1",
+      port: 0,
+      respond: mock(() => {
+        throw new Error("No mock LLM response defined")
+      }),
+    })
+    server.listen()
+
+    return {
+      server,
+      [Symbol.asyncDispose]: async function () {
+        server.stop()
+      },
+    }
+  }
+
   const utils = {
     testSetup: undefined as unknown as Awaited<ReturnType<typeof testRender>>,
     server: undefined as undefined | Awaited<ReturnType<typeof createServer>>,
+    llm: undefined as undefined | Awaited<ReturnType<typeof createLLM>>,
     renderOnceExpectMatchSnapshot: async function () {
       await this.testSetup.renderOnce()
       const frame = this.testSetup.captureCharFrame()
@@ -142,6 +164,10 @@ export function setUpCommonHooksAndUtils() {
       this.server = await createServer()
       await this.sleep(500) // wait for server to be ready
       return this.server
+    },
+    async createLLM() {
+      this.llm = await createLLM()
+      return this.llm
     },
     async testRenderTui(
       options?: TestRendererOptions & { wait?: number; onExit?: () => Promise<void> },
@@ -172,6 +198,22 @@ export function setUpCommonHooksAndUtils() {
       },
       "opencode.json": {
         model: "opencode/big-pickle",
+        ...(utils.llm ? {
+          provider: {
+            "mock-provider": {
+              npm: "@ai-sdk/openai-compatible",
+              name: "Mock Provider",
+              options: {
+                baseURL: utils.llm.server.url,
+              },
+              models: {
+                "mock-model": {
+                  name: "Mock Model",
+                },
+              },
+            },
+          },
+        } : {}),
       },
       "models.json": await models,
       "model.json": {
@@ -220,10 +262,18 @@ export function setUpCommonHooksAndUtils() {
 
   let originalCwd: string
   let cleanup: Awaited<ReturnType<typeof setUpOpencodeEnv>>
+  let _console: typeof console
   beforeEach(async () => {
     originalCwd = process.cwd()
     process.chdir(projectDir)
     cleanup = await setUpOpencodeEnv()
+    // TODO
+    // Suppress console output
+    _console = globalThis.console
+    globalThis.console = new (await import("console")).Console({
+      stdout: new Writable({ write() { } }),
+      stderr: process.stderr,
+    })
   })
 
   afterEach(async () => {
@@ -235,6 +285,7 @@ export function setUpCommonHooksAndUtils() {
     await new Promise((r) => setTimeout(r, 0))
     if (utils.testSetup) utils.testSetup.renderer.destroy()
     if (cleanup) await cleanup[Symbol.asyncDispose]()
+    globalThis.console = _console
   })
 
   return utils

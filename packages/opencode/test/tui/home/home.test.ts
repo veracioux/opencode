@@ -21,8 +21,10 @@ import { sleep } from "bun"
 
 describe("Home", () => {
   let s: Awaited<ReturnType<typeof utils.createServer>>
+  let llm: Awaited<ReturnType<typeof utils.createLLM>>
   beforeAll(async () => {
     s = await utils.createServer()
+    llm = await utils.createLLM()
     setSystemTime(new Date("2025-01-01T00:00:00.000Z"))
   })
 
@@ -38,15 +40,64 @@ describe("Home", () => {
     await utils.renderOnceExpectMatchSnapshot()
   })
 
-  // FIXME: Mock LLM response
-  test.todo("prompt should start a new session", async () => {
-    await utils.testRenderTui(SIZES.MEDIUM)
-    await utils.testSetup.mockInput.typeText("Hello, world!")
-    await utils.testSetup.mockInput.pressEnter()
-    await utils.sleep(3000)
+  test("prompt should start a new session", async () => {
+    const titleResponse = {
+      id: "chatcmpl-123",
+      object: "chat.completion",
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: "assistant",
+            content: "Simple session",
+          },
+          finish_reason: "stop",
+        },
+      ],
+    }
+    const helloResponse = {
+      id: "chatcmpl-123",
+      object: "chat.completion",
+      created: Math.floor(Date.now() / 1000),
+      model: "gpt-3.5-turbo",
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: "assistant",
+            content: "Hello! How can I help you today?",
+          },
+          finish_reason: "stop",
+        },
+      ],
+      usage: {
+        prompt_tokens: 9,
+        completion_tokens: 12,
+        total_tokens: 21,
+      },
+    }
 
-    await utils.renderOnceExpectMatchSnapshot()
-  })
+    llm.server.respond.mockImplementationOnce(async () => {
+      llm.server.respond.mockImplementationOnce(() => titleResponse)
+      return helloResponse
+      // if (JSON.stringify(body).includes(JSON.stringify({role: "user", content: "Hello, world!"}))) {
+      //   return helloResponse
+      // }
+      // return titleResponse
+    })
+    const originalModel = (await s.client.config.get()).data!.model
+    await s.client.config.update({ body: { model: "mock-provider/mock-model" } })
+    try {
+      await utils.testRenderTui(SIZES.MEDIUM)
+      await utils.testSetup.mockInput.typeText("Hello, world!")
+      await utils.testSetup.mockInput.pressEnter()
+      await utils.sleep(3000)
+
+      await utils.renderOnceExpectMatchSnapshot()
+    } finally {
+      await s.client.config.update({ body: { model: originalModel } })
+    }
+  }, 999999) // TODO
 
   describe("Toast", () => {
     test("should render correctly", async () => {
