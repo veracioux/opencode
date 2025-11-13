@@ -21,8 +21,8 @@ exports[`Dialog Model dialog ctrl-x m should open model dialog 1`] = `
              ● Big Pickle                                      Free             
              Grok Code Fast 1                                  Free             
    ┃                                                                         ┃  
-   ┃ >       OpenAI                                                          ┃  
-   ┃         GPT-4.1 nano                                                    ┃  
+   ┃ >       Mock Provider                                                   ┃  
+   ┃         Mock Model                                                      ┃  
    OpenCod                                                                      
                                                                                 
                                                                                 
@@ -55,8 +55,8 @@ exports[`Dialog Model dialog item navigation should work 1`] = `
                        ● Big Pickle                                      Free                       
                        Grok Code Fast 1                                  Free                       
              ┃                                                                         ┃            
-             ┃ >       OpenAI                                                          ┃            
-             ┃         GPT-4.1 nano                                                    ┃            
+             ┃ >       Mock Provider                                                   ┃            
+             ┃         Mock Model                                                      ┃            
              OpenCod                                                                                
                                                                                                     
                                                                                                     
@@ -89,8 +89,8 @@ exports[`Dialog Model dialog item navigation should work 2`] = `
                        ● Big Pickle                                      Free                       
                        Grok Code Fast 1                                  Free                       
              ┃                                                                         ┃            
-             ┃ >       OpenAI                                                          ┃            
-             ┃         GPT-4.1 nano                                                    ┃            
+             ┃ >       Mock Provider                                                   ┃            
+             ┃         Mock Model                                                      ┃            
              OpenCod                                                                                
                                                                                                     
                                                                                                     
@@ -232,6 +232,30 @@ exports[`Dialog Model dialog enter should not submit prompt 1`] = `
 "
 `;
 
+exports[`Dialog Model dialog esc should close dialog 1`] = `
+"                                                            
+                                                            
+                                            ▄               
+           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
+           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
+           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
+                                             local          
+                                                            
+           Commands                         ctrl+p          
+           List sessions                  ctrl+x l          
+           Switch model                   ctrl+x m          
+           Switch agent                        tab          
+                                                            
+                                                            
+  ┃                                                      ┃  
+  ┃ >                                                    ┃  
+  ┃                                                      ┃  
+  OpenCode Zen Big Pickle                                   
+                                                            
+ opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
+"
+`;
+
 exports[`Dialog ctrl-x p should open command dialog 1`] = `
 "                                                            
                                                             
@@ -343,29 +367,5 @@ exports[`Dialog ctrl-x a should open agent list dialog 1`] = `
                                                                                 
                                                                                 
  opencode vlocal  /tmp/oc-test/project                        tab  BUILD AGENT 
-"
-`;
-
-exports[`Dialog Model dialog esc should close dialog 1`] = `
-"                                                            
-                                                            
-                                            ▄               
-           █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█          
-           █░░█ █░░█ █▀▀▀ █░░█ █░░░ █░░█ █░░█ █▀▀▀          
-           ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀          
-                                             local          
-                                                            
-           Commands                         ctrl+p          
-           List sessions                  ctrl+x l          
-           Switch model                   ctrl+x m          
-           Switch agent                        tab          
-                                                            
-                                                            
-  ┃                                                      ┃  
-  ┃ >                                                    ┃  
-  ┃                                                      ┃  
-  OpenCode Zen Big Pickle                                   
-                                                            
- opencode vlocal  /tmp/oc-test/project    tab  BUILD AGENT 
 "
 `;
