@@ -28,8 +28,8 @@ export const { use: useSDK, provider: SDKProvider } = createSimpleContext({
           emitter.emit(event.type, event)
         }
       } catch (err) {
-        if ((err as any).name === "AbortError") { }
-        else throw err
+        if ((err as any).name === "AbortError") {
+        } else throw err
       }
     })
 

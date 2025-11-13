@@ -64,7 +64,6 @@ export async function ensureXdgDirs() {
   await fs.mkdir(dataHome, { recursive: true })
   await fs.mkdir(cacheHome, { recursive: true })
   await fs.mkdir(stateHome, { recursive: true })
-
   ;(await import("@/util/log")).Log.init({
     print: false,
     dev: true,

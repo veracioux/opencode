@@ -47,10 +47,10 @@ export async function mockProviders<T extends MockConfig>(
     [key in keyof MockConfig]: Awaited<ReturnType<(typeof knownUseFns)[key]>>
   }> & {
     [key in keyof T]: T[key] extends (...args: any[]) => any
-    ? ReturnType<T[key]>
-    : T[key] extends false
-    ? never
-    : T[key]
+      ? ReturnType<T[key]>
+      : T[key] extends false
+        ? never
+        : T[key]
   }
 > {
   const defaultConfig = {
@@ -198,22 +198,24 @@ export function setUpCommonHooksAndUtils() {
       },
       "opencode.json": {
         model: "opencode/big-pickle",
-        ...(utils.llm ? {
-          provider: {
-            "mock-provider": {
-              npm: "@ai-sdk/openai-compatible",
-              name: "Mock Provider",
-              options: {
-                baseURL: utils.llm.server.url,
-              },
-              models: {
-                "mock-model": {
-                  name: "Mock Model",
+        ...(utils.llm
+          ? {
+              provider: {
+                "mock-provider": {
+                  npm: "@ai-sdk/openai-compatible",
+                  name: "Mock Provider",
+                  options: {
+                    baseURL: utils.llm.server.url,
+                  },
+                  models: {
+                    "mock-model": {
+                      name: "Mock Model",
+                    },
+                  },
                 },
               },
-            },
-          },
-        } : {}),
+            }
+          : {}),
       },
       "models.json": await models,
       "model.json": {
@@ -271,7 +273,7 @@ export function setUpCommonHooksAndUtils() {
     // Suppress console output
     _console = globalThis.console
     globalThis.console = new (await import("console")).Console({
-      stdout: new Writable({ write() { } }),
+      stdout: new Writable({ write() {} }),
       stderr: process.stderr,
     })
   })

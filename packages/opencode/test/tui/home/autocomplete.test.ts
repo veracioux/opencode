@@ -46,7 +46,7 @@ describe("/ mode", () => {
   })
 
   test("enter should trigger action", async () => {
-    const onExit = mock(async () => { })
+    const onExit = mock(async () => {})
     await utils.testRenderTui({ onExit }, SIZES.SMALL)
     await utils.testSetup.mockInput.typeText("/ex")
     await utils.testSetup.mockInput.pressEnter()
@@ -148,7 +148,7 @@ describe("@ mode", () => {
   })
 
   // TODO: Ask to make sure this is desired behavior
-  test.todo("space should close", async () => { })
+  test.todo("space should close", async () => {})
 
-  test.todo("should honor input_submit binding", async () => { })
+  test.todo("should honor input_submit binding", async () => {})
 })

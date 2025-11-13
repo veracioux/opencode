@@ -108,12 +108,7 @@ export function tui(input: { url: string; args: Args; onExit?: () => Promise<voi
   })
 }
 
-export function Tui(props: {
-  url: string
-  args: Args
-  onExit: () => Promise<void>
-  mode: "dark" | "light"
-}) {
+export function Tui(props: { url: string; args: Args; onExit: () => Promise<void>; mode: "dark" | "light" }) {
   return (
     <ErrorBoundary fallback={(error, reset) => <ErrorComponent error={error} reset={reset} onExit={props.onExit} />}>
       <ArgsProvider {...props.args}>
