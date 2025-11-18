@@ -101,11 +101,11 @@ export const TuiThreadCommand = cmd({
 
     let stdin: NodeJS.ReadStream
     try {
-      stdin = process.stdin.isTTY
-        ? process.stdin
-        : new tty.ReadStream((await fs.open("/dev/tty", "r")).fd)
+      stdin = process.stdin.isTTY ? process.stdin : new tty.ReadStream((await fs.open("/dev/tty", "r")).fd)
     } catch (err) {
-      console.error("Failed to open /dev/tty for input. Prompt piping from stdin might not be supported on your platform.")
+      console.error(
+        "Failed to open /dev/tty for input. Prompt piping from stdin might not be supported on your platform.",
+      )
       process.exit(1)
     }
 
