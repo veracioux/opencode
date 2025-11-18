@@ -11,6 +11,7 @@ import { $ } from "bun"
 import { Filesystem } from "@/util/filesystem"
 import { Wildcard } from "@/util/wildcard"
 import { Permission } from "@/permission"
+import { fileURLToPath } from "url"
 
 const MAX_OUTPUT_LENGTH = 30_000
 const DEFAULT_TIMEOUT = 1 * 60 * 1000
@@ -19,20 +20,29 @@ const SIGKILL_TIMEOUT_MS = 200
 
 export const log = Log.create({ service: "bash-tool" })
 
+const resolveWasm = (asset: string) => {
+  if (asset.startsWith("file://")) return fileURLToPath(asset)
+  if (asset.startsWith("/")) return asset
+  const url = new URL(asset, import.meta.url)
+  return fileURLToPath(url)
+}
+
 const parser = lazy(async () => {
   const { Parser } = await import("web-tree-sitter")
   const { default: treeWasm } = await import("web-tree-sitter/tree-sitter.wasm" as string, {
     with: { type: "wasm" },
   })
+  const treePath = resolveWasm(treeWasm)
   await Parser.init({
     locateFile() {
-      return treeWasm
+      return treePath
     },
   })
   const { default: bashWasm } = await import("tree-sitter-bash/tree-sitter-bash.wasm" as string, {
     with: { type: "wasm" },
   })
-  const bashLanguage = await Language.load(bashWasm)
+  const bashPath = resolveWasm(bashWasm)
+  const bashLanguage = await Language.load(bashPath)
   const p = new Parser()
   p.setLanguage(bashLanguage)
   return p
@@ -51,9 +61,7 @@ export const BashTool = Tool.define("bash", {
   }),
   async execute(params, ctx) {
     if (params.timeout !== undefined && params.timeout < 0) {
-      throw new Error(
-        `Invalid timeout value: ${params.timeout}. Timeout must be a positive number.`,
-      )
+      throw new Error(`Invalid timeout value: ${params.timeout}. Timeout must be a positive number.`)
     }
     const timeout = Math.min(params.timeout ?? DEFAULT_TIMEOUT, MAX_TIMEOUT)
     const tree = await parser().then((p) => p.parse(params.command))
@@ -91,20 +99,25 @@ export const BashTool = Tool.define("bash", {
             .text()
             .then((x) => x.trim())
           log.info("resolved path", { arg, resolved })
-          if (resolved && !Filesystem.contains(Instance.directory, resolved)) {
-            throw new Error(
-              `This command references paths outside of ${Instance.directory} so it is not allowed to be executed.`,
-            )
+          if (resolved) {
+            // Git Bash on Windows returns Unix-style paths like /c/Users/...
+            const normalized =
+              process.platform === "win32" && resolved.match(/^\/[a-z]\//)
+                ? resolved.replace(/^\/([a-z])\//, (_, drive) => `${drive.toUpperCase()}:\\`).replace(/\//g, "\\")
+                : resolved
+
+            if (!Filesystem.contains(Instance.directory, normalized)) {
+              throw new Error(
+                `This command references paths outside of ${Instance.directory} so it is not allowed to be executed.`,
+              )
+            }
           }
         }
       }
 
       // always allow cd if it passes above check
       if (command[0] !== "cd") {
-        const action = Wildcard.allStructured(
-          { head: command[0], tail: command.slice(1) },
-          permissions,
-        )
+        const action = Wildcard.allStructured({ head: command[0], tail: command.slice(1) }, permissions)
         if (action === "deny") {
           throw new Error(
             `The user has specifically restricted access to this command, you are not allowed to execute it. Here is the configuration: ${JSON.stringify(permissions)}`,

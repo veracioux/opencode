@@ -2,11 +2,9 @@ import { cmd } from "@/cli/cmd/cmd"
 import { tui } from "./app"
 import { Rpc } from "@/util/rpc"
 import { type rpc } from "./worker"
-import { upgrade } from "@/cli/upgrade"
-import { Session } from "@/session"
-import { bootstrap } from "@/cli/bootstrap"
 import path from "path"
 import { UI } from "@/cli/ui"
+import { iife } from "@/util/iife"
 import fs from "fs/promises"
 import tty from "tty"
 
@@ -35,8 +33,8 @@ export const TuiThreadCommand = cmd({
       })
       .option("session", {
         alias: ["s"],
-        describe: "session id to continue",
         type: "string",
+        describe: "session id to continue",
       })
       .option("prompt", {
         alias: ["p"],
@@ -58,11 +56,48 @@ export const TuiThreadCommand = cmd({
         default: "127.0.0.1",
       }),
   handler: async (args) => {
-    const prompt = await (async () => {
+    // Resolve relative paths against PWD to preserve behavior when using --cwd flag
+    const baseCwd = process.env.PWD ?? process.cwd()
+    const cwd = args.project ? path.resolve(baseCwd, args.project) : process.cwd()
+    const defaultWorker = new URL("./worker.ts", import.meta.url)
+    // Nix build creates a bundled worker next to the binary; prefer it when present.
+    const execDir = path.dirname(process.execPath)
+    const bundledWorker = path.join(execDir, "opencode-worker.js")
+    const hasBundledWorker = await Bun.file(bundledWorker).exists()
+    const workerPath = (() => {
+      if (typeof OPENCODE_WORKER_PATH !== "undefined") return OPENCODE_WORKER_PATH
+      if (hasBundledWorker) return bundledWorker
+      return defaultWorker
+    })()
+    try {
+      process.chdir(cwd)
+    } catch (e) {
+      UI.error("Failed to change directory to " + cwd)
+      return
+    }
+
+    const worker = new Worker(workerPath, {
+      env: Object.fromEntries(
+        Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined),
+      ),
+    })
+    worker.onerror = console.error
+    const client = Rpc.client<typeof rpc>(worker)
+    process.on("uncaughtException", (e) => {
+      console.error(e)
+    })
+    process.on("unhandledRejection", (e) => {
+      console.error(e)
+    })
+    const server = await client.call("server", {
+      port: args.port,
+      hostname: args.hostname,
+    })
+    const prompt = await iife(async () => {
       const piped = !process.stdin.isTTY ? await Bun.stdin.text() : undefined
       if (!args.prompt) return piped
       return piped ? args.prompt + "\n" + piped : args.prompt
-    })()
+    })
 
     let stdin: NodeJS.ReadStream
     try {
@@ -74,74 +109,19 @@ export const TuiThreadCommand = cmd({
       process.exit(1)
     }
 
-    // Resolve relative paths against PWD to preserve behavior when using --cwd flag
-    const baseCwd = process.env.PWD ?? process.cwd()
-    const cwd = args.project ? path.resolve(baseCwd, args.project) : process.cwd()
-    let workerPath: string | URL = new URL("./worker.ts", import.meta.url)
-
-    if (typeof OPENCODE_WORKER_PATH !== "undefined") {
-      workerPath = OPENCODE_WORKER_PATH
-    }
-    try {
-      process.chdir(cwd)
-    } catch (e) {
-      UI.error("Failed to change directory to " + cwd)
-      return
-    }
-
-    await bootstrap(cwd, async () => {
-      upgrade()
-
-      const sessionID = await (async () => {
-        if (args.continue) {
-          const it = Session.list()
-          try {
-            for await (const s of it) {
-              if (s.parentID === undefined) {
-                return s.id
-              }
-            }
-            return
-          } finally {
-            await it.return()
-          }
-        }
-        if (args.session) {
-          return args.session
-        }
-        return undefined
-      })()
-
-      const worker = new Worker(workerPath, {
-        env: Object.fromEntries(
-          Object.entries(process.env).filter(
-            (entry): entry is [string, string] => entry[1] !== undefined,
-          ),
-        ),
-      })
-      worker.onerror = console.error
-      const client = Rpc.client<typeof rpc>(worker)
-      process.on("uncaughtException", (e) => {
-        console.error(e)
-      })
-      process.on("unhandledRejection", (e) => {
-        console.error(e)
-      })
-      const server = await client.call("server", {
-        port: args.port,
-        hostname: args.hostname,
-      })
-      await tui({
-        stdin,
-        url: server.url,
-        sessionID,
-        model: args.model,
+    await tui({
+      url: server.url,
+      args: {
+        continue: args.continue,
+        sessionID: args.session,
         agent: args.agent,
+        model: args.model,
         prompt,
-        onExit: async () => {
-          await client.call("shutdown", undefined)
-        },
-      })
+      },
+      stdin,
+      onExit: async () => {
+        await client.call("shutdown", undefined)
+      },
     })
   },
 })

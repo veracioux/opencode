@@ -12,6 +12,7 @@ import { Auth } from "../auth"
 import { Instance } from "../project/instance"
 import { Global } from "../global"
 import { Flag } from "../flag/flag"
+import { iife } from "@/util/iife"
 
 export namespace Provider {
   const log = Log.create({ service: "provider" })
@@ -52,7 +53,7 @@ export namespace Provider {
 
       return {
         autoload: Object.keys(input.models).length > 0,
-        options: {},
+        options: hasKey ? {} : { apiKey: "public" },
       }
     },
     openai: async () => {
@@ -77,19 +78,29 @@ export namespace Provider {
         options: {},
       }
     },
+    "azure-cognitive-services": async () => {
+      const resourceName = process.env["AZURE_COGNITIVE_SERVICES_RESOURCE_NAME"]
+      return {
+        autoload: false,
+        async getModel(sdk: any, modelID: string, options?: Record<string, any>) {
+          if (options?.["useCompletionUrls"]) {
+            return sdk.chat(modelID)
+          } else {
+            return sdk.responses(modelID)
+          }
+        },
+        options: {
+          baseURL: resourceName ? `https://${resourceName}.cognitiveservices.azure.com/openai` : undefined,
+        },
+      }
+    },
     "amazon-bedrock": async () => {
-      if (
-        !process.env["AWS_PROFILE"] &&
-        !process.env["AWS_ACCESS_KEY_ID"] &&
-        !process.env["AWS_BEARER_TOKEN_BEDROCK"]
-      )
+      if (!process.env["AWS_PROFILE"] && !process.env["AWS_ACCESS_KEY_ID"] && !process.env["AWS_BEARER_TOKEN_BEDROCK"])
         return { autoload: false }
 
       const region = process.env["AWS_REGION"] ?? "us-east-1"
 
-      const { fromNodeProviderChain } = await import(
-        await BunProc.install("@aws-sdk/credential-providers")
-      )
+      const { fromNodeProviderChain } = await import(await BunProc.install("@aws-sdk/credential-providers"))
       return {
         autoload: true,
         options: {
@@ -118,19 +129,16 @@ export namespace Provider {
             case "eu": {
               const regionRequiresPrefix = [
                 "eu-west-1",
+                "eu-west-2",
                 "eu-west-3",
                 "eu-north-1",
                 "eu-central-1",
                 "eu-south-1",
                 "eu-south-2",
               ].some((r) => region.includes(r))
-              const modelRequiresPrefix = [
-                "claude",
-                "nova-lite",
-                "nova-micro",
-                "llama3",
-                "pixtral",
-              ].some((m) => modelID.includes(m))
+              const modelRequiresPrefix = ["claude", "nova-lite", "nova-micro", "llama3", "pixtral"].some((m) =>
+                modelID.includes(m),
+              )
               if (regionRequiresPrefix && modelRequiresPrefix) {
                 modelID = `${regionPrefix}.${modelID}`
               }
@@ -140,15 +148,13 @@ export namespace Provider {
               const isAustraliaRegion = ["ap-southeast-2", "ap-southeast-4"].includes(region)
               if (
                 isAustraliaRegion &&
-                ["anthropic.claude-sonnet-4-5", "anthropic.claude-haiku"].some((m) =>
-                  modelID.includes(m),
-                )
+                ["anthropic.claude-sonnet-4-5", "anthropic.claude-haiku"].some((m) => modelID.includes(m))
               ) {
                 regionPrefix = "au"
                 modelID = `${regionPrefix}.${modelID}`
               } else {
-                const modelRequiresPrefix = ["claude", "nova-lite", "nova-micro", "nova-pro"].some(
-                  (m) => modelID.includes(m),
+                const modelRequiresPrefix = ["claude", "nova-lite", "nova-micro", "nova-pro"].some((m) =>
+                  modelID.includes(m),
                 )
                 if (modelRequiresPrefix) {
                   regionPrefix = "apac"
@@ -186,12 +192,8 @@ export namespace Provider {
       }
     },
     "google-vertex": async () => {
-      const project =
-        process.env["GOOGLE_CLOUD_PROJECT"] ??
-        process.env["GCP_PROJECT"] ??
-        process.env["GCLOUD_PROJECT"]
-      const location =
-        process.env["GOOGLE_CLOUD_LOCATION"] ?? process.env["VERTEX_LOCATION"] ?? "us-east5"
+      const project = process.env["GOOGLE_CLOUD_PROJECT"] ?? process.env["GCP_PROJECT"] ?? process.env["GCLOUD_PROJECT"]
+      const location = process.env["GOOGLE_CLOUD_LOCATION"] ?? process.env["VERTEX_LOCATION"] ?? "us-east5"
       const autoload = Boolean(project)
       if (!autoload) return { autoload: false }
       return {
@@ -207,12 +209,8 @@ export namespace Provider {
       }
     },
     "google-vertex-anthropic": async () => {
-      const project =
-        process.env["GOOGLE_CLOUD_PROJECT"] ??
-        process.env["GCP_PROJECT"] ??
-        process.env["GCLOUD_PROJECT"]
-      const location =
-        process.env["GOOGLE_CLOUD_LOCATION"] ?? process.env["VERTEX_LOCATION"] ?? "us-east5"
+      const project = process.env["GOOGLE_CLOUD_PROJECT"] ?? process.env["GCP_PROJECT"] ?? process.env["GCLOUD_PROJECT"]
+      const location = process.env["GOOGLE_CLOUD_LOCATION"] ?? process.env["VERTEX_LOCATION"] ?? "global"
       const autoload = Boolean(project)
       if (!autoload) return { autoload: false }
       return {
@@ -227,9 +225,21 @@ export namespace Provider {
         },
       }
     },
+    zenmux: async () => {
+      return {
+        autoload: false,
+        options: {
+          headers: {
+            "HTTP-Referer": "https://opencode.ai/",
+            "X-Title": "opencode",
+          },
+        },
+      }
+    },
   }
 
   const state = Instance.state(async () => {
+    using _ = log.time("state")
     const config = await Config.get()
     const database = await ModelsDev.get()
 
@@ -307,10 +317,15 @@ export namespace Provider {
       }
 
       for (const [modelID, model] of Object.entries(provider.models ?? {})) {
-        const existing = parsed.models[modelID]
+        const existing = parsed.models[model.id ?? modelID]
+        const name = iife(() => {
+          if (model.name) return model.name
+          if (model.id && model.id !== modelID) return modelID
+          return existing?.name ?? modelID
+        })
         const parsedModel: ModelsDev.Model = {
           id: modelID,
-          name: model.name ?? existing?.name ?? modelID,
+          name,
           release_date: model.release_date ?? existing?.release_date,
           attachment: model.attachment ?? existing?.attachment ?? false,
           reasoning: model.reasoning ?? existing?.reasoning ?? false,
@@ -407,10 +422,7 @@ export namespace Provider {
 
       // Load for the main provider if auth exists
       if (auth) {
-        const options = await plugin.auth.loader(
-          () => Auth.get(providerID) as any,
-          database[plugin.auth.provider],
-        )
+        const options = await plugin.auth.loader(() => Auth.get(providerID) as any, database[plugin.auth.provider])
         mergeProvider(plugin.auth.provider, options ?? {}, "custom")
       }
 
@@ -441,14 +453,12 @@ export namespace Provider {
           // Filter out blacklisted models
           .filter(
             ([modelID]) =>
-              modelID !== "gpt-5-chat-latest" &&
-              !(providerID === "openrouter" && modelID === "openai/gpt-5-chat"),
+              modelID !== "gpt-5-chat-latest" && !(providerID === "openrouter" && modelID === "openai/gpt-5-chat"),
           )
           // Filter out experimental models
           .filter(
             ([, model]) =>
-              ((!model.experimental && model.status !== "alpha") ||
-                Flag.OPENCODE_ENABLE_EXPERIMENTAL_MODELS) &&
+              ((!model.experimental && model.status !== "alpha") || Flag.OPENCODE_ENABLE_EXPERIMENTAL_MODELS) &&
               model.status !== "deprecated",
           ),
       )
@@ -487,7 +497,15 @@ export namespace Provider {
       const key = Bun.hash.xxHash32(JSON.stringify({ pkg, options }))
       const existing = s.sdk.get(key)
       if (existing) return existing
-      const installedPath = await BunProc.install(pkg, "latest")
+
+      let installedPath: string
+      if (!pkg.startsWith("file://")) {
+        installedPath = await BunProc.install(pkg, "latest")
+      } else {
+        log.info("loading local provider", { pkg })
+        installedPath = pkg
+      }
+
       // The `google-vertex-anthropic` provider points to the `@ai-sdk/google-vertex` package.
       // Ref: https://github.com/sst/models.dev/blob/0a87de42ab177bebad0620a889e2eb2b4a5dd4ab/providers/google-vertex-anthropic/provider.toml
       // However, the actual export is at the subpath `@ai-sdk/google-vertex/anthropic`.
@@ -495,9 +513,7 @@ export namespace Provider {
       // In addition, Bun's dynamic import logic does not support subpath imports,
       // so we patch the import path to load directly from `dist`.
       const modPath =
-        provider.id === "google-vertex-anthropic"
-          ? `${installedPath}/dist/anthropic/index.mjs`
-          : installedPath
+        provider.id === "google-vertex-anthropic" ? `${installedPath}/dist/anthropic/index.mjs` : installedPath
       const mod = await import(modPath)
       if (options["timeout"] !== undefined && options["timeout"] !== null) {
         // Preserve custom fetch if it exists, wrap it with timeout logic
@@ -596,17 +612,13 @@ export namespace Provider {
 
     const provider = await state().then((state) => state.providers[providerID])
     if (!provider) return
-    let priority = [
-      "claude-haiku-4-5",
-      "claude-haiku-4.5",
-      "3-5-haiku",
-      "3.5-haiku",
-      "gemini-2.5-flash",
-      "gpt-5-nano",
-    ]
+    let priority = ["claude-haiku-4-5", "claude-haiku-4.5", "3-5-haiku", "3.5-haiku", "gemini-2.5-flash", "gpt-5-nano"]
     // claude-haiku-4.5 is considered a premium model in github copilot, we shouldn't use premium requests for title gen
     if (providerID === "github-copilot") {
       priority = priority.filter((m) => m !== "claude-haiku-4.5")
+    }
+    if (providerID === "opencode" || providerID === "local") {
+      priority = ["gpt-5-nano"]
     }
     for (const item of priority) {
       for (const model of Object.keys(provider.info.models)) {
@@ -615,7 +627,7 @@ export namespace Provider {
     }
   }
 
-  const priority = ["gemini-2.5-pro-preview", "gpt-5", "claude-sonnet-4"]
+  const priority = ["gemini-2.5-pro-preview", "gpt-5", "claude-sonnet-4", "big-pickle"]
   export function sort(models: ModelsDev.Model[]) {
     return sortBy(
       models,

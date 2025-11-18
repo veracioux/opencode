@@ -2,8 +2,9 @@
 import { $ } from "bun"
 import pkg from "../package.json"
 import { Script } from "@opencode-ai/script"
+import { fileURLToPath } from "url"
 
-const dir = new URL("..", import.meta.url).pathname
+const dir = fileURLToPath(new URL("..", import.meta.url))
 process.chdir(dir)
 
 const { binaries } = await import("./build.ts")
@@ -15,8 +16,8 @@ const { binaries } = await import("./build.ts")
 
 await $`mkdir -p ./dist/${pkg.name}`
 await $`cp -r ./bin ./dist/${pkg.name}/bin`
-await $`cp ./script/preinstall.mjs ./dist/${pkg.name}/preinstall.mjs`
 await $`cp ./script/postinstall.mjs ./dist/${pkg.name}/postinstall.mjs`
+
 await Bun.file(`./dist/${pkg.name}/package.json`).write(
   JSON.stringify(
     {
@@ -25,7 +26,6 @@ await Bun.file(`./dist/${pkg.name}/package.json`).write(
         [pkg.name]: `./bin/${pkg.name}`,
       },
       scripts: {
-        preinstall: "bun ./preinstall.mjs || node ./preinstall.mjs",
         postinstall: "bun ./postinstall.mjs || node ./postinstall.mjs",
       },
       version: Script.version,
@@ -36,7 +36,15 @@ await Bun.file(`./dist/${pkg.name}/package.json`).write(
   ),
 )
 for (const [name] of Object.entries(binaries)) {
-  await $`cd dist/${name} && chmod 777 -R . && bun publish --access public --tag ${Script.channel}`
+  try {
+    process.chdir(`./dist/${name}`)
+    if (process.platform !== "win32") {
+      await $`chmod 755 -R .`
+    }
+    await $`bun publish --access public --tag ${Script.channel}`
+  } finally {
+    process.chdir(dir)
+  }
 }
 await $`cd ./dist/${pkg.name} && bun publish --access public --tag ${Script.channel}`
 
@@ -55,18 +63,10 @@ if (!Script.preview) {
   }
 
   // Calculate SHA values
-  const arm64Sha = await $`sha256sum ./dist/opencode-linux-arm64.zip | cut -d' ' -f1`
-    .text()
-    .then((x) => x.trim())
-  const x64Sha = await $`sha256sum ./dist/opencode-linux-x64.zip | cut -d' ' -f1`
-    .text()
-    .then((x) => x.trim())
-  const macX64Sha = await $`sha256sum ./dist/opencode-darwin-x64.zip | cut -d' ' -f1`
-    .text()
-    .then((x) => x.trim())
-  const macArm64Sha = await $`sha256sum ./dist/opencode-darwin-arm64.zip | cut -d' ' -f1`
-    .text()
-    .then((x) => x.trim())
+  const arm64Sha = await $`sha256sum ./dist/opencode-linux-arm64.zip | cut -d' ' -f1`.text().then((x) => x.trim())
+  const x64Sha = await $`sha256sum ./dist/opencode-linux-x64.zip | cut -d' ' -f1`.text().then((x) => x.trim())
+  const macX64Sha = await $`sha256sum ./dist/opencode-darwin-x64.zip | cut -d' ' -f1`.text().then((x) => x.trim())
+  const macArm64Sha = await $`sha256sum ./dist/opencode-darwin-arm64.zip | cut -d' ' -f1`.text().then((x) => x.trim())
 
   const [pkgver, _subver = ""] = Script.version.split(/(-.*)/, 2)
 
@@ -131,7 +131,7 @@ if (!Script.preview) {
     "",
     "package() {",
     `  cd "opencode-\${pkgver}/packages/opencode"`,
-    '  install -Dm755 ./opencode "${pkgdir}/usr/bin/opencode"',
+    '  install -Dm755 $(find dist/*/bin/opencode) "${pkgdir}/usr/bin/opencode"',
     "}",
     "",
   ].join("\n")

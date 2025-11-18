@@ -8,6 +8,7 @@ import { useSync } from "@tui/context/sync"
 import { useTheme } from "@tui/context/theme"
 import { SplitBorder } from "@tui/component/border"
 import { useCommandDialog } from "@tui/component/dialog-command"
+import { Locale } from "@/util/locale"
 import type { PromptInfo } from "./history"
 
 export type AutocompleteRef = {
@@ -83,12 +84,7 @@ export function Autocomplete(props: {
     const extmarkStart = store.index
     const extmarkEnd = extmarkStart + Bun.stringWidth(virtualText)
 
-    const styleId =
-      part.type === "file"
-        ? props.fileStyleId
-        : part.type === "agent"
-          ? props.agentStyleId
-          : undefined
+    const styleId = part.type === "file" ? props.fileStyleId : part.type === "agent" ? props.agentStyleId : undefined
 
     const extmarkId = input.extmarks.create({
       start: extmarkStart,
@@ -130,10 +126,11 @@ export function Autocomplete(props: {
 
       // Add file options
       if (!result.error && result.data) {
+        const width = store.position.width - 4
         options.push(
           ...result.data.map(
             (item): AutocompleteOption => ({
-              display: item,
+              display: Locale.truncateMiddle(item, width),
               onSelect: () => {
                 insertPart(item, {
                   type: "file",
@@ -185,9 +182,7 @@ export function Autocomplete(props: {
       )
   })
 
-  const session = createMemo(() =>
-    props.sessionID ? sync.session.get(props.sessionID) : undefined,
-  )
+  const session = createMemo(() => (props.sessionID ? sync.session.get(props.sessionID) : undefined))
   const commands = createMemo((): AutocompleteOption[] => {
     const results: AutocompleteOption[] = []
     const s = session()
@@ -210,7 +205,6 @@ export function Autocomplete(props: {
           display: "/undo",
           description: "undo the last message",
           onSelect: () => {
-            hide()
             command.trigger("session.undo")
           },
         },
@@ -224,12 +218,6 @@ export function Autocomplete(props: {
           aliases: ["/summarize"],
           description: "compact the session",
           onSelect: () => command.trigger("session.compact"),
-        },
-        {
-          display: "/share",
-          disabled: !!s.share?.url,
-          description: "share a session",
-          onSelect: () => command.trigger("session.share"),
         },
         {
           display: "/unshare",
@@ -257,8 +245,22 @@ export function Autocomplete(props: {
           description: "jump to message",
           onSelect: () => command.trigger("session.timeline"),
         },
+        {
+          display: "/thinking",
+          description: "toggle thinking blocks",
+          onSelect: () => command.trigger("session.toggle.thinking"),
+        },
       )
+      if (sync.data.config.share !== "disabled") {
+        results.push({
+          display: "/share",
+          disabled: !!s.share?.url,
+          description: "share a session",
+          onSelect: () => command.trigger("session.share"),
+        })
+      }
     }
+
     results.push(
       {
         display: "/new",
@@ -325,14 +327,12 @@ export function Autocomplete(props: {
 
   const options = createMemo(() => {
     const mixed: AutocompleteOption[] = (
-      store.visible === "@"
-        ? [...agents(), ...(files.loading ? files.latest || [] : files())]
-        : [...commands()]
+      store.visible === "@" ? [...agents(), ...(files.loading ? files.latest || [] : files())] : [...commands()]
     ).filter((x) => x.disabled !== true)
     const currentFilter = filter()
     if (!currentFilter) return mixed.slice(0, 10)
     const result = fuzzysort.go(currentFilter, mixed, {
-      keys: ["display", "description", (obj) => obj.aliases?.join(" ") ?? ""],
+      keys: [(obj) => obj.display.trimEnd(), "description", (obj) => obj.aliases?.join(" ") ?? ""],
       limit: 10,
     })
     return result.map((arr) => arr.obj)
@@ -374,7 +374,7 @@ export function Autocomplete(props: {
 
   function hide() {
     const text = props.input().plainText
-    if (store.visible === "/" && !text.endsWith(" ")) {
+    if (store.visible === "/" && !text.endsWith(" ") && text.startsWith("/")) {
       const cursor = props.input().logicalCursor
       props.input().deleteRange(0, 0, cursor.row, cursor.col)
     }
@@ -394,9 +394,7 @@ export function Autocomplete(props: {
             return
           }
           // Check if a space was typed after the trigger character
-          const currentText = props
-            .input()
-            .getTextRange(store.index + 1, props.input().cursorOffset + 1)
+          const currentText = props.input().getTextRange(store.index + 1, props.input().cursorOffset + 1)
           if (currentText.includes(" ")) {
             hide()
           }
@@ -434,13 +432,8 @@ export function Autocomplete(props: {
           if (e.name === "@") {
             const cursorOffset = props.input().cursorOffset
             const charBeforeCursor =
-              cursorOffset === 0
-                ? undefined
-                : props.input().getTextRange(cursorOffset - 1, cursorOffset)
-            const canTrigger =
-              charBeforeCursor === undefined ||
-              charBeforeCursor === "" ||
-              /\s/.test(charBeforeCursor)
+              cursorOffset === 0 ? undefined : props.input().getTextRange(cursorOffset - 1, cursorOffset)
+            const canTrigger = charBeforeCursor === undefined || charBeforeCursor === "" || /\s/.test(charBeforeCursor)
             if (canTrigger) show("@")
           }
 
@@ -488,10 +481,7 @@ export function Autocomplete(props: {
                 {option.display}
               </text>
               <Show when={option.description}>
-                <text
-                  fg={index() === store.selected ? theme.background : theme.textMuted}
-                  wrapMode="none"
-                >
+                <text fg={index() === store.selected ? theme.background : theme.textMuted} wrapMode="none">
                   {option.description}
                 </text>
               </Show>

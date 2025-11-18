@@ -41,6 +41,9 @@ export namespace Format {
         extensions: [],
         ...item,
       })
+
+      if (result.command.length === 0) continue
+
       result.enabled = async () => true
       result.name = name
       formatters[name] = result
@@ -113,13 +116,12 @@ export namespace Format {
               ...item.environment,
             })
         } catch (error) {
-          log.error("failed", {
+          log.error("failed to format file", {
             error,
             command: item.command,
             ...item.environment,
+            file,
           })
-          // re-raising
-          throw error
         }
       }
     })

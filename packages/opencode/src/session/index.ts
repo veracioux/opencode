@@ -1,7 +1,6 @@
 import { Decimal } from "decimal.js"
 import z from "zod"
 import { type LanguageModelUsage, type ProviderMetadata } from "ai"
-
 import { Bus } from "../bus"
 import { Config } from "../config/config"
 import { Flag } from "../flag/flag"
@@ -44,6 +43,7 @@ export namespace Session {
         .object({
           additions: z.number(),
           deletions: z.number(),
+          files: z.number(),
           diffs: Snapshot.FileDiff.array().optional(),
         })
         .optional(),
@@ -102,6 +102,13 @@ export namespace Session {
         info: Info,
       }),
     ),
+    Diff: Bus.event(
+      "session.diff",
+      z.object({
+        sessionID: z.string(),
+        diff: Snapshot.FileDiff.array(),
+      }),
+    ),
     Error: Bus.event(
       "session.error",
       z.object({
@@ -136,7 +143,7 @@ export namespace Session {
       const session = await createNext({
         directory: Instance.directory,
       })
-      const msgs = await messages(input.sessionID)
+      const msgs = await messages({ sessionID: input.sessionID })
       for (const msg of msgs) {
         if (input.messageID && msg.info.id >= input.messageID) break
         const cloned = await updateMessage({
@@ -164,12 +171,7 @@ export namespace Session {
     })
   })
 
-  export async function createNext(input: {
-    id?: string
-    title?: string
-    parentID?: string
-    directory: string
-  }) {
+  export async function createNext(input: { id?: string; title?: string; parentID?: string; directory: string }) {
     const result: Info = {
       id: Identifier.descending("session", input.id),
       version: Installation.VERSION,
@@ -229,7 +231,7 @@ export namespace Session {
     })
     await Storage.write(["share", id], share)
     await Share.sync("session/info/" + id, session)
-    for (const msg of await messages(id)) {
+    for (const msg of await messages({ sessionID: id })) {
       await Share.sync("session/message/" + id + "/" + msg.info.id, msg.info)
       for (const part of msg.parts) {
         await Share.sync("session/part/" + id + "/" + msg.info.id + "/" + part.id, part)
@@ -265,41 +267,21 @@ export namespace Session {
     return diffs ?? []
   })
 
-  export const messages = fn(Identifier.schema("session"), async (sessionID) => {
-    const result = [] as MessageV2.WithParts[]
-    for (const p of await Storage.list(["message", sessionID])) {
-      const read = await Storage.read<MessageV2.Info>(p)
-      result.push({
-        info: read,
-        parts: await getParts(read.id),
-      })
-    }
-    result.sort((a, b) => (a.info.id > b.info.id ? 1 : -1))
-    return result
-  })
-
-  export const getMessage = fn(
+  export const messages = fn(
     z.object({
       sessionID: Identifier.schema("session"),
-      messageID: Identifier.schema("message"),
+      limit: z.number().optional(),
     }),
     async (input) => {
-      return {
-        info: await Storage.read<MessageV2.Info>(["message", input.sessionID, input.messageID]),
-        parts: await getParts(input.messageID),
+      const result = [] as MessageV2.WithParts[]
+      for await (const msg of MessageV2.stream(input.sessionID)) {
+        if (input.limit && result.length >= input.limit) break
+        result.push(msg)
       }
+      result.reverse()
+      return result
     },
   )
-
-  export const getParts = fn(Identifier.schema("message"), async (messageID) => {
-    const result = [] as MessageV2.Part[]
-    for (const item of await Storage.list(["part", messageID])) {
-      const read = await Storage.read<MessageV2.Part>(item)
-      result.push(read)
-    }
-    result.sort((a, b) => (a.id > b.id ? 1 : -1))
-    return result
-  })
 
   export async function* list() {
     const project = Instance.project
@@ -395,8 +377,14 @@ export namespace Session {
       metadata: z.custom<ProviderMetadata>().optional(),
     }),
     (input) => {
+      const cachedInputTokens = input.usage.cachedInputTokens ?? 0
+      const excludesCachedTokens = !!(input.metadata?.["anthropic"] || input.metadata?.["bedrock"])
+      const adjustedInputTokens = excludesCachedTokens
+        ? (input.usage.inputTokens ?? 0)
+        : (input.usage.inputTokens ?? 0) - cachedInputTokens
+
       const tokens = {
-        input: input.usage.inputTokens ?? 0,
+        input: adjustedInputTokens,
         output: input.usage.outputTokens ?? 0,
         reasoning: input.usage?.reasoningTokens ?? 0,
         cache: {
@@ -404,17 +392,23 @@ export namespace Session {
             // @ts-expect-error
             input.metadata?.["bedrock"]?.["usage"]?.["cacheWriteInputTokens"] ??
             0) as number,
-          read: input.usage.cachedInputTokens ?? 0,
+          read: cachedInputTokens,
         },
       }
+
+      const costInfo =
+        input.model.cost?.context_over_200k && tokens.input + tokens.cache.read > 200_000
+          ? input.model.cost.context_over_200k
+          : input.model.cost
       return {
         cost: new Decimal(0)
-          .add(new Decimal(tokens.input).mul(input.model.cost?.input ?? 0).div(1_000_000))
-          .add(new Decimal(tokens.output).mul(input.model.cost?.output ?? 0).div(1_000_000))
-          .add(new Decimal(tokens.cache.read).mul(input.model.cost?.cache_read ?? 0).div(1_000_000))
-          .add(
-            new Decimal(tokens.cache.write).mul(input.model.cost?.cache_write ?? 0).div(1_000_000),
-          )
+          .add(new Decimal(tokens.input).mul(costInfo?.input ?? 0).div(1_000_000))
+          .add(new Decimal(tokens.output).mul(costInfo?.output ?? 0).div(1_000_000))
+          .add(new Decimal(tokens.cache.read).mul(costInfo?.cache_read ?? 0).div(1_000_000))
+          .add(new Decimal(tokens.cache.write).mul(costInfo?.cache_write ?? 0).div(1_000_000))
+          // TODO: update models.dev to have better pricing model, for now:
+          // charge reasoning tokens at the same rate as output tokens
+          .add(new Decimal(tokens.reasoning).mul(costInfo?.output ?? 0).div(1_000_000))
           .toNumber(),
         tokens,
       }

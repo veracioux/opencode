@@ -88,9 +88,7 @@ export namespace LSPServer {
     ),
     extensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"],
     async spawn(root) {
-      const tsserver = await Bun.resolve("typescript/lib/tsserver.js", Instance.directory).catch(
-        () => {},
-      )
+      const tsserver = await Bun.resolve("typescript/lib/tsserver.js", Instance.directory).catch(() => {})
       if (!tsserver) return
       const proc = spawn(BunProc.which(), ["x", "typescript-language-server", "--stdio"], {
         cwd: root,
@@ -113,13 +111,7 @@ export namespace LSPServer {
   export const Vue: Info = {
     id: "vue",
     extensions: [".vue"],
-    root: NearestRoot([
-      "package-lock.json",
-      "bun.lockb",
-      "bun.lock",
-      "pnpm-lock.yaml",
-      "yarn.lock",
-    ]),
+    root: NearestRoot(["package-lock.json", "bun.lockb", "bun.lock", "pnpm-lock.yaml", "yarn.lock"]),
     async spawn(root) {
       let binary = Bun.which("vue-language-server")
       const args: string[] = []
@@ -167,31 +159,17 @@ export namespace LSPServer {
 
   export const ESLint: Info = {
     id: "eslint",
-    root: NearestRoot([
-      "package-lock.json",
-      "bun.lockb",
-      "bun.lock",
-      "pnpm-lock.yaml",
-      "yarn.lock",
-    ]),
+    root: NearestRoot(["package-lock.json", "bun.lockb", "bun.lock", "pnpm-lock.yaml", "yarn.lock"]),
     extensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts", ".vue"],
     async spawn(root) {
       const eslint = await Bun.resolve("eslint", Instance.directory).catch(() => {})
       if (!eslint) return
       log.info("spawning eslint server")
-      const serverPath = path.join(
-        Global.Path.bin,
-        "vscode-eslint",
-        "server",
-        "out",
-        "eslintServer.js",
-      )
+      const serverPath = path.join(Global.Path.bin, "vscode-eslint", "server", "out", "eslintServer.js")
       if (!(await Bun.file(serverPath).exists())) {
         if (Flag.OPENCODE_DISABLE_LSP_DOWNLOAD) return
         log.info("downloading and building VS Code ESLint server")
-        const response = await fetch(
-          "https://github.com/microsoft/vscode-eslint/archive/refs/heads/main.zip",
-        )
+        const response = await fetch("https://github.com/microsoft/vscode-eslint/archive/refs/heads/main.zip")
         if (!response.ok) return
 
         const zipPath = path.join(Global.Path.bin, "vscode-eslint.zip")
@@ -316,25 +294,12 @@ export namespace LSPServer {
   export const Pyright: Info = {
     id: "pyright",
     extensions: [".py", ".pyi"],
-    root: NearestRoot([
-      "pyproject.toml",
-      "setup.py",
-      "setup.cfg",
-      "requirements.txt",
-      "Pipfile",
-      "pyrightconfig.json",
-    ]),
+    root: NearestRoot(["pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile", "pyrightconfig.json"]),
     async spawn(root) {
       let binary = Bun.which("pyright-langserver")
       const args = []
       if (!binary) {
-        const js = path.join(
-          Global.Path.bin,
-          "node_modules",
-          "pyright",
-          "dist",
-          "pyright-langserver.js",
-        )
+        const js = path.join(Global.Path.bin, "node_modules", "pyright", "dist", "pyright-langserver.js")
         if (!(await Bun.file(js).exists())) {
           if (Flag.OPENCODE_DISABLE_LSP_DOWNLOAD) return
           await Bun.spawn([BunProc.which(), "install", "pyright"], {
@@ -352,11 +317,9 @@ export namespace LSPServer {
 
       const initialization: Record<string, string> = {}
 
-      const potentialVenvPaths = [
-        process.env["VIRTUAL_ENV"],
-        path.join(root, ".venv"),
-        path.join(root, "venv"),
-      ].filter((p): p is string => p !== undefined)
+      const potentialVenvPaths = [process.env["VIRTUAL_ENV"], path.join(root, ".venv"), path.join(root, "venv")].filter(
+        (p): p is string => p !== undefined,
+      )
       for (const venvPath of potentialVenvPaths) {
         const isWindows = process.platform === "win32"
         const potentialPythonPath = isWindows
@@ -407,9 +370,7 @@ export namespace LSPServer {
           if (Flag.OPENCODE_DISABLE_LSP_DOWNLOAD) return
           log.info("downloading elixir-ls from GitHub releases")
 
-          const response = await fetch(
-            "https://github.com/elixir-lsp/elixir-ls/archive/refs/heads/master.zip",
-          )
+          const response = await fetch("https://github.com/elixir-lsp/elixir-ls/archive/refs/heads/master.zip")
           if (!response.ok) return
           const zipPath = path.join(Global.Path.bin, "elixir-ls.zip")
           await Bun.file(zipPath).write(response)
@@ -459,9 +420,7 @@ export namespace LSPServer {
         if (Flag.OPENCODE_DISABLE_LSP_DOWNLOAD) return
         log.info("downloading zls from GitHub releases")
 
-        const releaseResponse = await fetch(
-          "https://api.github.com/repos/zigtools/zls/releases/latest",
-        )
+        const releaseResponse = await fetch("https://api.github.com/repos/zigtools/zls/releases/latest")
         if (!releaseResponse.ok) {
           log.error("Failed to fetch zls release info")
           return
@@ -588,6 +547,40 @@ export namespace LSPServer {
     },
   }
 
+  export const SourceKit: Info = {
+    id: "sourcekit-lsp",
+    extensions: [".swift", ".objc", "objcpp"],
+    root: NearestRoot(["Package.swift", "*.xcodeproj", "*.xcworkspace"]),
+    async spawn(root) {
+      // Check if sourcekit-lsp is available in the PATH
+      // This is installed with the Swift toolchain
+      const sourcekit = Bun.which("sourcekit-lsp")
+      if (sourcekit) {
+        return {
+          process: spawn(sourcekit, {
+            cwd: root,
+          }),
+        }
+      }
+
+      // If sourcekit-lsp not found, check if xcrun is available
+      // This is specific to macOS where sourcekit-lsp is typically installed with Xcode
+      if (!Bun.which("xcrun")) return
+
+      const lspLoc = await $`xcrun --find sourcekit-lsp`.quiet().nothrow()
+
+      if (lspLoc.exitCode !== 0) return
+
+      const bin = lspLoc.text().trim()
+
+      return {
+        process: spawn(bin, {
+          cwd: root,
+        }),
+      }
+    },
+  }
+
   export const RustAnalyzer: Info = {
     id: "rust",
     root: async (root) => {
@@ -636,84 +629,138 @@ export namespace LSPServer {
 
   export const Clangd: Info = {
     id: "clangd",
-    root: NearestRoot([
-      "compile_commands.json",
-      "compile_flags.txt",
-      ".clangd",
-      "CMakeLists.txt",
-      "Makefile",
-    ]),
+    root: NearestRoot(["compile_commands.json", "compile_flags.txt", ".clangd", "CMakeLists.txt", "Makefile"]),
     extensions: [".c", ".cpp", ".cc", ".cxx", ".c++", ".h", ".hpp", ".hh", ".hxx", ".h++"],
     async spawn(root) {
-      let bin = Bun.which("clangd", {
-        PATH: process.env["PATH"] + ":" + Global.Path.bin,
-      })
-      if (!bin) {
-        if (Flag.OPENCODE_DISABLE_LSP_DOWNLOAD) return
-        log.info("downloading clangd from GitHub releases")
-
-        const releaseResponse = await fetch(
-          "https://api.github.com/repos/clangd/clangd/releases/latest",
-        )
-        if (!releaseResponse.ok) {
-          log.error("Failed to fetch clangd release info")
-          return
+      const args = ["--background-index", "--clang-tidy"]
+      const fromPath = Bun.which("clangd")
+      if (fromPath) {
+        return {
+          process: spawn(fromPath, args, {
+            cwd: root,
+          }),
         }
-
-        const release = (await releaseResponse.json()) as any
-
-        const platform = process.platform
-        let assetName = ""
-
-        if (platform === "darwin") {
-          assetName = "clangd-mac-"
-        } else if (platform === "linux") {
-          assetName = "clangd-linux-"
-        } else if (platform === "win32") {
-          assetName = "clangd-windows-"
-        } else {
-          log.error(`Platform ${platform} is not supported by clangd auto-download`)
-          return
-        }
-
-        assetName += release.tag_name + ".zip"
-
-        const asset = release.assets.find((a: any) => a.name === assetName)
-        if (!asset) {
-          log.error(`Could not find asset ${assetName} in latest clangd release`)
-          return
-        }
-
-        const downloadUrl = asset.browser_download_url
-        const downloadResponse = await fetch(downloadUrl)
-        if (!downloadResponse.ok) {
-          log.error("Failed to download clangd")
-          return
-        }
-
-        const zipPath = path.join(Global.Path.bin, "clangd.zip")
-        await Bun.file(zipPath).write(downloadResponse)
-
-        await $`unzip -o -q ${zipPath}`.quiet().cwd(Global.Path.bin).nothrow()
-        await fs.rm(zipPath, { force: true })
-
-        const extractedDir = path.join(Global.Path.bin, assetName.replace(".zip", ""))
-        bin = path.join(extractedDir, "bin", "clangd" + (platform === "win32" ? ".exe" : ""))
-
-        if (!(await Bun.file(bin).exists())) {
-          log.error("Failed to extract clangd binary")
-          return
-        }
-
-        if (platform !== "win32") {
-          await $`chmod +x ${bin}`.nothrow()
-        }
-
-        log.info(`installed clangd`, { bin })
       }
 
+      const ext = process.platform === "win32" ? ".exe" : ""
+      const direct = path.join(Global.Path.bin, "clangd" + ext)
+      if (await Bun.file(direct).exists()) {
+        return {
+          process: spawn(direct, args, {
+            cwd: root,
+          }),
+        }
+      }
+
+      const entries = await fs.readdir(Global.Path.bin, { withFileTypes: true }).catch(() => [])
+      for (const entry of entries) {
+        if (!entry.isDirectory()) continue
+        if (!entry.name.startsWith("clangd_")) continue
+        const candidate = path.join(Global.Path.bin, entry.name, "bin", "clangd" + ext)
+        if (await Bun.file(candidate).exists()) {
+          return {
+            process: spawn(candidate, args, {
+              cwd: root,
+            }),
+          }
+        }
+      }
+
+      if (Flag.OPENCODE_DISABLE_LSP_DOWNLOAD) return
+      log.info("downloading clangd from GitHub releases")
+
+      const releaseResponse = await fetch("https://api.github.com/repos/clangd/clangd/releases/latest")
+      if (!releaseResponse.ok) {
+        log.error("Failed to fetch clangd release info")
+        return
+      }
+
+      const release: {
+        tag_name?: string
+        assets?: { name?: string; browser_download_url?: string }[]
+      } = await releaseResponse.json()
+
+      const tag = release.tag_name
+      if (!tag) {
+        log.error("clangd release did not include a tag name")
+        return
+      }
+      const platform = process.platform
+      const tokens: Record<string, string> = {
+        darwin: "mac",
+        linux: "linux",
+        win32: "windows",
+      }
+      const token = tokens[platform]
+      if (!token) {
+        log.error(`Platform ${platform} is not supported by clangd auto-download`)
+        return
+      }
+
+      const assets = release.assets ?? []
+      const valid = (item: { name?: string; browser_download_url?: string }) => {
+        if (!item.name) return false
+        if (!item.browser_download_url) return false
+        if (!item.name.includes(token)) return false
+        return item.name.includes(tag)
+      }
+
+      const asset =
+        assets.find((item) => valid(item) && item.name?.endsWith(".zip")) ??
+        assets.find((item) => valid(item) && item.name?.endsWith(".tar.xz")) ??
+        assets.find((item) => valid(item))
+      if (!asset?.name || !asset.browser_download_url) {
+        log.error("clangd could not match release asset", { tag, platform })
+        return
+      }
+
+      const name = asset.name
+      const downloadResponse = await fetch(asset.browser_download_url)
+      if (!downloadResponse.ok) {
+        log.error("Failed to download clangd")
+        return
+      }
+
+      const archive = path.join(Global.Path.bin, name)
+      const buf = await downloadResponse.arrayBuffer()
+      if (buf.byteLength === 0) {
+        log.error("Failed to write clangd archive")
+        return
+      }
+      await Bun.write(archive, buf)
+
+      const zip = name.endsWith(".zip")
+      const tar = name.endsWith(".tar.xz")
+      if (!zip && !tar) {
+        log.error("clangd encountered unsupported asset", { asset: name })
+        return
+      }
+
+      if (zip) {
+        await $`unzip -o -q ${archive}`.quiet().cwd(Global.Path.bin).nothrow()
+      }
+      if (tar) {
+        await $`tar -xf ${archive}`.cwd(Global.Path.bin).nothrow()
+      }
+      await fs.rm(archive, { force: true })
+
+      const bin = path.join(Global.Path.bin, "clangd_" + tag, "bin", "clangd" + ext)
+      if (!(await Bun.file(bin).exists())) {
+        log.error("Failed to extract clangd binary")
+        return
+      }
+
+      if (platform !== "win32") {
+        await $`chmod +x ${bin}`.nothrow()
+      }
+
+      await fs.unlink(path.join(Global.Path.bin, "clangd")).catch(() => {})
+      await fs.symlink(bin, path.join(Global.Path.bin, "clangd")).catch(() => {})
+
+      log.info(`installed clangd`, { bin })
+
       return {
-        process: spawn(bin, ["--background-index", "--clang-tidy"], {
+        process: spawn(bin, args, {
           cwd: root,
         }),
       }
@@ -723,24 +770,12 @@ export namespace LSPServer {
   export const Svelte: Info = {
     id: "svelte",
     extensions: [".svelte"],
-    root: NearestRoot([
-      "package-lock.json",
-      "bun.lockb",
-      "bun.lock",
-      "pnpm-lock.yaml",
-      "yarn.lock",
-    ]),
+    root: NearestRoot(["package-lock.json", "bun.lockb", "bun.lock", "pnpm-lock.yaml", "yarn.lock"]),
     async spawn(root) {
       let binary = Bun.which("svelteserver")
       const args: string[] = []
       if (!binary) {
-        const js = path.join(
-          Global.Path.bin,
-          "node_modules",
-          "svelte-language-server",
-          "bin",
-          "server.js",
-        )
+        const js = path.join(Global.Path.bin, "node_modules", "svelte-language-server", "bin", "server.js")
         if (!(await Bun.file(js).exists())) {
           if (Flag.OPENCODE_DISABLE_LSP_DOWNLOAD) return
           await Bun.spawn([BunProc.which(), "install", "svelte-language-server"], {
@@ -775,17 +810,9 @@ export namespace LSPServer {
   export const Astro: Info = {
     id: "astro",
     extensions: [".astro"],
-    root: NearestRoot([
-      "package-lock.json",
-      "bun.lockb",
-      "bun.lock",
-      "pnpm-lock.yaml",
-      "yarn.lock",
-    ]),
+    root: NearestRoot(["package-lock.json", "bun.lockb", "bun.lock", "pnpm-lock.yaml", "yarn.lock"]),
     async spawn(root) {
-      const tsserver = await Bun.resolve("typescript/lib/tsserver.js", Instance.directory).catch(
-        () => {},
-      )
+      const tsserver = await Bun.resolve("typescript/lib/tsserver.js", Instance.directory).catch(() => {})
       if (!tsserver) {
         log.info("typescript not found, required for Astro language server")
         return
@@ -795,14 +822,7 @@ export namespace LSPServer {
       let binary = Bun.which("astro-ls")
       const args: string[] = []
       if (!binary) {
-        const js = path.join(
-          Global.Path.bin,
-          "node_modules",
-          "@astrojs",
-          "language-server",
-          "bin",
-          "nodeServer.js",
-        )
+        const js = path.join(Global.Path.bin, "node_modules", "@astrojs", "language-server", "bin", "nodeServer.js")
         if (!(await Bun.file(js).exists())) {
           if (Flag.OPENCODE_DISABLE_LSP_DOWNLOAD) return
           await Bun.spawn([BunProc.which(), "install", "@astrojs/language-server"], {
@@ -880,9 +900,7 @@ export namespace LSPServer {
         .then(({ stdout }) => stdout.toString().trim())
       const launcherJar = path.join(launcherDir, jarFileName)
       if (!(await fs.exists(launcherJar))) {
-        log.error(
-          `Failed to locate the JDTLS launcher module in the installed directory: ${distPath}.`,
-        )
+        log.error(`Failed to locate the JDTLS launcher module in the installed directory: ${distPath}.`)
         return
       }
       const configFile = path.join(
@@ -948,9 +966,7 @@ export namespace LSPServer {
         if (Flag.OPENCODE_DISABLE_LSP_DOWNLOAD) return
         log.info("downloading lua-language-server from GitHub releases")
 
-        const releaseResponse = await fetch(
-          "https://api.github.com/repos/LuaLS/lua-language-server/releases/latest",
-        )
+        const releaseResponse = await fetch("https://api.github.com/repos/LuaLS/lua-language-server/releases/latest")
         if (!releaseResponse.ok) {
           log.error("Failed to fetch lua-language-server release info")
           return
@@ -987,9 +1003,7 @@ export namespace LSPServer {
 
         const assetSuffix = `${lualsPlatform}-${lualsArch}.${ext}`
         if (!supportedCombos.includes(assetSuffix)) {
-          log.error(
-            `Platform ${platform} and architecture ${arch} is not supported by lua-language-server`,
-          )
+          log.error(`Platform ${platform} and architecture ${arch} is not supported by lua-language-server`)
           return
         }
 
@@ -1012,10 +1026,7 @@ export namespace LSPServer {
         // Unlike zls which is a single self-contained binary,
         // lua-language-server needs supporting files (meta/, locale/, etc.)
         // Extract entire archive to dedicated directory to preserve all files
-        const installDir = path.join(
-          Global.Path.bin,
-          `lua-language-server-${lualsArch}-${lualsPlatform}`,
-        )
+        const installDir = path.join(Global.Path.bin, `lua-language-server-${lualsArch}-${lualsPlatform}`)
 
         // Remove old installation if exists
         const stats = await fs.stat(installDir).catch(() => undefined)
@@ -1040,11 +1051,7 @@ export namespace LSPServer {
         await fs.rm(tempPath, { force: true })
 
         // Binary is located in bin/ subdirectory within the extracted archive
-        bin = path.join(
-          installDir,
-          "bin",
-          "lua-language-server" + (platform === "win32" ? ".exe" : ""),
-        )
+        bin = path.join(installDir, "bin", "lua-language-server" + (platform === "win32" ? ".exe" : ""))
 
         if (!(await Bun.file(bin).exists())) {
           log.error("Failed to extract lua-language-server binary")

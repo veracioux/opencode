@@ -6,6 +6,8 @@ import { APICallError, convertToModelMessages, LoadAPIKeyError, type ModelMessag
 import { Identifier } from "../id/id"
 import { LSP } from "../lsp"
 import { Snapshot } from "@/snapshot"
+import { fn } from "@/util/fn"
+import { Storage } from "@/storage/storage"
 
 export namespace MessageV2 {
   export const OutputLengthError = NamedError.create("MessageOutputLengthError", z.object({}))
@@ -139,6 +141,21 @@ export namespace MessageV2 {
     ref: "AgentPart",
   })
   export type AgentPart = z.infer<typeof AgentPart>
+
+  export const CompactionPart = PartBase.extend({
+    type: z.literal("compaction"),
+  }).meta({
+    ref: "CompactionPart",
+  })
+  export type CompactionPart = z.infer<typeof CompactionPart>
+
+  export const SubtaskPart = PartBase.extend({
+    type: z.literal("subtask"),
+    prompt: z.string(),
+    description: z.string(),
+    agent: z.string(),
+  })
+  export type SubtaskPart = z.infer<typeof SubtaskPart>
 
   export const RetryPart = PartBase.extend({
     type: z.literal("retry"),
@@ -275,6 +292,13 @@ export namespace MessageV2 {
         diffs: Snapshot.FileDiff.array(),
       })
       .optional(),
+    agent: z.string(),
+    model: z.object({
+      providerID: z.string(),
+      modelID: z.string(),
+    }),
+    system: z.string().optional(),
+    tools: z.record(z.string(), z.boolean()).optional(),
   }).meta({
     ref: "UserMessage",
   })
@@ -283,6 +307,7 @@ export namespace MessageV2 {
   export const Part = z
     .discriminatedUnion("type", [
       TextPart,
+      SubtaskPart,
       ReasoningPart,
       FilePart,
       ToolPart,
@@ -292,6 +317,7 @@ export namespace MessageV2 {
       PatchPart,
       AgentPart,
       RetryPart,
+      CompactionPart,
     ])
     .meta({
       ref: "Part",
@@ -313,7 +339,6 @@ export namespace MessageV2 {
         APIError.Schema,
       ])
       .optional(),
-    system: z.string().array(),
     parentID: z.string(),
     modelID: z.string(),
     providerID: z.string(),
@@ -333,6 +358,7 @@ export namespace MessageV2 {
         write: z.number(),
       }),
     }),
+    finish: z.string().optional(),
   }).meta({
     ref: "AssistantMessage",
   })
@@ -397,7 +423,6 @@ export namespace MessageV2 {
         tokens: v1.metadata.assistant!.tokens,
         modelID: v1.metadata.assistant!.modelID,
         providerID: v1.metadata.assistant!.providerID,
-        system: v1.metadata.assistant!.system,
         mode: "build",
         error: v1.metadata.error,
       }
@@ -482,6 +507,11 @@ export namespace MessageV2 {
         time: {
           created: v1.metadata.time.created,
         },
+        agent: "build",
+        model: {
+          providerID: "opencode",
+          modelID: "opencode",
+        },
       }
       const parts = v1.parts.flatMap((part): Part[] => {
         const base = {
@@ -529,117 +559,161 @@ export namespace MessageV2 {
       if (msg.parts.length === 0) continue
 
       if (msg.info.role === "user") {
-        result.push({
+        const userMessage: UIMessage = {
           id: msg.info.id,
           role: "user",
-          parts: msg.parts.flatMap((part): UIMessage["parts"] => {
-            if (part.type === "text")
-              return [
-                {
-                  type: "text",
-                  text: part.text,
-                },
-              ]
-            // text/plain and directory files are converted into text parts, ignore them
-            if (part.type === "file" && part.mime !== "text/plain" && part.mime !== "application/x-directory")
-              return [
-                {
-                  type: "file",
-                  url: part.url,
-                  mediaType: part.mime,
-                  filename: part.filename,
-                },
-              ]
-            return []
-          }),
-        })
+          parts: [],
+        }
+        result.push(userMessage)
+        for (const part of msg.parts) {
+          if (part.type === "text")
+            userMessage.parts.push({
+              type: "text",
+              text: part.text,
+            })
+          // text/plain and directory files are converted into text parts, ignore them
+          if (part.type === "file" && part.mime !== "text/plain" && part.mime !== "application/x-directory")
+            userMessage.parts.push({
+              type: "file",
+              url: part.url,
+              mediaType: part.mime,
+              filename: part.filename,
+            })
+
+          if (part.type === "compaction") {
+            userMessage.parts.push({
+              type: "text",
+              text: "What did we do so far?",
+            })
+          }
+          if (part.type === "subtask") {
+            userMessage.parts.push({
+              type: "text",
+              text: "The following tool was executed by the user",
+            })
+          }
+        }
       }
 
       if (msg.info.role === "assistant") {
-        result.push({
+        const assistantMessage: UIMessage = {
           id: msg.info.id,
           role: "assistant",
-          parts: msg.parts.flatMap((part): UIMessage["parts"] => {
-            if (part.type === "text")
-              return [
-                {
-                  type: "text",
-                  text: part.text,
-                  providerMetadata: part.metadata,
-                },
-              ]
-            if (part.type === "step-start")
-              return [
-                {
-                  type: "step-start",
-                },
-              ]
-            if (part.type === "tool") {
-              if (part.state.status === "completed") {
-                if (part.state.attachments?.length) {
-                  result.push({
-                    id: Identifier.ascending("message"),
-                    role: "user",
-                    parts: [
-                      {
-                        type: "text",
-                        text: `Tool ${part.tool} returned an attachment:`,
-                      },
-                      ...part.state.attachments.map((attachment) => ({
-                        type: "file" as const,
-                        url: attachment.url,
-                        mediaType: attachment.mime,
-                        filename: attachment.filename,
-                      })),
-                    ],
-                  })
-                }
-                return [
-                  {
-                    type: ("tool-" + part.tool) as `tool-${string}`,
-                    state: "output-available",
-                    toolCallId: part.callID,
-                    input: part.state.input,
-                    output: part.state.time.compacted ? "[Old tool result content cleared]" : part.state.output,
-                    callProviderMetadata: part.metadata,
-                  },
-                ]
+          parts: [],
+        }
+        result.push(assistantMessage)
+        for (const part of msg.parts) {
+          if (part.type === "text")
+            assistantMessage.parts.push({
+              type: "text",
+              text: part.text,
+              providerMetadata: part.metadata,
+            })
+          if (part.type === "step-start")
+            assistantMessage.parts.push({
+              type: "step-start",
+            })
+          if (part.type === "tool") {
+            if (part.state.status === "completed") {
+              if (part.state.attachments?.length) {
+                result.push({
+                  id: Identifier.ascending("message"),
+                  role: "user",
+                  parts: [
+                    {
+                      type: "text",
+                      text: `Tool ${part.tool} returned an attachment:`,
+                    },
+                    ...part.state.attachments.map((attachment) => ({
+                      type: "file" as const,
+                      url: attachment.url,
+                      mediaType: attachment.mime,
+                      filename: attachment.filename,
+                    })),
+                  ],
+                })
               }
-              if (part.state.status === "error")
-                return [
-                  {
-                    type: ("tool-" + part.tool) as `tool-${string}`,
-                    state: "output-error",
-                    toolCallId: part.callID,
-                    input: part.state.input,
-                    errorText: part.state.error,
-                    callProviderMetadata: part.metadata,
-                  },
-                ]
+              assistantMessage.parts.push({
+                type: ("tool-" + part.tool) as `tool-${string}`,
+                state: "output-available",
+                toolCallId: part.callID,
+                input: part.state.input,
+                output: part.state.time.compacted ? "[Old tool result content cleared]" : part.state.output,
+                callProviderMetadata: part.metadata,
+              })
             }
-            if (part.type === "reasoning") {
-              return [
-                {
-                  type: "reasoning",
-                  text: part.text,
-                  providerMetadata: part.metadata,
-                },
-              ]
-            }
-
-            return []
-          }),
-        })
+            if (part.state.status === "error")
+              assistantMessage.parts.push({
+                type: ("tool-" + part.tool) as `tool-${string}`,
+                state: "output-error",
+                toolCallId: part.callID,
+                input: part.state.input,
+                errorText: part.state.error,
+                callProviderMetadata: part.metadata,
+              })
+          }
+          if (part.type === "reasoning") {
+            assistantMessage.parts.push({
+              type: "reasoning",
+              text: part.text,
+              providerMetadata: part.metadata,
+            })
+          }
+        }
       }
     }
 
     return convertToModelMessages(result)
   }
 
-  export function filterCompacted(msgs: { info: MessageV2.Info; parts: MessageV2.Part[] }[]) {
-    const i = msgs.findLastIndex((m) => m.info.role === "assistant" && !!m.info.summary)
-    if (i === -1) return msgs.slice()
-    return msgs.slice(i)
+  export const stream = fn(Identifier.schema("session"), async function* (sessionID) {
+    const list = await Array.fromAsync(await Storage.list(["message", sessionID]))
+    for (let i = list.length - 1; i >= 0; i--) {
+      yield await get({
+        sessionID,
+        messageID: list[i][2],
+      })
+    }
+  })
+
+  export const parts = fn(Identifier.schema("message"), async (messageID) => {
+    const result = [] as MessageV2.Part[]
+    for (const item of await Storage.list(["part", messageID])) {
+      const read = await Storage.read<MessageV2.Part>(item)
+      result.push(read)
+    }
+    result.sort((a, b) => (a.id > b.id ? 1 : -1))
+    return result
+  })
+
+  export const get = fn(
+    z.object({
+      sessionID: Identifier.schema("session"),
+      messageID: Identifier.schema("message"),
+    }),
+    async (input) => {
+      return {
+        info: await Storage.read<MessageV2.Info>(["message", input.sessionID, input.messageID]),
+        parts: await parts(input.messageID),
+      }
+    },
+  )
+
+  export async function filterCompacted(stream: AsyncIterable<MessageV2.WithParts>) {
+    const result = [] as MessageV2.WithParts[]
+    const completed = new Set<string>()
+    for await (const msg of stream) {
+      result.push(msg)
+      if (
+        msg.info.role === "user" &&
+        completed.has(msg.info.id) &&
+        msg.parts.some((part) => part.type === "compaction")
+      )
+        break
+      if (msg.info.role === "assistant" && msg.info.summary && msg.info.finish) completed.add(msg.info.parentID)
+    }
+    result.reverse()
+    return result
   }
 
   export function fromError(e: unknown, ctx: { providerID: string }) {
