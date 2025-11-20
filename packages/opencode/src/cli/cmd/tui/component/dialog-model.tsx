@@ -4,6 +4,12 @@ import { useSync } from "@tui/context/sync"
 import { map, pipe, flatMap, entries, filter, isDeepEqual, sortBy } from "remeda"
 import { DialogSelect, type DialogSelectRef } from "@tui/ui/dialog-select"
 import { useDialog } from "@tui/ui/dialog"
+import { useTheme } from "../context/theme"
+
+function Free() {
+  const { theme } = useTheme()
+  return <span style={{ fg: theme.secondary }}>Free</span>
+}
 
 export function DialogModel() {
   const local = useLocal()
@@ -29,6 +35,7 @@ export function DialogModel() {
                 title: model.name ?? item.modelID,
                 description: provider.name,
                 category: "Recent",
+                footer: model.cost?.input === 0 && provider.id === "opencode" ? <Free /> : undefined,
               },
             ]
           })
@@ -51,8 +58,10 @@ export function DialogModel() {
               title: info.name ?? model,
               description: provider.name,
               category: provider.name,
+              footer: info.cost?.input === 0 && provider.id === "opencode" ? <Free /> : undefined,
             })),
             filter((x) => Boolean(ref()?.filter) || !local.model.recent().find((y) => isDeepEqual(y, x.value))),
+            sortBy((x) => x.title),
           ),
         ),
       ),

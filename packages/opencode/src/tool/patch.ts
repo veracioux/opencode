@@ -55,18 +55,31 @@ export const PatchTool = Tool.define("patch", {
 
       if (!Filesystem.contains(Instance.directory, filePath)) {
         const parentDir = path.dirname(filePath)
-        await Permission.ask({
-          type: "external-directory",
-          pattern: parentDir,
-          sessionID: ctx.sessionID,
-          messageID: ctx.messageID,
-          callID: ctx.callID,
-          title: `Patch file outside working directory: ${filePath}`,
-          metadata: {
-            filepath: filePath,
-            parentDir,
-          },
-        })
+        if (agent.permission.external_directory === "ask") {
+          await Permission.ask({
+            type: "external_directory",
+            pattern: [parentDir, path.join(parentDir, "*")],
+            sessionID: ctx.sessionID,
+            messageID: ctx.messageID,
+            callID: ctx.callID,
+            title: `Patch file outside working directory: ${filePath}`,
+            metadata: {
+              filepath: filePath,
+              parentDir,
+            },
+          })
+        } else if (agent.permission.external_directory === "deny") {
+          throw new Permission.RejectedError(
+            ctx.sessionID,
+            "external_directory",
+            ctx.callID,
+            {
+              filepath: filePath,
+              parentDir,
+            },
+            `File ${filePath} is not in the current working directory`,
+          )
+        }
       }
 
       switch (hunk.type) {
