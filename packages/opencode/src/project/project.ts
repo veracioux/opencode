@@ -1,5 +1,4 @@
 import z from "zod"
-import { Filesystem } from "../util/filesystem"
 import path from "path"
 import { $ } from "bun"
 import { Storage } from "../storage/storage"
@@ -25,9 +24,11 @@ export namespace Project {
 
   export async function fromDirectory(directory: string) {
     log.info("fromDirectory", { directory })
-    const matches = Filesystem.up({ targets: [".git"], start: directory })
-    const git = await matches.next().then((x) => x.value)
-    await matches.return()
+    const git = await $`git rev-parse --absolute-git-dir`
+      .cwd(directory)
+      .text()
+      .then((x) => x.trim())
+      .catch(() => undefined)
     if (!git) {
       const project: Info = {
         id: "global",
