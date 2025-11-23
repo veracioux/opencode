@@ -24,6 +24,7 @@ export namespace Project {
 
   export async function fromDirectory(directory: string) {
     log.info("fromDirectory", { directory })
+    const timer = log.time("git.rev-parse")
     const git = await $`git rev-parse --absolute-git-dir`
       .cwd(directory)
       .text()
@@ -42,7 +43,6 @@ export namespace Project {
       return project
     }
     let worktree = path.dirname(git)
-    const timer = log.time("git.rev-parse")
     let id = await Bun.file(path.join(git, "opencode"))
       .text()
       .then((x) => x.trim())
