@@ -136,6 +136,7 @@ export namespace SessionProcessor {
 
                     const parts = await MessageV2.parts(input.assistantMessage.id)
                     const lastThree = parts.slice(-DOOM_LOOP_THRESHOLD)
+
                     if (
                       lastThree.length === DOOM_LOOP_THRESHOLD &&
                       lastThree.every(
@@ -160,6 +161,17 @@ export namespace SessionProcessor {
                             input: value.input,
                           },
                         })
+                      } else if (permission.doom_loop === "deny") {
+                        throw new Permission.RejectedError(
+                          input.assistantMessage.sessionID,
+                          "doom_loop",
+                          value.toolCallId,
+                          {
+                            tool: value.toolName,
+                            input: value.input,
+                          },
+                          `You seem to be stuck in a doom loop, please stop repeating the same action`,
+                        )
                       }
                     }
                   }
@@ -307,8 +319,6 @@ export namespace SessionProcessor {
                   break
 
                 case "finish":
-                  input.assistantMessage.time.completed = Date.now()
-                  await Session.updateMessage(input.assistantMessage)
                   break
 
                 default:
@@ -323,13 +333,13 @@ export namespace SessionProcessor {
               error: e,
             })
             const error = MessageV2.fromError(e, { providerID: input.providerID })
-            if (error?.name === "APIError" && error.data.isRetryable) {
+            if ((error?.name === "APIError" && error.data.isRetryable) || error.data.message.includes("Overloaded")) {
               attempt++
-              const delay = SessionRetry.delay(error, attempt)
+              const delay = SessionRetry.delay(attempt, error.name === "APIError" ? error : undefined)
               SessionStatus.set(input.sessionID, {
                 type: "retry",
                 attempt,
-                message: error.data.message,
+                message: error.data.message.includes("Overloaded") ? "Provider is overloaded" : error.data.message,
                 next: Date.now() + delay,
               })
               await SessionRetry.sleep(delay, input.abort).catch(() => {})

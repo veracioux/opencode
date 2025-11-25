@@ -19,6 +19,8 @@ import type {
   ToolListData,
   ToolListResponses,
   ToolListErrors,
+  InstanceDisposeData,
+  InstanceDisposeResponses,
   PathGetData,
   PathGetResponses,
   SessionListData,
@@ -73,6 +75,9 @@ import type {
   SessionMessageData,
   SessionMessageResponses,
   SessionMessageErrors,
+  SessionPromptAsyncData,
+  SessionPromptAsyncResponses,
+  SessionPromptAsyncErrors,
   SessionCommandData,
   SessionCommandResponses,
   SessionCommandErrors,
@@ -92,6 +97,16 @@ import type {
   CommandListResponses,
   ConfigProvidersData,
   ConfigProvidersResponses,
+  ProviderListData,
+  ProviderListResponses,
+  ProviderAuthData,
+  ProviderAuthResponses,
+  ProviderOauthAuthorizeData,
+  ProviderOauthAuthorizeResponses,
+  ProviderOauthAuthorizeErrors,
+  ProviderOauthCallbackData,
+  ProviderOauthCallbackResponses,
+  ProviderOauthCallbackErrors,
   FindTextData,
   FindTextResponses,
   FindFilesData,
@@ -267,6 +282,18 @@ class Tool extends _HeyApiClient {
   public list<ThrowOnError extends boolean = false>(options: Options<ToolListData, ThrowOnError>) {
     return (options.client ?? this._client).get<ToolListResponses, ToolListErrors, ThrowOnError>({
       url: "/experimental/tool",
+      ...options,
+    })
+  }
+}
+
+class Instance extends _HeyApiClient {
+  /**
+   * Dispose the current instance
+   */
+  public dispose<ThrowOnError extends boolean = false>(options?: Options<InstanceDisposeData, ThrowOnError>) {
+    return (options?.client ?? this._client).post<InstanceDisposeResponses, unknown, ThrowOnError>({
+      url: "/instance/dispose",
       ...options,
     })
   }
@@ -490,6 +517,20 @@ class Session extends _HeyApiClient {
   }
 
   /**
+   * Create and send a new message to a session, start if needed and return immediately
+   */
+  public promptAsync<ThrowOnError extends boolean = false>(options: Options<SessionPromptAsyncData, ThrowOnError>) {
+    return (options.client ?? this._client).post<SessionPromptAsyncResponses, SessionPromptAsyncErrors, ThrowOnError>({
+      url: "/session/{id}/prompt_async",
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    })
+  }
+
+  /**
    * Send a new command to a session
    */
   public command<ThrowOnError extends boolean = false>(options: Options<SessionCommandData, ThrowOnError>) {
@@ -552,6 +593,67 @@ class Command extends _HeyApiClient {
       ...options,
     })
   }
+}
+
+class Oauth extends _HeyApiClient {
+  /**
+   * Authorize a provider using OAuth
+   */
+  public authorize<ThrowOnError extends boolean = false>(options: Options<ProviderOauthAuthorizeData, ThrowOnError>) {
+    return (options.client ?? this._client).post<
+      ProviderOauthAuthorizeResponses,
+      ProviderOauthAuthorizeErrors,
+      ThrowOnError
+    >({
+      url: "/provider/{id}/oauth/authorize",
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    })
+  }
+
+  /**
+   * Handle OAuth callback for a provider
+   */
+  public callback<ThrowOnError extends boolean = false>(options: Options<ProviderOauthCallbackData, ThrowOnError>) {
+    return (options.client ?? this._client).post<
+      ProviderOauthCallbackResponses,
+      ProviderOauthCallbackErrors,
+      ThrowOnError
+    >({
+      url: "/provider/{id}/oauth/callback",
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    })
+  }
+}
+
+class Provider extends _HeyApiClient {
+  /**
+   * List all providers
+   */
+  public list<ThrowOnError extends boolean = false>(options?: Options<ProviderListData, ThrowOnError>) {
+    return (options?.client ?? this._client).get<ProviderListResponses, unknown, ThrowOnError>({
+      url: "/provider",
+      ...options,
+    })
+  }
+
+  /**
+   * Get provider authentication methods
+   */
+  public auth<ThrowOnError extends boolean = false>(options?: Options<ProviderAuthData, ThrowOnError>) {
+    return (options?.client ?? this._client).get<ProviderAuthResponses, unknown, ThrowOnError>({
+      url: "/provider/auth",
+      ...options,
+    })
+  }
+  oauth = new Oauth({ client: this._client })
 }
 
 class Find extends _HeyApiClient {
@@ -891,9 +993,11 @@ export class OpencodeClient extends _HeyApiClient {
   project = new Project({ client: this._client })
   config = new Config({ client: this._client })
   tool = new Tool({ client: this._client })
+  instance = new Instance({ client: this._client })
   path = new Path({ client: this._client })
   session = new Session({ client: this._client })
   command = new Command({ client: this._client })
+  provider = new Provider({ client: this._client })
   find = new Find({ client: this._client })
   file = new File({ client: this._client })
   app = new App({ client: this._client })

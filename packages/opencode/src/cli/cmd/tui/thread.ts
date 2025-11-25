@@ -5,6 +5,7 @@ import { type rpc } from "./worker"
 import path from "path"
 import { UI } from "@/cli/ui"
 import { iife } from "@/util/iife"
+import { Log } from "@/util/log"
 
 declare global {
   const OPENCODE_WORKER_PATH: string
@@ -57,16 +58,14 @@ export const TuiThreadCommand = cmd({
     // Resolve relative paths against PWD to preserve behavior when using --cwd flag
     const baseCwd = process.env.PWD ?? process.cwd()
     const cwd = args.project ? path.resolve(baseCwd, args.project) : process.cwd()
-    const defaultWorker = new URL("./worker.ts", import.meta.url)
-    // Nix build creates a bundled worker next to the binary; prefer it when present.
+    const localWorker = new URL("./worker.ts", import.meta.url)
+    const distWorker = new URL("./cli/cmd/tui/worker.js", import.meta.url)
     const execDir = path.dirname(process.execPath)
-    const bundledWorker = path.join(execDir, "opencode-worker.js")
-    const hasBundledWorker = await Bun.file(bundledWorker).exists()
-    const workerPath = (() => {
+    const workerPath = await iife(async () => {
       if (typeof OPENCODE_WORKER_PATH !== "undefined") return OPENCODE_WORKER_PATH
-      if (hasBundledWorker) return bundledWorker
-      return defaultWorker
-    })()
+      if (await Bun.file(distWorker).exists()) return distWorker
+      return localWorker
+    })
     try {
       process.chdir(cwd)
     } catch (e) {
@@ -79,13 +78,15 @@ export const TuiThreadCommand = cmd({
         Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined),
       ),
     })
-    worker.onerror = console.error
+    worker.onerror = (e) => {
+      Log.Default.error(e)
+    }
     const client = Rpc.client<typeof rpc>(worker)
     process.on("uncaughtException", (e) => {
-      console.error(e)
+      Log.Default.error(e)
     })
     process.on("unhandledRejection", (e) => {
-      console.error(e)
+      Log.Default.error(e)
     })
     const server = await client.call("server", {
       port: args.port,
@@ -96,7 +97,8 @@ export const TuiThreadCommand = cmd({
       if (!args.prompt) return piped
       return piped ? piped + "\n" + args.prompt : args.prompt
     })
-    await tui({
+
+    const tuiPromise = tui({
       url: server.url,
       args: {
         continue: args.continue,
@@ -109,5 +111,11 @@ export const TuiThreadCommand = cmd({
         await client.call("shutdown", undefined)
       },
     })
+
+    setTimeout(() => {
+      client.call("checkUpgrade", { directory: cwd }).catch(() => {})
+    }, 1000)
+
+    await tuiPromise
   },
 })
