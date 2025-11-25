@@ -30,7 +30,6 @@ import { TuiEvent } from "./event"
 import { KVProvider, useKV } from "./context/kv"
 import { Provider } from "@/provider/provider"
 import { ArgsProvider, useArgs, type Args } from "./context/args"
-import { iife } from "@/util/iife"
 
 async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
   // can't set raw mode if not a TTY
@@ -187,22 +186,14 @@ function App() {
     })
   })
 
-  // Handle args.continue
-  iife(() => {
-    let sessionContinued = false
-    createEffect(() => {
-      if (sync.status !== "complete") return
-      if (args.continue && !sessionContinued) {
-        const match = sync.data.session.at(0)?.id
-        if (match) {
-          sessionContinued = true
-          route.navigate({
-            type: "session",
-            sessionID: match,
-          })
-        }
-      }
-    })
+  let continued = false
+  createEffect(() => {
+    if (continued || sync.status !== "complete" || !args.continue) return
+    const match = sync.data.session.at(0)?.id
+    if (match) {
+      continued = true
+      route.navigate({ type: "session", sessionID: match })
+    }
   })
 
   command.register(() => [
